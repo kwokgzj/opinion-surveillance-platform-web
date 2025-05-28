@@ -17,8 +17,9 @@ const instance: AxiosInstance = axios.create({
 });
 
 // 定义常量配置
-const URL_QUERY_PARAM_NAME = 'client_token'; // URL查询参数中的字段名
-const REQUEST_HEADER_NAME = 'revopoint_client_token'; // 请求头中的字段名
+const URL_QUERY_PARAM_NAME = 'revopoint-client-token'; // URL查询参数中的字段名
+const REQUEST_HEADER_NAME = 'revopoint-client-token'; // 请求头中的字段名
+const SESSION_TOKEN_KEY = 'base_agent_revopoint_client_token'; // 保存token的sessionStorage键名
 
 /**
  * 从URL查询参数中获取指定的令牌
@@ -44,8 +45,16 @@ export interface RequestConfig extends AxiosRequestConfig {
 // 请求拦截器：自动添加token到请求头
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {  // 修改这里的类型
-    // 从URL获取token，不存在则为null
-    const token = getTokenFromUrlQuery();
+    // 从URL获取token
+    let token = getTokenFromUrlQuery();
+    // 如果URL中有token，保存到sessionStorage
+    if (token) {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    }
+    // 如果URL中没有token，尝试从sessionStorage获取
+    else {
+      token = sessionStorage.getItem(SESSION_TOKEN_KEY);
+    }
 
     // 设置token到请求头
     config.headers.set(REQUEST_HEADER_NAME, token);
