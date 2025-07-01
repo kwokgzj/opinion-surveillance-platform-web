@@ -20,9 +20,9 @@ export default defineConfig({
     port: 5173, // 可以根据需要修改端口
     open: true, // 自动打开浏览器
     proxy: {
-      // 配置代理，将 /track-api 请求转发到目标服务器
-      '/track-api': {
-        target: 'http://localhost:8180',
+      // 配置代理，将请求转发到目标服务器
+      '/opinion-surveillance-platform-api': {
+        target: 'http://localhost:31002',
         changeOrigin: true, // 改变请求源，避免跨域问题
         // 不需要重写路径，因为我们的目标路径也是 /track-api
         // rewrite: (path) => path.replace(/^\/track-api/, '')

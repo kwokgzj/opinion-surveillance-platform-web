@@ -9,7 +9,7 @@ import type {
 
 // 创建一个自定义的 axios 实例，设置基础 URL
 const instance: AxiosInstance = axios.create({
-  baseURL: '/track-api', // 全局 API 前缀，所有请求都会以此为基础路径
+  baseURL: '/opinion-surveillance-platform-api', // 全局 API 前缀，所有请求都会以此为基础路径
   timeout: 60000, // 请求超时时间设置为60秒
   headers: {
     'Content-Type': 'application/json;charset=utf-8',
