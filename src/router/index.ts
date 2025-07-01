@@ -59,6 +59,11 @@ const router = createRouter({
           name: 'keywordProjectSetting',
           component: () => import('@/views/KeywordProjectSettingView.vue')
         },
+        {
+          path: 'videoListSettingView',
+          name: 'videoListSettingView',
+          component: () => import('@/views/VideoListSettingView.vue')
+        },
         // 其他子路由...
       ]
     }

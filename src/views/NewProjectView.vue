@@ -157,6 +157,15 @@ const handleNextStep = async () => {
           projectType: projectForm.type
         }
       });
+    }else if (projectForm.type === 'VideoList') {
+      router.push({
+        name: 'videoListSettingView',
+        query: {
+          isNew: 'true',
+          projectName: projectForm.name,
+          projectType: projectForm.type
+        }
+      });
     } else {
       // 其他类型项目的设置页面
       router.push({

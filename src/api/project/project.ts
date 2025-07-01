@@ -25,7 +25,7 @@ export async function getProjectList() {
 /**
  * 创建新项目
  * @param {Project} project 项目配置信息
- * @returns {Promise<Project>} 创建成功的项目信息
+ * @returns 创建结果
  */
 export async function createProject(project: Project) {
   try {
@@ -33,6 +33,21 @@ export async function createProject(project: Project) {
     return response;
   } catch (error) {
     console.error('创建项目出错:', error);
+    throw error;
+  }
+}
+
+/**
+ * 通过项目ID获取项目详细信息
+ * @param {string | number} projectId 项目ID
+ * @returns {Promise<Project>} 项目详细信息
+ */
+export async function getProjectById(projectId: string | number) {
+  try {
+    const response = await get<ApiResponse<Project>>(`/project?projectId=${projectId}`);
+    return response;
+  } catch (error) {
+    console.error('获取项目详情出错:', error);
     throw error;
   }
 }
