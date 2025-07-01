@@ -157,9 +157,18 @@ const handleNextStep = async () => {
           projectType: projectForm.type
         }
       });
-    }else if (projectForm.type === 'VideoList') {
+    } else if (projectForm.type === 'VideoList') {
       router.push({
         name: 'videoListSettingView',
+        query: {
+          isNew: 'true',
+          projectName: projectForm.name,
+          projectType: projectForm.type
+        }
+      });
+    } else if (projectForm.type === 'GoogleNews') {
+      router.push({
+        name: 'googleNewsSettingView',
         query: {
           isNew: 'true',
           projectName: projectForm.name,

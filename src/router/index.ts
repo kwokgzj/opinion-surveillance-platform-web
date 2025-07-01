@@ -64,6 +64,11 @@ const router = createRouter({
           name: 'videoListSettingView',
           component: () => import('@/views/VideoListSettingView.vue')
         },
+        {
+          path: 'googleNewsSettingView',
+          name: 'googleNewsSettingView',
+          component: () => import('@/views/GoogleNewsSettingView.vue')
+        },
         // 其他子路由...
       ]
     }

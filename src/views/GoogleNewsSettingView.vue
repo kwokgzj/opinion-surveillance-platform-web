@@ -17,32 +17,21 @@
       <div class="form-row">
         <div class="form-item">
           <label>项目类型：</label>
-          <span class="form-value">社媒关键字项目</span>
+          <span class="form-value">Google新闻项目</span>
         </div>
       </div>
 
       <!-- 搜索条数 -->
       <div class="form-row">
         <div class="form-item">
-          <label class="required">帖子搜索条数：</label>
+          <label class="required">新闻搜索条数：</label>
           <input
-            v-model.number="postSearchCount"
+            v-model.number="newsSearchCount"
             type="number"
             min="1"
             max="10000"
-            @blur="validatePostSearchCount"
-            @input="validatePostSearchCount"
-          />
-        </div>
-        <div class="form-item">
-          <label class="required">视频搜索条数：</label>
-          <input
-            v-model.number="videoSearchCount"
-            type="number"
-            min="1"
-            max="5000"
-            @blur="validateVideoSearchCount"
-            @input="validateVideoSearchCount"
+            @blur="validateNewsSearchCount"
+            @input="validateNewsSearchCount"
           />
         </div>
       </div>
@@ -89,40 +78,80 @@
         </div>
       </div>
 
-      <!-- 抓取平台 -->
+      <!-- 语言选择 -->
       <div class="form-row">
         <div class="form-item">
-          <label class="required">抓取平台：</label>
-          <div class="platform-multiselect">
-            <div class="multiselect-container" @click="toggleDropdown">
+          <label class="required">语言：</label>
+          <div class="language-multiselect">
+            <div class="multiselect-container" @click="toggleLanguageDropdown">
               <div class="selected-platforms">
-                <span v-if="searchPlatforms.length === 0" class="placeholder">请选择抓取平台</span>
+                <span v-if="selectedLanguages.length === 0" class="placeholder">请选择语言</span>
                 <span v-else class="platform-tags">
                   <span
-                    v-for="platformValue in searchPlatforms"
-                    :key="platformValue"
+                    v-for="languageValue in selectedLanguages"
+                    :key="languageValue"
                     class="platform-tag"
                   >
-                    {{ getPlatformLabel(platformValue) }}
-                    <span class="tag-close" @click.stop="removePlatform(platformValue)">×</span>
+                    {{ getLanguageLabel(languageValue) }}
+                    <span class="tag-close" @click.stop="removeLanguage(languageValue)">×</span>
                   </span>
                 </span>
               </div>
-              <span class="dropdown-arrow" :class="{ 'open': dropdownOpen }">▼</span>
+              <span class="dropdown-arrow" :class="{ 'open': languageDropdownOpen }">▼</span>
             </div>
-            <div v-if="dropdownOpen" class="dropdown-options">
+            <div v-if="languageDropdownOpen" class="dropdown-options">
               <div
-                v-for="platform in platformOptions"
-                :key="platform.value"
+                v-for="language in languageOptions"
+                :key="language.value"
                 class="dropdown-option"
-                @click="togglePlatform(platform.value)"
+                @click="toggleLanguage(language.value)"
               >
                 <input
                   type="checkbox"
-                  :checked="searchPlatforms.includes(platform.value)"
+                  :checked="selectedLanguages.includes(language.value)"
                   @click.stop
                 />
-                <label>{{ platform.label }}</label>
+                <label>{{ language.label }}</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 地区选择 -->
+      <div class="form-row">
+        <div class="form-item">
+          <label class="required">地区：</label>
+          <div class="region-multiselect">
+            <div class="multiselect-container" @click="toggleRegionDropdown">
+              <div class="selected-platforms">
+                <span v-if="selectedRegions.length === 0" class="placeholder">请选择地区</span>
+                <span v-else class="platform-tags">
+                  <span
+                    v-for="regionValue in selectedRegions"
+                    :key="regionValue"
+                    class="platform-tag"
+                  >
+                    {{ getRegionLabel(regionValue) }}
+                    <span class="tag-close" @click.stop="removeRegion(regionValue)">×</span>
+                  </span>
+                </span>
+              </div>
+              <span class="dropdown-arrow" :class="{ 'open': regionDropdownOpen }">▼</span>
+            </div>
+            <div v-if="regionDropdownOpen" class="dropdown-options">
+              <div
+                v-for="region in regionOptions"
+                :key="region.value"
+                class="dropdown-option"
+                @click="toggleRegion(region.value)"
+              >
+                <input
+                  type="checkbox"
+                  :checked="selectedRegions.includes(region.value)"
+                  @click.stop
+                />
+                <label>{{ region.label }}</label>
               </div>
             </div>
           </div>
@@ -169,24 +198,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- 不抓取列表 -->
-      <div class="form-section">
-        <label class="section-label">不抓取以下视频/帖子：</label>
-        <textarea
-          v-model="excludeLinksText"
-          @input="handleExcludeLinksChange"
-          @blur="handleExcludeLinksBlur"
-          placeholder="填写视频/帖子的链接，一行一个链接"
-          rows="5"
-          ref="excludeLinksTextarea"
-          class="exclude-links-textarea"
-        ></textarea>
-        <!-- 可选：显示解析后的链接数量 -->
-        <div v-if="excludeLinks.length > 0" class="exclude-links-count">
-          已添加 {{ excludeLinks.length }} 个链接
         </div>
       </div>
 
@@ -240,7 +251,6 @@
 
 <script>
 import { createProject } from '@/api/project/project';
-
 export default {
   name: 'NewKeywordProjectView',
   data() {
@@ -251,18 +261,17 @@ export default {
       projectStatus: 'creating',
 
       projectName: '',
-      projectType: 'SocialMediaKeywords',
-      postSearchCount: null,
-      videoSearchCount: null,
+      projectType: 'GoogleNews',
+      newsSearchCount: null,
       crawlTimeRange: '',
       crawlFrequency: '',
-      searchPlatforms: [],
+      selectedLanguages: [],
+      selectedRegions: [],
       keywords: [
         { word: '', include: '', exclude: '' }
       ],
-      excludeLinks: [], // 现在存储 ExcludedVideoLink 对象数组
-      excludeLinksText: '',
-      dropdownOpen: false,
+      languageDropdownOpen: false,
+      regionDropdownOpen: false,
       timeRangeDropdownOpen: false,
       frequencyDropdownOpen: false,
 
@@ -283,11 +292,29 @@ export default {
         { value: '168', label: '每周抓取' },
         { value: '720', label: '每月抓取' }
       ],
-      platformOptions: [
-        { value: 'Youtube', label: 'Youtube' },
-        { value: 'X', label: 'X(Twitter)' },
-        { value: 'Instagram', label: 'Instagram' },
-        { value: 'Facebook', label: 'Facebook' },
+      languageOptions: [
+        { value: 'zh-CN', label: '中文(简体)' },
+        { value: 'zh-TW', label: '中文(繁体)' },
+        { value: 'en', label: '英语' },
+        { value: 'ja', label: '日语' },
+        { value: 'ko', label: '韩语' },
+        { value: 'fr', label: '法语' },
+        { value: 'de', label: '德语' },
+        { value: 'es', label: '西班牙语' },
+        { value: 'ru', label: '俄语' },
+        { value: 'ar', label: '阿拉伯语' }
+      ],
+      regionOptions: [
+        { value: 'CN', label: '中国' },
+        { value: 'US', label: '美国' },
+        { value: 'GB', label: '英国' },
+        { value: 'JP', label: '日本' },
+        { value: 'KR', label: '韩国' },
+        { value: 'FR', label: '法国' },
+        { value: 'DE', label: '德国' },
+        { value: 'CA', label: '加拿大' },
+        { value: 'AU', label: '澳大利亚' },
+        { value: 'IN', label: '印度' }
       ]
     }
   },
@@ -296,11 +323,11 @@ export default {
     isFormValid() {
       const hasValidKeywords = this.keywords.some(keyword => keyword.word.trim());
       return this.projectName.trim() &&
-             this.postSearchCount > 0 &&
-             this.videoSearchCount > 0 &&
+             this.newsSearchCount > 0 &&
              this.crawlTimeRange &&
              this.crawlFrequency &&
-             this.searchPlatforms.length > 0 &&
+             this.selectedLanguages.length > 0 &&
+             this.selectedRegions.length > 0 &&
              hasValidKeywords;
     },
 
@@ -345,10 +372,7 @@ export default {
     projectName() {
       this.checkForChanges();
     },
-    postSearchCount() {
-      this.checkForChanges();
-    },
-    videoSearchCount() {
+    newsSearchCount() {
       this.checkForChanges();
     },
     crawlTimeRange() {
@@ -357,19 +381,19 @@ export default {
     crawlFrequency() {
       this.checkForChanges();
     },
-    searchPlatforms: {
+    selectedLanguages: {
+      handler() {
+        this.checkForChanges();
+      },
+      deep: true
+    },
+    selectedRegions: {
       handler() {
         this.checkForChanges();
       },
       deep: true
     },
     keywords: {
-      handler() {
-        this.checkForChanges();
-      },
-      deep: true
-    },
-    excludeLinks: {
       handler() {
         this.checkForChanges();
       },
@@ -382,8 +406,6 @@ export default {
 
     // 点击外部关闭下拉框
     document.addEventListener('click', this.handleClickOutside);
-    // 初始化时将 excludeLinks 数组内容显示到文本框
-    this.initializeExcludeLinksText();
     // 保存初始表单数据
     this.saveInitialFormData();
   },
@@ -393,70 +415,62 @@ export default {
   methods: {
     // 初始化页面模式
     initializePageMode() {
-      // 可以根据路由参数或props判断模式
-      const projectId = this.$route.params.id || this.$route.query.id;
-      const projectName = this.$route.query.projectName;
+    // 可以根据路由参数或props判断模式
+    const projectId = this.$route.params.id || this.$route.query.id;
+    const projectName = this.$route.query.projectName;
 
-      if (projectId) {
-        // 编辑模式
-        this.isEditMode = true;
-        this.projectStatus = 'saved';
-        this.loadProjectData(projectId);
-      } else {
-        // 新建模式
-        this.isEditMode = false;
-        this.projectStatus = 'creating';
-        // 设置默认值
-        this.setDefaultValues();
+    if (projectId) {
+      // 编辑模式
+      this.isEditMode = true;
+      this.projectStatus = 'saved';
+      this.loadProjectData(projectId);
+    } else {
+      // 新建模式
+      this.isEditMode = false;
+      this.projectStatus = 'creating';
+      // 设置默认值
+      this.setDefaultValues();
 
-        // 如果有传入的项目名称，则设置
-        if (projectName) {
-          this.projectName = projectName;
-        }
+      // 如果有传入的项目名称，则设置
+      if (projectName) {
+        this.projectName = projectName;
       }
-    },
+    }
+  },
 
     // 设置新建时的默认值
     setDefaultValues() {
-      this.projectName = '';
-      this.postSearchCount = 500; // 默认500
-      this.videoSearchCount = 100; // 默认100
-      this.crawlTimeRange = '720'; // 默认近30天
-      this.crawlFrequency = '24'; // 默认每天抓取
-      this.searchPlatforms = ['Youtube', 'X', 'Instagram', 'Facebook']; // 全选平台
-      this.keywords = [{ word: '', include: '', exclude: '' }];
-      this.excludeLinks = []; // 空的 ExcludedVideoLink 数组
-    },
+    this.projectName = '';
+    this.newsSearchCount = 500; // 默认500
+    this.crawlTimeRange = '720'; // 默认近30天
+    this.crawlFrequency = '24'; // 默认每天抓取
+    this.selectedLanguages = ['zh-CN']; // 默认中文简体
+    this.selectedRegions = ['CN']; // 默认中国
+    this.keywords = [{ word: '', include: '', exclude: '' }];
+  },
 
     // 加载项目数据（编辑模式）
     loadProjectData(projectId) {
       // 模拟加载数据
       this.projectName = '项目1';
-      this.postSearchCount = 500;
-      this.videoSearchCount = 100;
+      this.newsSearchCount = 500;
       this.crawlTimeRange = '720';
       this.crawlFrequency = '24';
-      this.searchPlatforms = ['Youtube', 'X'];
+      this.selectedLanguages = ['zh-CN', 'en'];
+      this.selectedRegions = ['CN', 'US'];
       this.keywords = [{ word: '测试关键字', include: '', exclude: '' }];
-      // 修改为 ExcludedVideoLink 对象数组
-      this.excludeLinks = [
-        { url: 'fsdddddddd', platform: 'Youtube', platformID: 'yt123' },
-        { url: 'fskdfjhskdjf', platform: 'X', platformID: 'tw456' },
-        { url: 'hvoxcjuo', platform: 'Instagram', platformID: 'ig789' }
-      ];
     },
 
     // 保存初始表单数据
     saveInitialFormData() {
       this.initialFormData = {
         projectName: this.projectName,
-        postSearchCount: this.postSearchCount,
-        videoSearchCount: this.videoSearchCount,
+        newsSearchCount: this.newsSearchCount,
         crawlTimeRange: this.crawlTimeRange,
         crawlFrequency: this.crawlFrequency,
-        searchPlatforms: [...this.searchPlatforms],
-        keywords: JSON.parse(JSON.stringify(this.keywords)),
-        excludeLinks: JSON.parse(JSON.stringify(this.excludeLinks))
+        selectedLanguages: [...this.selectedLanguages],
+        selectedRegions: [...this.selectedRegions],
+        keywords: JSON.parse(JSON.stringify(this.keywords))
       };
     },
 
@@ -466,13 +480,12 @@ export default {
 
       const currentData = {
         projectName: this.projectName,
-        postSearchCount: this.postSearchCount,
-        videoSearchCount: this.videoSearchCount,
+        newsSearchCount: this.newsSearchCount,
         crawlTimeRange: this.crawlTimeRange,
         crawlFrequency: this.crawlFrequency,
-        searchPlatforms: [...this.searchPlatforms],
-        keywords: JSON.parse(JSON.stringify(this.keywords)),
-        excludeLinks: JSON.parse(JSON.stringify(this.excludeLinks))
+        selectedLanguages: [...this.selectedLanguages],
+        selectedRegions: [...this.selectedRegions],
+        keywords: JSON.parse(JSON.stringify(this.keywords))
       };
 
       this.hasChanges = !this.isDataEqual(this.initialFormData, currentData);
@@ -497,14 +510,12 @@ export default {
         // 编辑模式的取消，恢复原始数据
         if (this.initialFormData) {
           this.projectName = this.initialFormData.projectName;
-          this.postSearchCount = this.initialFormData.postSearchCount;
-          this.videoSearchCount = this.initialFormData.videoSearchCount;
+          this.newsSearchCount = this.initialFormData.newsSearchCount;
           this.crawlTimeRange = this.initialFormData.crawlTimeRange;
           this.crawlFrequency = this.initialFormData.crawlFrequency;
-          this.searchPlatforms = [...this.initialFormData.searchPlatforms];
+          this.selectedLanguages = [...this.initialFormData.selectedLanguages];
+          this.selectedRegions = [...this.initialFormData.selectedRegions];
           this.keywords = JSON.parse(JSON.stringify(this.initialFormData.keywords));
-          this.excludeLinks = JSON.parse(JSON.stringify(this.initialFormData.excludeLinks));
-          this.excludeLinksText = this.excludeLinks.map(link => link.url).join('\n');
 
           this.hasChanges = false;
           this.projectStatus = this.isEditMode ? 'saved' : 'created';
@@ -512,104 +523,112 @@ export default {
       }
     },
 
-    validatePostSearchCount() {
-      if (this.postSearchCount < 1) {
-        this.postSearchCount = 1;
-      } else if (this.postSearchCount > 10000) {
-        this.postSearchCount = 10000;
+    validateNewsSearchCount() {
+      if (this.newsSearchCount < 1) {
+        this.newsSearchCount = 1;
+      } else if (this.newsSearchCount > 10000) {
+        this.newsSearchCount = 10000;
         this.$nextTick(() => {
-          alert('帖子搜索条数不能超过10000条');
+          alert('新闻搜索条数不能超过10000条');
         });
       }
     },
-
-    validateVideoSearchCount() {
-      if (this.videoSearchCount < 1) {
-        this.videoSearchCount = 1;
-      } else if (this.videoSearchCount > 5000) {
-        this.videoSearchCount = 5000;
-        this.$nextTick(() => {
-          alert('视频搜索条数不能超过5000条');
-        });
-      }
-    },
-
     addKeyword() {
       this.keywords.push({ word: '', include: '', exclude: '' });
     },
-
     removeKeyword(index) {
       this.keywords.splice(index, 1);
       if (this.keywords.length === 0) {
         this.keywords.push({ word: '', include: '', exclude: '' });
       }
     },
-
-    toggleDropdown() {
-      this.dropdownOpen = !this.dropdownOpen;
+    toggleLanguageDropdown() {
+      this.languageDropdownOpen = !this.languageDropdownOpen;
+      this.regionDropdownOpen = false;
       this.timeRangeDropdownOpen = false;
       this.frequencyDropdownOpen = false;
     },
-
+    toggleRegionDropdown() {
+      this.regionDropdownOpen = !this.regionDropdownOpen;
+      this.languageDropdownOpen = false;
+      this.timeRangeDropdownOpen = false;
+      this.frequencyDropdownOpen = false;
+    },
     toggleTimeRangeDropdown() {
       this.timeRangeDropdownOpen = !this.timeRangeDropdownOpen;
       this.frequencyDropdownOpen = false;
-      this.dropdownOpen = false;
+      this.languageDropdownOpen = false;
+      this.regionDropdownOpen = false;
     },
-
     toggleFrequencyDropdown() {
       this.frequencyDropdownOpen = !this.frequencyDropdownOpen;
       this.timeRangeDropdownOpen = false;
-      this.dropdownOpen = false;
+      this.languageDropdownOpen = false;
+      this.regionDropdownOpen = false;
     },
-
     selectTimeRange(value) {
       this.crawlTimeRange = value;
       this.timeRangeDropdownOpen = false;
     },
-
     selectFrequency(value) {
       this.crawlFrequency = value;
       this.frequencyDropdownOpen = false;
     },
-
     getTimeRangeLabel(value) {
       const option = this.timeRangeOptions.find(o => o.value === value);
       return option ? option.label : '请选择';
     },
-
     getFrequencyLabel(value) {
       const option = this.frequencyOptions.find(o => o.value === value);
       return option ? option.label : '请选择';
     },
-
-    togglePlatform(platformValue) {
-      const index = this.searchPlatforms.indexOf(platformValue);
+    toggleLanguage(languageValue) {
+      const index = this.selectedLanguages.indexOf(languageValue);
       if (index > -1) {
-        this.searchPlatforms.splice(index, 1);
+        this.selectedLanguages.splice(index, 1);
       } else {
-        this.searchPlatforms.push(platformValue);
+        this.selectedLanguages.push(languageValue);
       }
     },
-
-    removePlatform(platformValue) {
-      const index = this.searchPlatforms.indexOf(platformValue);
+    removeLanguage(languageValue) {
+      const index = this.selectedLanguages.indexOf(languageValue);
       if (index > -1) {
-        this.searchPlatforms.splice(index, 1);
+        this.selectedLanguages.splice(index, 1);
       }
     },
-
-    getPlatformLabel(value) {
-      const platform = this.platformOptions.find(p => p.value === value);
-      return platform ? platform.label : value;
+    getLanguageLabel(value) {
+      const language = this.languageOptions.find(l => l.value === value);
+      return language ? language.label : value;
     },
-
+    toggleRegion(regionValue) {
+      const index = this.selectedRegions.indexOf(regionValue);
+      if (index > -1) {
+        this.selectedRegions.splice(index, 1);
+      } else {
+        this.selectedRegions.push(regionValue);
+      }
+    },
+    removeRegion(regionValue) {
+      const index = this.selectedRegions.indexOf(regionValue);
+      if (index > -1) {
+        this.selectedRegions.splice(index, 1);
+      }
+    },
+    getRegionLabel(value) {
+      const region = this.regionOptions.find(r => r.value === value);
+      return region ? region.label : value;
+    },
     handleClickOutside(event) {
-      const platformMultiselect = this.$el.querySelector('.platform-multiselect');
+      const languageMultiselect = this.$el.querySelector('.language-multiselect');
+      const regionMultiselect = this.$el.querySelector('.region-multiselect');
       const timeRangeSelects = this.$el.querySelectorAll('.custom-select');
 
-      if (platformMultiselect && !platformMultiselect.contains(event.target)) {
-        this.dropdownOpen = false;
+      if (languageMultiselect && !languageMultiselect.contains(event.target)) {
+        this.languageDropdownOpen = false;
+      }
+
+      if (regionMultiselect && !regionMultiselect.contains(event.target)) {
+        this.regionDropdownOpen = false;
       }
 
       let clickedInCustomSelect = false;
@@ -625,164 +644,6 @@ export default {
       }
     },
 
-    initializeExcludeLinksText() {
-      // 从 ExcludedVideoLink 对象数组中提取 URL 显示在文本框中
-      this.excludeLinksText = this.excludeLinks.map(link => link.url).join('\n');
-      this.$nextTick(() => {
-        this.autoResizeTextarea();
-      });
-    },
-
-    handleExcludeLinksBlur() {
-      this.validateAndUpdateExcludeLinks();
-    },
-
-    validateAndUpdateExcludeLinks() {
-      // 解析文本框中的 URL，并转换为 ExcludedVideoLink 对象
-      const urls = this.excludeLinksText
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-
-      // 如果没有输入任何链接，直接清空数组
-      if (urls.length === 0) {
-        this.excludeLinks = [];
-        this.$nextTick(() => {
-          this.autoResizeTextarea();
-        });
-        return;
-      }
-
-      const validLinks = [];
-
-      for (let i = 0; i < urls.length; i++) {
-        const url = urls[i];
-        const platform = this.detectPlatformFromUrl(url);
-        const platformID = this.generatePlatformID(url);
-
-        // 检查平台和ID是否有效
-        if (platform === 'Unknown' || !platform) {
-          alert(`第 ${i + 1} 行的链接无法识别平台，请检查链接格式：${url}`);
-          return; // 停止处理，保持原有数据
-        }
-
-        if (platformID === 'unknown' || !platformID) {
-          alert(`第 ${i + 1} 行的链接无法提取ID，请检查链接格式：${url}`);
-          return; // 停止处理，保持原有数据
-        }
-
-        validLinks.push({
-          url: url,
-          platform: platform,
-          platformID: platformID
-        });
-      }
-
-      // 只有所有链接都有效时才更新数据
-      this.excludeLinks = validLinks;
-
-      this.$nextTick(() => {
-        this.autoResizeTextarea();
-      });
-    },
-
-    handleExcludeLinksChange() {
-      // 只处理文本框高度调整，不验证链接
-      this.$nextTick(() => {
-        this.autoResizeTextarea();
-      });
-    },
-
-    // 根据 URL 检测平台
-    detectPlatformFromUrl(url) {
-      if (!url || typeof url !== 'string') {
-        return 'Unknown';
-      }
-
-      const lowerUrl = url.toLowerCase();
-
-      if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-        return 'Youtube';
-      } else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
-        return 'X';
-      } else if (lowerUrl.includes('instagram.com')) {
-        return 'Instagram';
-      } else if (lowerUrl.includes('facebook.com')) {
-        return 'Facebook';
-      } else {
-        return 'Unknown';
-      }
-    },
-
-    // 生成平台ID（这里可以根据实际需求实现）
-    generatePlatformID(url) {
-      if (!url || typeof url !== 'string') {
-        return 'unknown';
-      }
-
-      try {
-        const urlObj = new URL(url);
-        const pathname = urlObj.pathname;
-
-        // YouTube 处理
-        if (url.includes('youtube.com/watch')) {
-          const videoId = urlObj.searchParams.get('v');
-          return videoId || 'unknown';
-        } else if (url.includes('youtu.be')) {
-          const parts = pathname.split('/');
-          const videoId = parts[1];
-          return videoId || 'unknown';
-        }
-        // Twitter/X 处理
-        else if (url.includes('twitter.com') || url.includes('x.com')) {
-          const parts = pathname.split('/').filter(part => part.length > 0);
-          // Twitter URL 格式通常是 /username/status/tweetId
-          if (parts.length >= 3 && parts[1] === 'status') {
-            return parts[2] || 'unknown';
-          }
-          // 或者直接取最后一部分
-          return parts[parts.length - 1] || 'unknown';
-        }
-        // Instagram 处理
-        else if (url.includes('instagram.com')) {
-          const parts = pathname.split('/').filter(part => part.length > 0);
-          // Instagram URL 格式通常是 /p/postId/ 或 /reel/reelId/
-          if (parts.length >= 2 && (parts[0] === 'p' || parts[0] === 'reel')) {
-            return parts[1] || 'unknown';
-          }
-          return 'unknown';
-        }
-        // Facebook 处理
-        else if (url.includes('facebook.com')) {
-          const parts = pathname.split('/').filter(part => part.length > 0);
-          // Facebook URL 格式比较复杂，尝试提取最后的数字ID
-          const lastPart = parts[parts.length - 1];
-          if (lastPart && /^\d+$/.test(lastPart)) {
-            return lastPart;
-          }
-          // 如果没有找到数字ID，返回unknown
-          return 'unknown';
-        }
-
-        // 其他情况，尝试提取路径最后一部分
-        const lastSegment = pathname.split('/').pop();
-        return lastSegment || 'unknown';
-
-      } catch (e) {
-        // URL 格式错误
-        return 'unknown';
-      }
-    },
-
-    autoResizeTextarea() {
-      const textarea = this.$refs.excludeLinksTextarea;
-      if (textarea) {
-        textarea.style.height = 'auto';
-        const newHeight = Math.max(100, Math.min(300, textarea.scrollHeight));
-        textarea.style.height = newHeight + 'px';
-      }
-    },
-
     async saveProject() {
       if (!this.isFormValid) {
         alert('请填写完整的必填信息');
@@ -790,22 +651,7 @@ export default {
       }
 
       const validKeywords = this.keywords.filter(keyword => keyword.word.trim());
-      this.validatePostSearchCount();
-      this.validateVideoSearchCount();
-
-      // 在保存前再次验证排除链接
-      this.validateAndUpdateExcludeLinks();
-
-      // 检查是否有无效链接（如果validateAndUpdateExcludeLinks中有错误，会直接返回）
-      const hasInvalidLinks = this.excludeLinks.some(link =>
-        link.platform === 'Unknown' || link.platformID === 'unknown' ||
-        !link.platform || !link.platformID
-      );
-
-      if (hasInvalidLinks) {
-        alert('存在无效的排除链接，请检查后重试');
-        return;
-      }
+      this.validateNewsSearchCount();
 
       // 构造项目数据
       const projectData = {
@@ -817,12 +663,11 @@ export default {
           includeWords: keyword.include || '',
           excludeWords: keyword.exclude || ''
         })),
-        excludedVideoLinks: this.excludeLinks, // 现在是正确的 ExcludedVideoLink 对象数组
         fetchTime: parseInt(this.crawlTimeRange),
         crawlFrequency: parseInt(this.crawlFrequency),
-        postSearchCount: this.postSearchCount,
-        videoSearchCount: this.videoSearchCount,
-        searchPlatforms: this.searchPlatforms
+        newsSearchCount: this.newsSearchCount,
+        languages: this.selectedLanguages,
+        regions: this.selectedRegions,
       };
       console.log('保存的项目数据:', projectData);
 
@@ -830,11 +675,9 @@ export default {
         const response = await createProject(projectData);
 
         if(response.code === 0) {
+          // 保存成功后跳转到项目列表
+          // this.$router.push('/projects');
           alert('项目创建成功');
-          // 更新项目状态和初始数据
-          this.projectStatus = this.isEditMode ? 'saved' : 'created';
-          this.hasChanges = false;
-          this.saveInitialFormData();
         } else if(response.code === 1) {
           alert('项目创建失败，' + response.msg);
           return;
@@ -847,11 +690,9 @@ export default {
         alert('项目创建失败，请重试');
       }
     },
-
     testSearch() {
       console.log('执行搜索测试');
     },
-
     confirmDelete() {
       if (confirm('确定要删除此项目吗？此操作不可撤销。')) {
         console.log('删除项目');
@@ -1039,7 +880,8 @@ select:focus {
 }
 
 /* 多选框样式 */
-.platform-multiselect {
+.language-multiselect,
+.region-multiselect {
   position: relative;
   min-width: 200px;
   max-width: 400px;
@@ -1195,42 +1037,11 @@ td input:focus {
   outline: none;
 }
 
-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  resize: vertical;
-  box-sizing: border-box;
-  font-family: inherit;
-  line-height: 1.5;
-  transition: border-color 0.3s;
-}
-
-textarea:hover,
-textarea:focus {
-  border-color: #1890ff;
-  outline: none;
-}
-
-.exclude-links-textarea {
-  min-height: 100px;
-  max-height: 300px;
-  overflow-y: auto;
-  transition: height 0.2s ease;
-}
-
 .form-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
   flex-wrap: wrap;
-}
-
-.exclude-links-count {
-  margin-top: 5px;
-  font-size: 12px;
-  color: #666;
 }
 
 .action-buttons {
@@ -1366,7 +1177,7 @@ button {
     margin-top: 5px;
   }
 
-  .platform-multiselect, .custom-select {
+  .language-multiselect, .region-multiselect, .custom-select {
     width: 100%;
   }
 

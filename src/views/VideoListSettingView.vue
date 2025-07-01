@@ -414,9 +414,6 @@ export default {
         return;
       }
 
-      const validKeywords = this.keywords.filter(keyword => keyword.word.trim());
-      this.validatePostSearchCount();
-      this.validateVideoSearchCount();
       this.handleMonitoredVideoLinksChange();
 
       // 构造项目数据
@@ -752,11 +749,6 @@ select:focus {
   margin: 0;
   cursor: pointer;
   min-width: auto;
-}
-
-.keywords-table-container {
-  width: 100%;
-  overflow-x: auto;
 }
 
 table {

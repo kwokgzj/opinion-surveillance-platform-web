@@ -29,6 +29,16 @@ export interface MonitoredVideoLink {
 }
 
 /**
+ * 排除的视频链接接口
+ * 定义了需要排除监控的视频链接及其平台信息
+ */
+export interface ExcludedVideoLink {
+  url: string;        // 视频链接
+  platform: string;  // 平台名称
+  platformID: string; // 平台ID
+}
+
+/**
  * 项目简要信息类型
  */
 export interface ProjectSummary {
@@ -44,13 +54,14 @@ export interface Project {
   name: string;    // 项目名称
   type: string;    // 项目类型，如"品牌监控"、"产品监控"等
   monitorKeywords: MonitorKeyword[];  // 监控关键词列表，定义了项目要监控的关键词规则
-  excludedVideoLinks: string[];       // 排除的视频链接列表，这些链接不会被监控
+  excludedVideoLinks: ExcludedVideoLink[];  // 排除的视频链接列表，这些链接不会被监控
   fetchTime: number;                  // 数据获取时间，可表示为时间戳或特定时间格式
   crawlFrequency: number;             // 爬取频率，单位可能是小时或分钟
   monitoredVideoLinks: MonitoredVideoLink[]; // 被监控的视频链接列表
   postSearchCount: number;            // 社交媒体帖子搜索数量限制
   videoSearchCount: number;           // 视频搜索数量限制
   newsSearchCount: number;            // 新闻搜索数量限制
-  searchLanguage: string[];           // 搜索语言设置，如["zh-CN", "en-US"]
-  searchRegion: string[];             // 搜索地区设置，如["CN", "US"]
+  searchPlatforms: string[];           // 搜索平台设置
+  searchLanguages: string[];           // 搜索语言设置，如["zh-CN", "en-US"]
+  searchRegions: string[];             // 搜索地区设置，如["CN", "US"]
 }
