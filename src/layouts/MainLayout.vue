@@ -95,7 +95,18 @@ import { ElMessage } from 'element-plus';
 
 const route = useRoute();
 const router = useRouter();
-const activeMenu = computed(() => route.path);
+
+// 计算当前激活的菜单项
+const activeMenu = computed(() => {
+  // 对于项目设置相关的路由，都应该高亮项目设置菜单
+  if (route.path === '/keywordProjectSetting' ||
+      route.path === '/videoListSettingView' ||
+      route.path === '/googleNewsSettingView' ||
+      route.query.isEdit === 'true') {
+    return '/settings';
+  }
+  return route.path;
+});
 
 // 项目选择
 const selectedProject = ref('');
@@ -109,20 +120,14 @@ watch(() => route.query.refresh, (newVal) => {
     fetchProjects().then(() => {
       // 如果有新创建的项目信息，设置为当前选中项目
       const projectId = route.query.projectId as string;
-      const projectName = route.query.projectName as string;
 
-      if (projectId && projectName) {
-        // 查找是否存在该项目
+      if (projectId) {
+        // 从最新的项目列表中查找项目
         const existingProject = projectOptions.value.find(p => p.value === projectId);
         if (existingProject) {
           selectedProject.value = projectId;
         } else {
-          // 如果项目列表中没有找到，手动添加（可能是刚创建的）
-          projectOptions.value.push({
-            value: projectId,
-            label: projectName,
-          });
-          selectedProject.value = projectId;
+          console.warn(`项目 ${projectId} 在最新的项目列表中未找到`);
         }
       }
 
@@ -138,11 +143,34 @@ watch(() => route.query.refresh, (newVal) => {
   }
 }, { immediate: true });
 
+// 监听项目相关的路由参数变化
+watch(() => [route.query.projectId, route.query.projectName], ([newProjectId, newProjectName]) => {
+  if (newProjectId && !route.query.refresh) {
+    // 如果路由中有项目信息但没有refresh标记
+    const existingProject = projectOptions.value.find(p => p.value === newProjectId);
+    if (existingProject) {
+      selectedProject.value = newProjectId as string;
+    } else if (projectOptions.value.length > 0) {
+      // 如果项目列表已加载但找不到该项目，重新获取项目列表
+      console.log('项目不在当前列表中，重新获取项目列表');
+      fetchProjects().then(() => {
+        const updatedProject = projectOptions.value.find(p => p.value === newProjectId);
+        if (updatedProject) {
+          selectedProject.value = newProjectId as string;
+        } else {
+          console.warn(`项目 ${newProjectId} 在数据库中未找到`);
+        }
+      });
+    }
+  }
+}, { immediate: true });
+
 // 获取项目列表并填充下拉菜单
 const fetchProjects = async () => {
   try {
     isProjectLoading.value = true;
     const projectList = await getProjectList();
+    console.log('获取到的项目列表:', projectList);
 
     if (projectList.length > 0) {
       projectOptions.value = projectList.map((project) => {
@@ -151,8 +179,17 @@ const fetchProjects = async () => {
           label: project.projectName,
         };
       });
-      // 如果没有选中的项目且有项目列表，默认选中第一个
-      if (!selectedProject.value && projectOptions.value.length > 0) {
+
+      // 检查当前路由是否包含项目信息
+      const routeProjectId = route.query.projectId as string;
+      if (routeProjectId) {
+        // 如果路由中有项目ID，优先设置该项目
+        const existingProject = projectOptions.value.find(p => p.value === routeProjectId);
+        if (existingProject) {
+          selectedProject.value = routeProjectId;
+        }
+      } else if (!selectedProject.value && projectOptions.value.length > 0) {
+        // 如果没有选中的项目且有项目列表，默认选中第一个
         selectedProject.value = projectOptions.value[0].value;
       }
     } else {
@@ -174,7 +211,7 @@ const handleProjectChange = (value: string) => {
   const selectedProjectInfo = projectOptions.value.find(p => p.value === value);
   if (selectedProjectInfo) {
     // 如果当前在设置页面，需要更新URL参数
-    if (route.path === '/settings') {
+    if (route.path === '/settings' || route.path.includes('Setting')) {
       router.push({
         name: 'settings',
         query: {
@@ -201,13 +238,17 @@ const setCurrentProject = (projectId: string, projectName?: string) => {
   const existingProject = projectOptions.value.find(p => p.value === projectId);
   if (existingProject) {
     selectedProject.value = projectId;
-  } else if (projectName) {
-    // 如果项目不存在于列表中，添加它
-    projectOptions.value.push({
-      value: projectId,
-      label: projectName
+  } else {
+    // 如果项目不存在于列表中，重新获取项目列表
+    console.log('项目不在当前列表中，重新获取项目列表');
+    fetchProjects().then(() => {
+      const updatedProject = projectOptions.value.find(p => p.value === projectId);
+      if (updatedProject) {
+        selectedProject.value = projectId;
+      } else {
+        console.warn(`项目 ${projectId} 在数据库中未找到`);
+      }
     });
-    selectedProject.value = projectId;
   }
 };
 

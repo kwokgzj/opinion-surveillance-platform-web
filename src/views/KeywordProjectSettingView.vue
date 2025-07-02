@@ -881,6 +881,15 @@ export default {
             // 编辑模式：重新保存初始数据并重置变更状态
             this.saveInitialFormData();
             this.hasChanges = false;
+
+            // 更新MainLayout中的项目选择（如果项目名称有变更）
+            this.$router.replace({
+              path: this.$route.path,
+              query: {
+                ...this.$route.query,
+                projectName: response.data.name // 更新项目名称
+              }
+            });
           }
         } else {
           // 保存失败，显示后端返回的错误信息
