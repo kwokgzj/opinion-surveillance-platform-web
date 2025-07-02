@@ -7,48 +7,8 @@ const router = createRouter({
     {
       path: '/',
       component: MainLayout,
-      redirect: '/keywordProject',
+      redirect: '/newProject',
       children: [
-        // {
-        //   path: 'dashboard',
-        //   name: 'dashboard',
-        //   component: () => import('@/views/DashboardView.vue')
-        // },
-        // {
-        //   path: 'trend',
-        //   name: 'trend',
-        //   component: () => import('@/views/TrendView.vue')
-        // },
-        // {
-        //   path: 'sentiment',
-        //   name: 'sentiment',
-        //   component: () => import('@/views/SentimentView.vue')
-        // },
-        // {
-        //   path: 'settings',
-        //   name: 'settings',
-        //   component: () => import('@/views/SettingsView.vue')
-        // },
-        // {
-        //   path: 'compare',
-        //   name: 'compare',
-        //   component: () => import('@/views/CompareView.vue')
-        // },
-        // {
-        //   path: 'ai-analysis',
-        //   name: 'ai-analysis',
-        //   component: () => import('@/views/AIAnalysisView.vue')
-        // },
-        {
-          path: 'settings',
-          name: 'settings',
-          component: () => import('@/views/AboutView.vue')
-        },
-        {
-          path: 'dashboard',
-          name: 'dashboard',
-          component: () => import('@/views/HomeView.vue')
-        },
         {
           path: 'newProject',
           name: 'newProject',
@@ -69,7 +29,59 @@ const router = createRouter({
           name: 'googleNewsSettingView',
           component: () => import('@/views/GoogleNewsSettingView.vue')
         },
-        // 其他子路由...
+        // // 添加侧边栏缺失的路由
+        // {
+        //   path: 'dashboard',
+        //   name: 'dashboard',
+        //   component: () => import('@/views/DashboardView.vue')
+        // },
+        // {
+        //   path: 'trend',
+        //   name: 'trend',
+        //   component: () => import('@/views/TrendView.vue')
+        // },
+        // {
+        //   path: 'sentiment',
+        //   name: 'sentiment',
+        //   component: () => import('@/views/SentimentView.vue')
+        // },
+        {
+          path: 'settings',
+          name: 'settings',
+          redirect: (to) => {
+            // 根据当前选中的项目类型重定向到对应的设置页面
+            const projectType = to.query.projectType || 'SocialMediaKeywords';
+            const projectId = to.query.projectId;
+            const projectName = to.query.projectName;
+
+            let targetRoute = '';
+            switch (projectType) {
+              case 'GoogleNews':
+                targetRoute = 'googleNewsSettingView';
+                break;
+              case 'VideoList':
+                targetRoute = 'videoListSettingView';
+                break;
+              default:
+                targetRoute = 'keywordProjectSetting';
+            }
+
+            return {
+              name: targetRoute,
+              query: { projectId, projectName, isEdit: 'true' }
+            };
+          }
+        },
+        // {
+        //   path: 'compare',
+        //   name: 'compare',
+        //   component: () => import('@/views/CompareView.vue')
+        // },
+        // {
+        //   path: 'ai-analysis',
+        //   name: 'ai-analysis',
+        //   component: () => import('@/views/AIAnalysisView.vue')
+        // }
       ]
     }
   ]

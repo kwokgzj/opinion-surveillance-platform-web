@@ -63,20 +63,53 @@
         </div>
       </div>
 
-      <!-- 抓取列表 -->
+      <!-- 监控视频表格 -->
       <div class="form-section">
-        <label class="section-label required">监控以下视频：</label>
-        <textarea
-          v-model="monitoredVideoLinksText"
-          @input="handleMonitoredVideoLinksChange"
-          placeholder="填写视频的链接，一行一个链接"
-          rows="5"
-          ref="monitoredVideoLinksTextarea"
-          class="exclude-links-textarea"
-        ></textarea>
-        <!-- 可选：显示解析后的链接数量 -->
-        <div v-if="monitoredVideoLinks.length > 0" class="exclude-links-count">
-          已添加 {{ monitoredVideoLinks.length }} 个链接
+        <label class="section-label required">监控以下视频（至少一条）：</label>
+        <div class="videos-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th width="45%">视频链接</th>
+                <th width="25%">品牌</th>
+                <th width="25%">SKU</th>
+                <th width="5%">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(video, index) in monitoredVideos" :key="index">
+                <td>
+                  <input
+                    v-model="video.url"
+                    @blur="validateVideoUrl(index)"
+                    placeholder="视频链接"
+                  />
+                </td>
+                <td>
+                  <input
+                    v-model="video.brand"
+                    placeholder="品牌名称，逗号分隔"
+                  />
+                </td>
+                <td>
+                  <input
+                    v-model="video.sku"
+                    placeholder="SKU编码，逗号分隔"
+                  />
+                </td>
+                <td>
+                  <button class="btn-delete" @click="removeVideo(index)">-</button>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="3">
+                </td>
+                <td>
+                  <button class="btn-add" @click="addVideo">+</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -122,9 +155,9 @@
 </template>
 
 <script>
-import { createProject } from '@/api/project/project';
+import { createProject, getProjectById } from '@/api/project/project';
 export default {
-  name: 'NewKeywordProjectView',
+  name: 'VideoListSettingView',
   data() {
     return {
       // 页面模式：true为编辑模式，false为新建模式
@@ -136,8 +169,9 @@ export default {
       projectType: 'VideoList',
       crawlTimeRange: '',
       crawlFrequency: '',
-      monitoredVideoLinks: [],
-      monitoredVideoLinksText: '',
+      monitoredVideos: [
+        { url: '', brand: '', sku: '', platform: '', platformID: '' }
+      ],
       dropdownOpen: false,
       timeRangeDropdownOpen: false,
       frequencyDropdownOpen: false,
@@ -164,11 +198,14 @@ export default {
   computed: {
     // 表单验证
     isFormValid() {
-    return this.projectName.trim() &&
-           this.crawlTimeRange &&
-           this.crawlFrequency &&
-           this.monitoredVideoLinks.length > 0; // 添加视频链接必填验证
-  },
+      const hasValidVideos = this.monitoredVideos.some(video =>
+        video.url.trim() && video.brand.trim() && video.sku.trim()
+      );
+      return this.projectName.trim() &&
+             this.crawlTimeRange &&
+             this.crawlFrequency &&
+             hasValidVideos;
+    },
 
     // 是否可以保存
     canSave() {
@@ -202,6 +239,13 @@ export default {
     },
   },
   watch: {
+    // 添加路由监听
+    '$route'(to, from) {
+      console.log('路由变化:', { to, from });
+      if (to.path === from.path) {
+        this.initializePageMode();
+      }
+    },
     // 监听所有可能变更的字段
     projectName() {
       this.checkForChanges();
@@ -212,7 +256,7 @@ export default {
     crawlFrequency() {
       this.checkForChanges();
     },
-    monitoredVideoLinks: {
+    monitoredVideos: {
       handler() {
         this.checkForChanges();
       },
@@ -225,8 +269,6 @@ export default {
 
     // 点击外部关闭下拉框
     document.addEventListener('click', this.handleClickOutside);
-    // 初始化时将 monitoredVideoLinks 数组内容显示到文本框
-    this.initializeMonitoredVideoLinksText();
     // 保存初始表单数据
     this.saveInitialFormData();
   },
@@ -236,44 +278,71 @@ export default {
   methods: {
     // 初始化页面模式
     initializePageMode() {
-    // 可以根据路由参数或props判断模式
-    const projectId = this.$route.params.id || this.$route.query.id;
-    const projectName = this.$route.query.projectName;
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const isEdit = this.$route.query.isEdit === 'true';
 
-    if (projectId) {
-      // 编辑模式
-      this.isEditMode = true;
-      this.projectStatus = 'saved';
-      this.loadProjectData(projectId);
-    } else {
-      // 新建模式
-      this.isEditMode = false;
-      this.projectStatus = 'creating';
-      // 设置默认值
-      this.setDefaultValues();
-
-      // 如果有传入的项目名称，则设置
-      if (projectName) {
-        this.projectName = projectName;
+      if (projectId && projectId !== 'new' && isEdit) {
+        this.isEditMode = true;
+        this.projectStatus = 'editing';
+        this.loadProjectData(projectId);
+      } else {
+        this.isEditMode = false;
+        this.projectStatus = 'creating';
+        this.setDefaultValues();
       }
-    }
-  },
+    },
 
     // 设置新建时的默认值
     setDefaultValues() {
-    this.projectName = '';
-    this.crawlTimeRange = '720'; // 默认近30天
-    this.crawlFrequency = '24'; // 默认每天抓取
-    this.monitoredVideoLinks = [];
-  },
+      const projectName = this.$route.query.projectName;
+      this.projectName = projectName || '';
+      this.crawlTimeRange = '720'; // 默认近30天
+      this.crawlFrequency = '24'; // 默认每天抓取
+      this.monitoredVideos = [{ url: '', brand: '', sku: '', platform: '', platformID: '' }];
+    },
 
     // 加载项目数据（编辑模式）
-    loadProjectData(projectId) {
-      // 模拟加载数据
-      this.projectName = '项目1';
-      this.crawlTimeRange = '720';
-      this.crawlFrequency = '24';
-      this.monitoredVideoLinks = ['fsdddddddd','fskdfjhskdjf','hvoxcjuo'];
+    async loadProjectData(projectId) {
+      this.isLoading = true;
+      try {
+        const response = await getProjectById(projectId);
+
+        if (response.code === 0) {
+          const project = response.data;
+
+          // 填充表单数据
+          this.projectName = project.name || '';
+          this.crawlTimeRange = project.fetchTime || 720;
+          this.crawlFrequency = project.crawlFrequency || 24;
+
+          // 转换监控视频格式
+          this.monitoredVideos = project.monitoredVideoLinks && project.monitoredVideoLinks.length > 0
+            ? project.monitoredVideoLinks.map(video => ({
+                url: video.url,
+                brand: video.brand,
+                sku: video.sku,
+                platform: video.platform,
+                platformID: video.platformID
+              }))
+            : [{ url: '', brand: '', sku: '', platform: '', platformID: '' }];
+
+          this.$nextTick(() => {
+            this.saveInitialFormData();
+            this.hasChanges = false;
+          });
+
+        } else {
+          alert(`加载项目数据失败：${response.msg}`);
+          this.$router.go(-1);
+        }
+
+      } catch (error) {
+        console.error('加载项目数据失败:', error);
+        alert('网络错误，请检查网络连接后重试');
+        this.$router.go(-1);
+      } finally {
+        this.isLoading = false;
+      }
     },
 
     // 保存初始表单数据
@@ -282,7 +351,7 @@ export default {
         projectName: this.projectName,
         crawlTimeRange: this.crawlTimeRange,
         crawlFrequency: this.crawlFrequency,
-        monitoredVideoLinks: [...this.monitoredVideoLinks]
+        monitoredVideos: JSON.parse(JSON.stringify(this.monitoredVideos))
       };
     },
 
@@ -294,7 +363,7 @@ export default {
         projectName: this.projectName,
         crawlTimeRange: this.crawlTimeRange,
         crawlFrequency: this.crawlFrequency,
-        monitoredVideoLinks: [...this.monitoredVideoLinks]
+        monitoredVideos: JSON.parse(JSON.stringify(this.monitoredVideos))
       };
 
       this.hasChanges = !this.isDataEqual(this.initialFormData, currentData);
@@ -321,14 +390,134 @@ export default {
           this.projectName = this.initialFormData.projectName;
           this.crawlTimeRange = this.initialFormData.crawlTimeRange;
           this.crawlFrequency = this.initialFormData.crawlFrequency;
-          this.monitoredVideoLinks = [...this.initialFormData.monitoredVideoLinks];
-          this.monitoredVideoLinksText = this.monitoredVideoLinks.join('\n');
+          this.monitoredVideos = JSON.parse(JSON.stringify(this.initialFormData.monitoredVideos));
 
           this.hasChanges = false;
           this.projectStatus = this.isEditMode ? 'saved' : 'created';
         }
       }
     },
+
+    // 添加视频
+    addVideo() {
+      this.monitoredVideos.push({ url: '', brand: '', sku: '', platform: '', platformID: '' });
+    },
+
+    // 删除视频
+    removeVideo(index) {
+      this.monitoredVideos.splice(index, 1);
+      if (this.monitoredVideos.length === 0) {
+        this.monitoredVideos.push({ url: '', brand: '', sku: '', platform: '', platformID: '' });
+      }
+    },
+
+    // 验证视频URL
+    validateVideoUrl(index) {
+      const video = this.monitoredVideos[index];
+      if (!video.url.trim()) {
+        video.platform = '';
+        video.platformID = '';
+        return;
+      }
+
+      const platform = this.detectPlatformFromUrl(video.url);
+      const platformID = this.generatePlatformID(video.url);
+
+      if (platform === 'Unknown' || !platform) {
+        alert(`第 ${index + 1} 行的视频链接无法识别平台，请检查链接格式：${video.url}`);
+        return;
+      }
+
+      if (platformID === 'unknown' || !platformID) {
+        alert(`第 ${index + 1} 行的视频链接无法提取ID，请检查链接格式：${video.url}`);
+        return;
+      }
+
+      video.platform = platform;
+      video.platformID = platformID;
+    },
+
+    // 根据 URL 检测平台
+    detectPlatformFromUrl(url) {
+      if (!url || typeof url !== 'string') {
+        return 'Unknown';
+      }
+
+      const lowerUrl = url.toLowerCase();
+
+      if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+        return 'Youtube';
+      } else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
+        return 'X';
+      } else if (lowerUrl.includes('instagram.com')) {
+        return 'Instagram';
+      } else if (lowerUrl.includes('facebook.com')) {
+        return 'Facebook';
+      } else {
+        return 'Unknown';
+      }
+    },
+
+    // 生成平台ID
+    generatePlatformID(url) {
+      if (!url || typeof url !== 'string') {
+        return 'unknown';
+      }
+
+      try {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname;
+
+        // YouTube 处理
+        if (url.includes('youtube.com/watch')) {
+          const videoId = urlObj.searchParams.get('v');
+          return videoId || 'unknown';
+        } else if (url.includes('youtu.be')) {
+          const parts = pathname.split('/');
+          const videoId = parts[1];
+          return videoId || 'unknown';
+        }
+        // Twitter/X 处理
+        else if (url.includes('twitter.com') || url.includes('x.com')) {
+          const parts = pathname.split('/').filter(part => part.length > 0);
+          // Twitter URL 格式通常是 /username/status/tweetId
+          if (parts.length >= 3 && parts[1] === 'status') {
+            return parts[2] || 'unknown';
+          }
+          // 或者直接取最后一部分
+          return parts[parts.length - 1] || 'unknown';
+        }
+        // Instagram 处理
+        else if (url.includes('instagram.com')) {
+          const parts = pathname.split('/').filter(part => part.length > 0);
+          // Instagram URL 格式通常是 /p/postId/ 或 /reel/reelId/
+          if (parts.length >= 2 && (parts[0] === 'p' || parts[0] === 'reel')) {
+            return parts[1] || 'unknown';
+          }
+          return 'unknown';
+        }
+        // Facebook 处理
+        else if (url.includes('facebook.com')) {
+          const parts = pathname.split('/').filter(part => part.length > 0);
+          // Facebook URL 格式比较复杂，尝试提取最后的数字ID
+          const lastPart = parts[parts.length - 1];
+          if (lastPart && /^\d+$/.test(lastPart)) {
+            return lastPart;
+          }
+          // 如果没有找到数字ID，返回unknown
+          return 'unknown';
+        }
+
+        // 其他情况，尝试提取路径最后一部分
+        const lastSegment = pathname.split('/').pop();
+        return lastSegment || 'unknown';
+
+      } catch (e) {
+        // URL 格式错误
+        return 'unknown';
+      }
+    },
+
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen;
       this.timeRangeDropdownOpen = false;
@@ -361,12 +550,7 @@ export default {
       return option ? option.label : '请选择';
     },
     handleClickOutside(event) {
-      const platformMultiselect = this.$el.querySelector('.platform-multiselect');
       const timeRangeSelects = this.$el.querySelectorAll('.custom-select');
-
-      if (platformMultiselect && !platformMultiselect.contains(event.target)) {
-        this.dropdownOpen = false;
-      }
 
       let clickedInCustomSelect = false;
       timeRangeSelects.forEach(select => {
@@ -381,78 +565,76 @@ export default {
       }
     },
 
-    initializeMonitoredVideoLinksText() {
-      this.monitoredVideoLinksText = this.monitoredVideoLinks.join('\n');
-      this.$nextTick(() => {
-        this.autoResizeTextarea();
-      });
-    },
-
-    handleMonitoredVideoLinksChange() {
-      this.monitoredVideoLinks = this.monitoredVideoLinksText
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-
-      this.$nextTick(() => {
-        this.autoResizeTextarea();
-      });
-    },
-
-    autoResizeTextarea() {
-      const textarea = this.$refs.monitoredVideoLinksTextarea;
-      if (textarea) {
-        textarea.style.height = 'auto';
-        const newHeight = Math.max(100, Math.min(300, textarea.scrollHeight));
-        textarea.style.height = newHeight + 'px';
-      }
-    },
-
     async saveProject() {
       if (!this.isFormValid) {
-        alert('请填写完整的必填信息');
+        alert('请填写完整的表单信息');
         return;
       }
 
-      this.handleMonitoredVideoLinksChange();
+      const validVideos = this.monitoredVideos.filter(video =>
+        video.url.trim() && video.brand.trim() && video.sku.trim()
+      );
 
-      // 构造项目数据
+      if (validVideos.length === 0) {
+        alert('请至少添加一个有效的监控视频');
+        return;
+      }
+
       const projectData = {
         name: this.projectName,
         type: this.projectType,
-        monitoredVideoLinks: this.monitoredVideoLinks,
-        fetchTime: parseInt(this.crawlTimeRange),
-        crawlFrequency: parseInt(this.crawlFrequency),
+        fetchTime: this.crawlTimeRange,
+        crawlFrequency: this.crawlFrequency,
+        monitoredVideoLinks: validVideos.map((video, index) => ({
+          index: index,
+          url: video.url,
+          brand: video.brand,
+          sku: video.sku,
+          platform: video.platform,
+          platformID: video.platformID
+        }))
       };
-      console.log('保存的项目数据:', projectData);
+
+      // 如果是编辑模式，需要添加项目ID
+      if (this.isEditMode) {
+        const projectId = this.$route.params.id || this.$route.query.projectId;
+        projectData.projectId = projectId;
+      }
 
       try {
-        const response = await createProject(projectData);
+        let response;
 
-        if(response.code === 0) {
-          // 保存成功后跳转到项目列表
-          // this.$router.push('/projects');
-          alert('项目创建成功');
-        } else if(response.code === 1) {
-          alert('项目创建失败，' + response.msg);
-          return;
+        if (this.isEditMode) {
+          response = await updateProject(projectData);
         } else {
-          alert('项目创建失败，请稍后重试');
-          return;
+          response = await createProject(projectData);
         }
+
+        if (response.code === 0) {
+          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
+          alert(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+
+          if (!this.isEditMode) {
+            this.$router.push({
+              name: 'settings',
+              query: {
+                projectId: response.data.projectId,
+                projectName: response.data.name,
+                projectType: response.data.type,
+                refresh: 'true'
+              }
+            });
+          } else {
+            this.saveInitialFormData();
+            this.hasChanges = false;
+          }
+        } else {
+          alert(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+        }
+
       } catch (error) {
-        console.error('项目创建失败:', error);
-        alert('项目创建失败，请重试');
-      }
-    },
-    testSearch() {
-      console.log('执行搜索测试');
-    },
-    confirmDelete() {
-      if (confirm('确定要删除此项目吗？此操作不可撤销。')) {
-        console.log('删除项目');
-        // 删除后返回项目列表
-        this.$router.push('/projects');
+        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
+        alert('网络错误，请检查网络连接后重试');
       }
     },
   }
@@ -619,136 +801,9 @@ input[type="number"]:focus {
   background-color: #f5f5f5;
 }
 
-select {
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 200px;
-  transition: border-color 0.3s;
-}
-
-select:hover,
-select:focus {
-  border-color: #1890ff;
-  outline: none;
-}
-
-/* 多选框样式 */
-.platform-multiselect {
-  position: relative;
-  min-width: 200px;
-  max-width: 400px;
-}
-
-.multiselect-container {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  min-height: 36px;
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-.multiselect-container:hover {
-  border-color: #1890ff;
-}
-
-.selected-platforms {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  margin-right: 10px;
-}
-
-.placeholder {
-  color: #999;
-  line-height: 20px;
-}
-
-.platform-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.videos-table-container {
   width: 100%;
-}
-
-.platform-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  background-color: #f0f2f5;
-  border-radius: 3px;
-  font-size: 12px;
-  color: #333;
-  white-space: nowrap;
-  margin-bottom: 2px;
-}
-
-.tag-close {
-  margin-left: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #999;
-  font-size: 14px;
-}
-
-.tag-close:hover {
-  color: #ff4d4f;
-}
-
-.dropdown-arrow {
-  transition: transform 0.3s;
-  color: #999;
-  font-size: 12px;
-  margin-top: 4px;
-  flex-shrink: 0;
-}
-
-.dropdown-arrow.open {
-  transform: rotate(180deg);
-}
-
-.dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.dropdown-option {
-  display: flex;
-  align-items: center;
-  padding: 8px 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.dropdown-option:hover {
-  background-color: #f5f5f5;
-}
-
-.dropdown-option input {
-  margin-right: 8px;
-  pointer-events: none;
-}
-
-.dropdown-option label {
-  margin: 0;
-  cursor: pointer;
-  min-width: auto;
+  overflow-x: auto;
 }
 
 table {
@@ -786,42 +841,11 @@ td input:focus {
   outline: none;
 }
 
-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  resize: vertical;
-  box-sizing: border-box;
-  font-family: inherit;
-  line-height: 1.5;
-  transition: border-color 0.3s;
-}
-
-textarea:hover,
-textarea:focus {
-  border-color: #1890ff;
-  outline: none;
-}
-
-.exclude-links-textarea {
-  min-height: 100px;
-  max-height: 300px;
-  overflow-y: auto;
-  transition: height 0.2s ease;
-}
-
 .form-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
   flex-wrap: wrap;
-}
-
-.exclude-links-count {
-  margin-top: 5px;
-  font-size: 12px;
-  color: #666;
 }
 
 .action-buttons {
@@ -838,16 +862,6 @@ button {
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.3s;
-}
-
-.btn-modify {
-  background-color: #f0f0f0;
-  color: #333;
-  margin-left: 10px;
-}
-
-.btn-modify:hover {
-  background-color: #e0e0e0;
 }
 
 .btn-delete {
@@ -903,15 +917,6 @@ button {
   background-color: #e0e0e0;
 }
 
-.btn-test {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.btn-test:hover {
-  background-color: #e0e0e0;
-}
-
 .btn-save {
   background-color: #1890ff;
   color: white;
@@ -957,7 +962,7 @@ button {
     margin-top: 5px;
   }
 
-  .platform-multiselect, .custom-select {
+  .custom-select {
     width: 100%;
   }
 

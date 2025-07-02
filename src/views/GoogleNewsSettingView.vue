@@ -250,7 +250,7 @@
 </template>
 
 <script>
-import { createProject } from '@/api/project/project';
+import { createProject, getProjectById } from '@/api/project/project';
 export default {
   name: 'NewKeywordProjectView',
   data() {
@@ -368,6 +368,13 @@ export default {
     }
   },
   watch: {
+    // 添加路由监听
+    '$route'(to, from) {
+      console.log('路由变化:', { to, from });
+      if (to.path === from.path) {
+        this.initializePageMode();
+      }
+    },
     // 监听所有可能变更的字段
     projectName() {
       this.checkForChanges();
@@ -415,32 +422,24 @@ export default {
   methods: {
     // 初始化页面模式
     initializePageMode() {
-    // 可以根据路由参数或props判断模式
-    const projectId = this.$route.params.id || this.$route.query.id;
-    const projectName = this.$route.query.projectName;
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const isEdit = this.$route.query.isEdit === 'true';
 
-    if (projectId) {
-      // 编辑模式
-      this.isEditMode = true;
-      this.projectStatus = 'saved';
-      this.loadProjectData(projectId);
-    } else {
-      // 新建模式
-      this.isEditMode = false;
-      this.projectStatus = 'creating';
-      // 设置默认值
-      this.setDefaultValues();
-
-      // 如果有传入的项目名称，则设置
-      if (projectName) {
-        this.projectName = projectName;
+      if (projectId && projectId !== 'new' && isEdit) {
+        this.isEditMode = true;
+        this.projectStatus = 'editing';
+        this.loadProjectData(projectId);
+      } else {
+        this.isEditMode = false;
+        this.projectStatus = 'creating';
+        this.setDefaultValues();
       }
-    }
-  },
+    },
 
     // 设置新建时的默认值
     setDefaultValues() {
-    this.projectName = '';
+    const projectName = this.$route.query.projectName;
+    this.projectName = projectName || '';
     this.newsSearchCount = 500; // 默认500
     this.crawlTimeRange = '720'; // 默认近30天
     this.crawlFrequency = '24'; // 默认每天抓取
@@ -450,15 +449,48 @@ export default {
   },
 
     // 加载项目数据（编辑模式）
-    loadProjectData(projectId) {
-      // 模拟加载数据
-      this.projectName = '项目1';
-      this.newsSearchCount = 500;
-      this.crawlTimeRange = '720';
-      this.crawlFrequency = '24';
-      this.selectedLanguages = ['zh-CN', 'en'];
-      this.selectedRegions = ['CN', 'US'];
-      this.keywords = [{ word: '测试关键字', include: '', exclude: '' }];
+    async loadProjectData(projectId) {
+      this.isLoading = true;
+      try {
+        const response = await getProjectById(projectId);
+
+        if (response.code === 0) {
+          const project = response.data;
+
+          // 填充表单数据
+          this.projectName = project.name || '';
+          this.newsSearchCount = project.newsSearchCount || 500;
+          this.crawlTimeRange = project.fetchTime || 720;
+          this.crawlFrequency = project.crawlFrequency || 24;
+          this.selectedLanguages = project.searchLanguages || ['zh-CN'];
+          this.selectedRegions = project.searchRegions || ['CN'];
+
+          // 转换关键词格式
+          this.keywords = project.monitorKeywords && project.monitorKeywords.length > 0
+            ? project.monitorKeywords.map(kw => ({
+                word: kw.keywords,
+                include: kw.includeWords,
+                exclude: kw.excludeWords
+              }))
+            : [{ word: '', include: '', exclude: '' }];
+
+          this.$nextTick(() => {
+            this.saveInitialFormData();
+            this.hasChanges = false;
+          });
+
+        } else {
+          alert(`加载项目数据失败：${response.msg}`);
+          this.$router.go(-1);
+        }
+
+      } catch (error) {
+        console.error('加载项目数据失败:', error);
+        alert('网络错误，请检查网络连接后重试');
+        this.$router.go(-1);
+      } finally {
+        this.isLoading = false;
+      }
     },
 
     // 保存初始表单数据
@@ -646,58 +678,66 @@ export default {
 
     async saveProject() {
       if (!this.isFormValid) {
-        alert('请填写完整的必填信息');
+        alert('请填写完整的表单信息');
         return;
       }
 
-      const validKeywords = this.keywords.filter(keyword => keyword.word.trim());
-      this.validateNewsSearchCount();
-
-      // 构造项目数据
       const projectData = {
         name: this.projectName,
         type: this.projectType,
-        monitorKeywords: validKeywords.map((keyword, index) => ({
-          index: index,
-          keywords: keyword.word,
-          includeWords: keyword.include || '',
-          excludeWords: keyword.exclude || ''
-        })),
-        fetchTime: parseInt(this.crawlTimeRange),
-        crawlFrequency: parseInt(this.crawlFrequency),
         newsSearchCount: this.newsSearchCount,
-        languages: this.selectedLanguages,
-        regions: this.selectedRegions,
+        fetchTime: this.crawlTimeRange,
+        crawlFrequency: this.crawlFrequency,
+        searchLanguages: this.selectedLanguages,
+        searchRegions: this.selectedRegions,
+        monitorKeywords: this.keywords.filter(k => k.word.trim()).map((kw, index) => ({
+          index: index,
+          keywords: kw.word,
+          includeWords: kw.include,
+          excludeWords: kw.exclude
+        }))
       };
-      console.log('保存的项目数据:', projectData);
+
+      // 如果是编辑模式，需要添加项目ID
+      if (this.isEditMode) {
+        const projectId = this.$route.params.id || this.$route.query.projectId;
+        projectData.projectId = projectId;
+      }
 
       try {
-        const response = await createProject(projectData);
+        let response;
 
-        if(response.code === 0) {
-          // 保存成功后跳转到项目列表
-          // this.$router.push('/projects');
-          alert('项目创建成功');
-        } else if(response.code === 1) {
-          alert('项目创建失败，' + response.msg);
-          return;
+        if (this.isEditMode) {
+          response = await updateProject(projectData);
         } else {
-          alert('项目创建失败，请稍后重试');
-          return;
+          response = await createProject(projectData);
         }
+
+        if (response.code === 0) {
+          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
+          alert(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+
+          if (!this.isEditMode) {
+            this.$router.push({
+              name: 'settings',
+              query: {
+                projectId: response.data.projectId,
+                projectName: response.data.name,
+                projectType: response.data.type,
+                refresh: 'true'
+              }
+            });
+          } else {
+            this.saveInitialFormData();
+            this.hasChanges = false;
+          }
+        } else {
+          alert(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+        }
+
       } catch (error) {
-        console.error('项目创建失败:', error);
-        alert('项目创建失败，请重试');
-      }
-    },
-    testSearch() {
-      console.log('执行搜索测试');
-    },
-    confirmDelete() {
-      if (confirm('确定要删除此项目吗？此操作不可撤销。')) {
-        console.log('删除项目');
-        // 删除后返回项目列表
-        this.$router.push('/projects');
+        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
+        alert('网络错误，请检查网络连接后重试');
       }
     },
   }

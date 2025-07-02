@@ -239,7 +239,7 @@
 </template>
 
 <script>
-import { createProject } from '@/api/project/project';
+import { createProject, getProjectById, updateProject } from '@/api/project/project';
 
 export default {
   name: 'NewKeywordProjectView',
@@ -341,6 +341,15 @@ export default {
     }
   },
   watch: {
+    // 添加路由监听
+    '$route'(to, from) {
+      console.log('路由变化:', { to, from });
+      // 当路由参数变化时重新初始化页面
+      if (to.path === from.path) {
+        // 同一个路由但参数变化，重新初始化
+        this.initializePageMode();
+      }
+    },
     // 监听所有可能变更的字段
     projectName() {
       this.checkForChanges();
@@ -393,32 +402,24 @@ export default {
   methods: {
     // 初始化页面模式
     initializePageMode() {
-      // 可以根据路由参数或props判断模式
-      const projectId = this.$route.params.id || this.$route.query.id;
-      const projectName = this.$route.query.projectName;
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const isEdit = this.$route.query.isEdit === 'true';
 
-      if (projectId) {
-        // 编辑模式
+      if (projectId && isEdit) {
         this.isEditMode = true;
-        this.projectStatus = 'saved';
+        this.projectStatus = 'editing';
         this.loadProjectData(projectId);
       } else {
-        // 新建模式
         this.isEditMode = false;
         this.projectStatus = 'creating';
-        // 设置默认值
         this.setDefaultValues();
-
-        // 如果有传入的项目名称，则设置
-        if (projectName) {
-          this.projectName = projectName;
-        }
       }
     },
 
     // 设置新建时的默认值
     setDefaultValues() {
-      this.projectName = '';
+      const projectName = this.$route.query.projectName;
+      this.projectName = projectName || '';
       this.postSearchCount = 500; // 默认500
       this.videoSearchCount = 100; // 默认100
       this.crawlTimeRange = '720'; // 默认近30天
@@ -429,21 +430,55 @@ export default {
     },
 
     // 加载项目数据（编辑模式）
-    loadProjectData(projectId) {
-      // 模拟加载数据
-      this.projectName = '项目1';
-      this.postSearchCount = 500;
-      this.videoSearchCount = 100;
-      this.crawlTimeRange = '720';
-      this.crawlFrequency = '24';
-      this.searchPlatforms = ['Youtube', 'X'];
-      this.keywords = [{ word: '测试关键字', include: '', exclude: '' }];
-      // 修改为 ExcludedVideoLink 对象数组
-      this.excludeLinks = [
-        { url: 'fsdddddddd', platform: 'Youtube', platformID: 'yt123' },
-        { url: 'fskdfjhskdjf', platform: 'X', platformID: 'tw456' },
-        { url: 'hvoxcjuo', platform: 'Instagram', platformID: 'ig789' }
-      ];
+    async loadProjectData(projectId) {
+      this.isLoading = true;
+      try {
+        const response = await getProjectById(projectId);
+
+        // 判断响应是否成功
+        if (response.code === 0) {
+          const project = response.data;
+
+          // 填充表单数据
+          this.projectName = project.name || '';
+          this.postSearchCount = project.postSearchCount || 500;
+          this.videoSearchCount = project.videoSearchCount || 100;
+          this.crawlTimeRange = project.fetchTime || 720;
+          this.crawlFrequency = project.crawlFrequency || 24;
+          this.searchPlatforms = project.searchPlatforms || [];
+
+          // 转换关键词格式
+          this.keywords = project.monitorKeywords && project.monitorKeywords.length > 0
+            ? project.monitorKeywords.map(kw => ({
+                word: kw.keywords,
+                include: kw.includeWords,
+                exclude: kw.excludeWords
+              }))
+            : [{ word: '', include: '', exclude: '' }];
+
+          // 转换排除链接格式
+          this.excludeLinks = project.excludedVideoLinks || [];
+          this.excludeLinksText = this.excludeLinks.map(link => link.url).join('\n');
+
+          // 重新保存初始数据
+          this.$nextTick(() => {
+            this.saveInitialFormData();
+            this.hasChanges = false;
+          });
+
+        } else {
+          // 响应失败，显示后端返回的错误信息
+          alert(`加载项目数据失败：${response.msg}`);
+          this.$router.go(-1);
+        }
+
+      } catch (error) {
+        console.error('加载项目数据失败:', error);
+        alert('网络错误，请检查网络连接后重试');
+        this.$router.go(-1);
+      } finally {
+        this.isLoading = false;
+      }
     },
 
     // 保存初始表单数据
@@ -785,25 +820,7 @@ export default {
 
     async saveProject() {
       if (!this.isFormValid) {
-        alert('请填写完整的必填信息');
-        return;
-      }
-
-      const validKeywords = this.keywords.filter(keyword => keyword.word.trim());
-      this.validatePostSearchCount();
-      this.validateVideoSearchCount();
-
-      // 在保存前再次验证排除链接
-      this.validateAndUpdateExcludeLinks();
-
-      // 检查是否有无效链接（如果validateAndUpdateExcludeLinks中有错误，会直接返回）
-      const hasInvalidLinks = this.excludeLinks.some(link =>
-        link.platform === 'Unknown' || link.platformID === 'unknown' ||
-        !link.platform || !link.platformID
-      );
-
-      if (hasInvalidLinks) {
-        alert('存在无效的排除链接，请检查后重试');
+        alert('请填写完整的表单信息');
         return;
       }
 
@@ -811,52 +828,68 @@ export default {
       const projectData = {
         name: this.projectName,
         type: this.projectType,
-        monitorKeywords: validKeywords.map((keyword, index) => ({
-          index: index,
-          keywords: keyword.word,
-          includeWords: keyword.include || '',
-          excludeWords: keyword.exclude || ''
-        })),
-        excludedVideoLinks: this.excludeLinks, // 现在是正确的 ExcludedVideoLink 对象数组
-        fetchTime: parseInt(this.crawlTimeRange),
-        crawlFrequency: parseInt(this.crawlFrequency),
         postSearchCount: this.postSearchCount,
         videoSearchCount: this.videoSearchCount,
-        searchPlatforms: this.searchPlatforms
+        fetchTime: this.crawlTimeRange,
+        crawlFrequency: this.crawlFrequency,
+        searchPlatforms: this.searchPlatforms,
+        monitorKeywords: this.keywords.filter(k => k.word.trim()).map((kw, index) => ({
+          index: index,
+          keywords: kw.word,
+          includeWords: kw.include,
+          excludeWords: kw.exclude
+        })),
+        excludedVideoLinks: this.excludeLinks
       };
+
+      // 如果是编辑模式，需要添加项目ID
+      if (this.isEditMode) {
+        const projectId = this.$route.params.id || this.$route.query.projectId;
+        projectData.projectId = projectId;
+      }
+
       console.log('保存的项目数据:', projectData);
 
       try {
-        const response = await createProject(projectData);
+        let response;
 
-        if(response.code === 0) {
-          alert('项目创建成功');
-          // 更新项目状态和初始数据
-          this.projectStatus = this.isEditMode ? 'saved' : 'created';
-          this.hasChanges = false;
-          this.saveInitialFormData();
-        } else if(response.code === 1) {
-          alert('项目创建失败，' + response.msg);
-          return;
+        if (this.isEditMode) {
+          // 编辑模式：调用更新接口
+          response = await updateProject(projectData);
         } else {
-          alert('项目创建失败，请稍后重试');
-          return;
+          // 新建模式：调用创建接口
+          response = await createProject(projectData);
         }
+
+        // 判断响应是否成功
+        if (response.code === 0) {
+          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
+          alert(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+
+          if (!this.isEditMode) {
+            // 新建模式：跳转到设置页面并更新侧边栏
+            this.$router.push({
+              name: 'settings',
+              query: {
+                projectId: response.data.projectId,
+                projectName: response.data.name,
+                projectType: response.data.type,
+                refresh: 'true'
+              }
+            });
+          } else {
+            // 编辑模式：重新保存初始数据并重置变更状态
+            this.saveInitialFormData();
+            this.hasChanges = false;
+          }
+        } else {
+          // 保存失败，显示后端返回的错误信息
+          alert(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+        }
+
       } catch (error) {
-        console.error('项目创建失败:', error);
-        alert('项目创建失败，请重试');
-      }
-    },
-
-    testSearch() {
-      console.log('执行搜索测试');
-    },
-
-    confirmDelete() {
-      if (confirm('确定要删除此项目吗？此操作不可撤销。')) {
-        console.log('删除项目');
-        // 删除后返回项目列表
-        this.$router.push('/projects');
+        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
+        alert('网络错误，请检查网络连接后重试');
       }
     },
   }

@@ -68,7 +68,6 @@
       </el-menu>
     </el-aside>
     <el-container>
-      <!-- 移除了标题栏 el-header -->
       <el-main>
         <!-- 路由出口，用于显示当前路由对应的组件 -->
         <router-view />
@@ -78,8 +77,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router'; // 添加 useRouter
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import {
   Monitor,
   Plus,
@@ -103,6 +102,42 @@ const selectedProject = ref('');
 const projectOptions = ref<{ value: string; label: string }[]>([]);
 const isProjectLoading = ref(false);
 
+// 监听路由变化，检查是否需要刷新项目列表
+watch(() => route.query.refresh, (newVal) => {
+  if (newVal === 'true') {
+    // 刷新项目列表
+    fetchProjects().then(() => {
+      // 如果有新创建的项目信息，设置为当前选中项目
+      const projectId = route.query.projectId as string;
+      const projectName = route.query.projectName as string;
+
+      if (projectId && projectName) {
+        // 查找是否存在该项目
+        const existingProject = projectOptions.value.find(p => p.value === projectId);
+        if (existingProject) {
+          selectedProject.value = projectId;
+        } else {
+          // 如果项目列表中没有找到，手动添加（可能是刚创建的）
+          projectOptions.value.push({
+            value: projectId,
+            label: projectName,
+          });
+          selectedProject.value = projectId;
+        }
+      }
+
+      // 清除查询参数中的refresh标记，但保留其他参数用于页面判断
+      router.replace({
+        path: route.path,
+        query: {
+          ...route.query,
+          refresh: undefined
+        }
+      });
+    });
+  }
+}, { immediate: true });
+
 // 获取项目列表并填充下拉菜单
 const fetchProjects = async () => {
   try {
@@ -113,11 +148,11 @@ const fetchProjects = async () => {
       projectOptions.value = projectList.map((project) => {
         return {
           value: project.projectId,
-          label: project.projectName
+          label: project.projectName,
         };
       });
-      // 如果有项目，默认选中第一个
-      if (projectOptions.value.length > 0) {
+      // 如果没有选中的项目且有项目列表，默认选中第一个
+      if (!selectedProject.value && projectOptions.value.length > 0) {
         selectedProject.value = projectOptions.value[0].value;
       }
     } else {
@@ -134,7 +169,21 @@ const fetchProjects = async () => {
 // 处理切换项目的事件
 const handleProjectChange = (value: string) => {
   console.log('切换到项目:', value);
-  // 这里可以添加切换项目时的其他逻辑，比如更新UI状态、重新获取数据等
+
+  // 获取选中项目的详细信息
+  const selectedProjectInfo = projectOptions.value.find(p => p.value === value);
+  if (selectedProjectInfo) {
+    // 如果当前在设置页面，需要更新URL参数
+    if (route.path === '/settings') {
+      router.push({
+        name: 'settings',
+        query: {
+          projectId: value,
+          projectName: selectedProjectInfo.label,
+        }
+      });
+    }
+  }
 };
 
 // 处理添加新项目的点击事件
@@ -142,9 +191,35 @@ const handleAddProject = () => {
   router.push({ name: 'newProject' });
 };
 
+// 暴露刷新项目列表的方法，供其他组件调用
+const refreshProjects = () => {
+  fetchProjects();
+};
+
+// 暴露设置当前项目的方法
+const setCurrentProject = (projectId: string, projectName?: string) => {
+  const existingProject = projectOptions.value.find(p => p.value === projectId);
+  if (existingProject) {
+    selectedProject.value = projectId;
+  } else if (projectName) {
+    // 如果项目不存在于列表中，添加它
+    projectOptions.value.push({
+      value: projectId,
+      label: projectName
+    });
+    selectedProject.value = projectId;
+  }
+};
+
 // 组件挂载时获取项目列表
 onMounted(() => {
   fetchProjects();
+});
+
+// 为了让其他组件能够调用这些方法，可以通过provide或者事件总线的方式暴露
+defineExpose({
+  refreshProjects,
+  setCurrentProject
 });
 </script>
 

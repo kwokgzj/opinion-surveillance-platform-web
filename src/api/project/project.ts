@@ -2,6 +2,7 @@ import {
   get,
   post,
 } from '@/utils/request';
+
 import type {
   Project,
   ProjectSummary,
@@ -48,6 +49,21 @@ export async function getProjectById(projectId: string | number) {
     return response;
   } catch (error) {
     console.error('获取项目详情出错:', error);
+    throw error;
+  }
+}
+
+/**
+ * 修改项目信息
+ * @param {Project} project 项目配置信息
+ * @returns {Promise<ApiResponse<string>>} API响应
+ */
+export async function updateProject(project: Project) {
+  try {
+    const response = await post<ApiResponse<string>>('/project/update', project);
+    return response;
+  } catch (error) {
+    console.error('修改项目出错:', error);
     throw error;
   }
 }
