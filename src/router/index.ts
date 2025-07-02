@@ -53,6 +53,8 @@ const router = createRouter({
             const projectType = to.query.projectType || 'SocialMediaKeywords';
             const projectId = to.query.projectId;
             const projectName = to.query.projectName;
+            const refresh = to.query.refresh;
+            const isCreate = to.query.isCreate;
 
             let targetRoute = '';
             switch (projectType) {
@@ -68,7 +70,7 @@ const router = createRouter({
 
             return {
               name: targetRoute,
-              query: { projectId, projectName, isEdit: 'true' }
+              query: { projectId, projectName, isEdit: 'true', refresh, isCreate }
             };
           }
         },

@@ -113,58 +113,6 @@ const selectedProject = ref('');
 const projectOptions = ref<{ value: string; label: string; type: string }[]>([]);
 const isProjectLoading = ref(false);
 
-// 监听路由变化，检查是否需要刷新项目列表
-watch(() => route.query.refresh, (newVal) => {
-  if (newVal === 'true') {
-    // 刷新项目列表
-    fetchProjects().then(() => {
-      // 如果有新创建的项目信息，设置为当前选中项目
-      const projectId = route.query.projectId as string;
-
-      if (projectId) {
-        // 从最新的项目列表中查找项目
-        const existingProject = projectOptions.value.find(p => p.value === projectId);
-        if (existingProject) {
-          selectedProject.value = projectId;
-        } else {
-          console.warn(`项目 ${projectId} 在最新的项目列表中未找到`);
-        }
-      }
-
-      // 清除查询参数中的refresh标记，但保留其他参数用于页面判断
-      router.replace({
-        path: route.path,
-        query: {
-          ...route.query,
-          refresh: undefined
-        }
-      });
-    });
-  }
-}, { immediate: true });
-
-// 监听项目相关的路由参数变化
-watch(() => [route.query.projectId, route.query.projectName], ([newProjectId, newProjectName]) => {
-  if (newProjectId && !route.query.refresh) {
-    // 如果路由中有项目信息但没有refresh标记
-    const existingProject = projectOptions.value.find(p => p.value === newProjectId);
-    if (existingProject) {
-      selectedProject.value = newProjectId as string;
-    } else if (projectOptions.value.length > 0) {
-      // 如果项目列表已加载但找不到该项目，重新获取项目列表
-      console.log('项目不在当前列表中，重新获取项目列表');
-      fetchProjects().then(() => {
-        const updatedProject = projectOptions.value.find(p => p.value === newProjectId);
-        if (updatedProject) {
-          selectedProject.value = newProjectId as string;
-        } else {
-          console.warn(`项目 ${newProjectId} 在数据库中未找到`);
-        }
-      });
-    }
-  }
-}, { immediate: true });
-
 // 获取项目列表并填充下拉菜单
 const fetchProjects = async () => {
   try {
@@ -180,29 +128,93 @@ const fetchProjects = async () => {
           type: project.projectType,
         };
       });
-
-      // 检查当前路由是否包含项目信息
-      const routeProjectId = route.query.projectId as string;
-      if (routeProjectId) {
-        // 如果路由中有项目ID，优先设置该项目
-        const existingProject = projectOptions.value.find(p => p.value === routeProjectId);
-        if (existingProject) {
-          selectedProject.value = routeProjectId;
-        }
-      } else if (!selectedProject.value && projectOptions.value.length > 0) {
-        // 如果没有选中的项目且有项目列表，默认选中第一个
-        selectedProject.value = projectOptions.value[0].value;
-      }
     } else {
-      ElMessage.error('获取项目列表格式不正确');
+      projectOptions.value = [];
     }
   } catch (error) {
     ElMessage.error('加载项目列表失败');
     console.error('加载项目列表失败:', error);
+    projectOptions.value = [];
   } finally {
     isProjectLoading.value = false;
   }
 };
+
+// 监听路由变化
+watch(() => route.query, async (newQuery, oldQuery) => {
+  const { refresh, projectId } = newQuery;
+
+  console.log('路由查询参数变化:', newQuery);
+
+  if(route.query.isCreate === 'true'){
+    return;
+  }
+
+  // 第一步：如果有 refresh 标记，直接调用 API 更新项目列表
+  if (refresh === 'true') {
+    console.log('检测到 refresh 标记，刷新项目列表');
+    await fetchProjects();
+
+    // 清除 refresh 标记，保留其他参数
+    const newQueryWithoutRefresh = { ...newQuery };
+    delete newQueryWithoutRefresh.refresh;
+
+    router.replace({
+      path: route.path,
+      query: newQueryWithoutRefresh
+    });
+    return;
+  }
+
+  // 第二步：判断是否有 projectId
+  if (projectId) {
+    // 有 projectId，查找对应的项目信息
+    const targetProject = projectOptions.value.find(p => p.value === projectId);
+
+    if (targetProject) {
+      // 找到项目，设置选中状态并跳转到设置页面
+      selectedProject.value = targetProject.value as string;
+
+      router.push({
+        name: 'settings',
+        query: {
+          projectId: targetProject.value,
+          projectName: targetProject.label,
+          projectType: targetProject.type
+        }
+      });
+      return;
+    } else{
+      // 未找到项目，提示用户
+      // ElMessage.error('未找到对应的项目');
+    }
+  }
+  // 没有 projectId，获取项目列表第一个
+  if (projectOptions.value.length === 0) {
+    // 如果项目列表为空，先获取项目列表
+    await fetchProjects();
+  }
+
+  if (projectOptions.value.length > 0) {
+    // 有项目，选择第一个并跳转到设置页面
+    const firstProject = projectOptions.value[0];
+    selectedProject.value = firstProject.value;
+
+    router.push({
+      name: 'settings',
+      query: {
+        projectId: firstProject.value,
+        projectName: firstProject.label,
+        projectType: firstProject.type
+      }
+    });
+  } else {
+    // 项目列表为空，跳转到新建项目页面
+    ElMessage.error('项目列表为空，跳转到新建项目页面');
+    selectedProject.value = '';
+    router.push({ name: 'newProject' });
+  }
+}, { immediate: true, deep: true });
 
 // 处理切换项目的事件
 const handleProjectChange = (value: string) => {
@@ -227,7 +239,12 @@ const handleProjectChange = (value: string) => {
 
 // 处理添加新项目的点击事件
 const handleAddProject = () => {
-  router.push({ name: 'newProject' });
+  router.push({
+    name: 'newProject',
+    query: {
+          isCreate : 'true'
+        }
+  });
 };
 
 // 暴露刷新项目列表的方法，供其他组件调用

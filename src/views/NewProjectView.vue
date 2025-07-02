@@ -154,7 +154,8 @@ const handleNextStep = async () => {
         query: {
           isNew: 'true',
           projectName: projectForm.name,
-          projectType: projectForm.type
+          projectType: projectForm.type,
+          isCreate: 'true'
         }
       });
     } else if (projectForm.type === 'VideoList') {
@@ -163,7 +164,8 @@ const handleNextStep = async () => {
         query: {
           isNew: 'true',
           projectName: projectForm.name,
-          projectType: projectForm.type
+          projectType: projectForm.type,
+          isCreate: 'true'
         }
       });
     } else if (projectForm.type === 'GoogleNews') {
@@ -172,7 +174,8 @@ const handleNextStep = async () => {
         query: {
           isNew: 'true',
           projectName: projectForm.name,
-          projectType: projectForm.type
+          projectType: projectForm.type,
+          isCreate: 'true'
         }
       });
     } else {
@@ -185,7 +188,8 @@ const handleNextStep = async () => {
         query: {
           isNew: 'true',
           projectType: projectForm.type,
-          projectName: projectForm.name
+          projectName: projectForm.name,
+          isCreate: 'true'
         }
       });
     }

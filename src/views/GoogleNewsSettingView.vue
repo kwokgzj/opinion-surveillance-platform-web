@@ -250,7 +250,7 @@
 </template>
 
 <script>
-import { createProject, getProjectById, updateProject } from '@/api/project/project';
+import { createProject, getProjectById, updateProject, deleteProject } from '@/api/project/project';
 export default {
   name: 'NewKeywordProjectView',
   data() {
@@ -739,6 +739,56 @@ export default {
         console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
         alert('网络错误，请检查网络连接后重试');
       }
+    },
+
+    // 确认删除项目
+    confirmDelete() {
+      if (!this.canClickDelete) {
+        return;
+      }
+
+      const confirmMessage = `确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`;
+
+      if (confirm(confirmMessage)) {
+        this.deleteProject();
+      }
+    },
+
+    // 删除项目
+    async deleteProject() {
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+
+      if (!projectId) {
+        alert('项目ID不存在，无法删除');
+        return;
+      }
+
+      try {
+        const response = await deleteProject(projectId);
+
+        if (response.code === 0) {
+          alert('项目删除成功！');
+          this.$router.push({
+              name: 'settings',
+              query: {
+                projectId: null,
+                projectName: null,
+                refresh: 'true'
+              }
+            });
+        } else {
+          alert(`删除项目失败：${response.msg}`);
+        }
+      } catch (error) {
+        console.error('删除项目失败:', error);
+        alert('网络错误，请检查网络连接后重试');
+      }
+    },
+
+    // 搜索测试功能
+    testSearch() {
+      // TODO: 实现搜索测试功能
+      alert('搜索测试功能开发中...');
     },
   }
 }

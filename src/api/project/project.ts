@@ -1,6 +1,7 @@
 import {
   get,
   post,
+  del,
 } from '@/utils/request';
 
 import type {
@@ -64,6 +65,21 @@ export async function updateProject(project: Project) {
     return response;
   } catch (error) {
     console.error('修改项目出错:', error);
+    throw error;
+  }
+}
+
+/**
+ * 删除项目
+ * @param {string} projectId 项目ID
+ * @returns {Promise<ApiResponse<string>>} API响应
+ */
+export async function deleteProject(projectId: string) {
+  try {
+    const response = await del<ApiResponse<string>>(`/project?projectId=${projectId}`);
+    return response;
+  } catch (error) {
+    console.error('删除项目出错:', error);
     throw error;
   }
 }
