@@ -110,7 +110,7 @@ const activeMenu = computed(() => {
 
 // 项目选择
 const selectedProject = ref('');
-const projectOptions = ref<{ value: string; label: string }[]>([]);
+const projectOptions = ref<{ value: string; label: string; type: string }[]>([]);
 const isProjectLoading = ref(false);
 
 // 监听路由变化，检查是否需要刷新项目列表
@@ -177,6 +177,7 @@ const fetchProjects = async () => {
         return {
           value: project.projectId,
           label: project.projectName,
+          type: project.projectType,
         };
       });
 
@@ -217,6 +218,7 @@ const handleProjectChange = (value: string) => {
         query: {
           projectId: value,
           projectName: selectedProjectInfo.label,
+          projectType: selectedProjectInfo.type,
         }
       });
     }

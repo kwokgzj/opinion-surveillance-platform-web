@@ -47,6 +47,7 @@ export interface ExcludedVideoLink {
 export interface ProjectSummary {
   projectId: string;
   projectName: string;
+  projectType: string;
 }
 
 /**

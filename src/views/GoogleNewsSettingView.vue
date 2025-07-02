@@ -250,7 +250,7 @@
 </template>
 
 <script>
-import { createProject, getProjectById } from '@/api/project/project';
+import { createProject, getProjectById, updateProject } from '@/api/project/project';
 export default {
   name: 'NewKeywordProjectView',
   data() {
