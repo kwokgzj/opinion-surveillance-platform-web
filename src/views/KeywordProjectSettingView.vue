@@ -443,8 +443,8 @@ export default {
           this.projectName = project.name || '';
           this.postSearchCount = project.postSearchCount || 500;
           this.videoSearchCount = project.videoSearchCount || 100;
-          this.crawlTimeRange = project.fetchTime || 720;
-          this.crawlFrequency = project.crawlFrequency || 24;
+          this.crawlTimeRange = String(project.fetchTime || '720');
+          this.crawlFrequency = String(project.crawlFrequency || '24');
           this.searchPlatforms = project.searchPlatforms || [];
 
           // 转换关键词格式

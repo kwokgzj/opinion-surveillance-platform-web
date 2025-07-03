@@ -312,8 +312,8 @@ export default {
 
           // 填充表单数据
           this.projectName = project.name || '';
-          this.crawlTimeRange = project.fetchTime || 720;
-          this.crawlFrequency = project.crawlFrequency || 24;
+          this.crawlTimeRange = String(project.fetchTime || '720');
+          this.crawlFrequency = String(project.crawlFrequency || '24');
 
           // 转换监控视频格式
           this.monitoredVideos = project.monitoredVideoLinks && project.monitoredVideoLinks.length > 0

@@ -460,8 +460,8 @@ export default {
           // 填充表单数据
           this.projectName = project.name || '';
           this.newsSearchCount = project.newsSearchCount || 500;
-          this.crawlTimeRange = project.fetchTime || 720;
-          this.crawlFrequency = project.crawlFrequency || 24;
+          this.crawlTimeRange = String(project.fetchTime || '720');
+          this.crawlFrequency = String(project.crawlFrequency || '24');
           this.selectedLanguages = project.searchLanguages || ['zh-CN'];
           this.selectedRegions = project.searchRegions || ['CN'];
 
