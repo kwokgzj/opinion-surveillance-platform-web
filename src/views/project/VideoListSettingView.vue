@@ -319,8 +319,8 @@ export default {
           this.monitoredVideos = project.monitoredVideoLinks && project.monitoredVideoLinks.length > 0
             ? project.monitoredVideoLinks.map(video => ({
                 url: video.url,
-                brand: video.brand,
-                sku: video.sku,
+                brand: Array.isArray(video.brand) ? video.brand.join(', ') : (video.brand || ''),
+                sku: Array.isArray(video.sku) ? video.sku.join(', ') : (video.sku || ''),
                 platform: video.platform,
                 platformID: video.platformID
               }))
@@ -512,7 +512,7 @@ export default {
         const lastSegment = pathname.split('/').pop();
         return lastSegment || 'unknown';
 
-      } catch (e) {
+      } catch {
         // URL 格式错误
         return 'unknown';
       }
@@ -588,8 +588,8 @@ export default {
         monitoredVideoLinks: validVideos.map((video, index) => ({
           index: index,
           url: video.url,
-          brand: video.brand,
-          sku: video.sku,
+          brand: video.brand ? video.brand.split(',').map(item => item.trim()).filter(item => item) : [],
+          sku: video.sku ? video.sku.split(',').map(item => item.trim()).filter(item => item) : [],
           platform: video.platform,
           platformID: video.platformID
         }))

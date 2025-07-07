@@ -12,22 +12,22 @@ const router = createRouter({
         {
           path: 'newProject',
           name: 'newProject',
-          component: () => import('@/views/NewProjectView.vue')
+          component: () => import('@/views/project/NewProjectView.vue')
         },
         {
           path: 'keywordProjectSetting',
           name: 'keywordProjectSetting',
-          component: () => import('@/views/KeywordProjectSettingView.vue')
+          component: () => import('@/views/project/KeywordProjectSettingView.vue')
         },
         {
           path: 'videoListSettingView',
           name: 'videoListSettingView',
-          component: () => import('@/views/VideoListSettingView.vue')
+          component: () => import('@/views/project/VideoListSettingView.vue')
         },
         {
           path: 'googleNewsSettingView',
           name: 'googleNewsSettingView',
-          component: () => import('@/views/GoogleNewsSettingView.vue')
+          component: () => import('@/views/project/GoogleNewsSettingView.vue')
         },
         // // 添加侧边栏缺失的路由
         // {
@@ -55,6 +55,7 @@ const router = createRouter({
             const projectName = to.query.projectName;
             const refresh = to.query.refresh;
             const isCreate = to.query.isCreate;
+            const page = "settings"
 
             let targetRoute = '';
             switch (projectType) {
@@ -70,9 +71,14 @@ const router = createRouter({
 
             return {
               name: targetRoute,
-              query: { projectId, projectName, isEdit: 'true', refresh, isCreate }
+              query: { projectId, projectName, isEdit: 'true', refresh, isCreate, page }
             };
           }
+        },
+        {
+          path: 'information',
+          name: 'information',
+          component: () => import('@/views/information/InformationView.vue')
         },
         // {
         //   path: 'compare',

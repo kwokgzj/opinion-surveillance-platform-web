@@ -40,7 +40,7 @@
         text-color="#fff"
         active-text-color="#ffd04b"
         router>
-        <el-menu-item index="/dashboard">
+        <el-menu-item index="/information">
           <el-icon><Document/></el-icon>
           <span>信息汇总</span>
         </el-menu-item>
@@ -145,6 +145,10 @@ watch(() => route.query, async (newQuery, oldQuery) => {
   const { refresh, projectId } = newQuery;
 
   console.log('路由查询参数变化:', newQuery);
+
+  if(route.query.page !== 'settings'){
+    return;
+  }
 
   if(route.query.isCreate === 'true'){
     return;
