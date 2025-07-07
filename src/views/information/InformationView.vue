@@ -210,7 +210,7 @@
           <el-date-picker
             v-model="filter.dateRange"
             type="daterange"
-            range-separator="至"
+            range-separator="—"
             start-placeholder="起始时间"
             end-placeholder="结束时间"
             format="YYYY-MM-DD"
@@ -243,12 +243,67 @@
         </div>
       </div>
 
-
-
       <!-- 操作按钮 -->
       <div class="filter-actions">
         <button class="btn-reset" @click="resetFilter">重置</button>
         <button class="btn-search" @click="searchData">搜索</button>
+      </div>
+    </div>
+
+    <!-- 信息展示区域 -->
+    <div class="information-list">
+      <div v-for="item in informationList" :key="item.id" class="info-card">
+        <!-- 左栏 -->
+        <div class="info-left">
+          <img :src="item.channelAvatar" class="info-logo" />
+          <div class="info-channel">{{ item.channelName }}</div>
+          <div class="info-fans">粉丝：<span>{{ formatNumber(item.fansCount) }}</span></div>
+        </div>
+        <!-- 中栏 -->
+        <div class="info-center">
+          <div class="info-title-row">
+            <img :src="getPlatformIcon(item.platform)" class="info-platform-icon" />
+            <span class="info-title">{{ item.title }}</span>
+          </div>
+          <div class="info-content-row">
+            <img :src="item.channelAvatar" class="info-cover" />
+            <div class="info-content-main">
+              <div v-if="item.description" class="info-desc">{{ item.description }}</div>
+            </div>
+          </div>
+          <div class="info-actions">
+            <i class="iconfont icon-like"></i>
+            <i class="iconfont icon-comment"></i>
+            <i class="iconfont icon-collect"></i>
+            <i class="iconfont icon-delete"></i>
+          </div>
+          <div class="info-meta-row-bottom">
+            <span>发布时间：{{ formatDateYMD(item.publishTime) }}</span>
+            <span v-if="item.platform">| {{ item.platform }}</span>
+          </div>
+        </div>
+        <!-- 竖线分割 -->
+        <div class="info-divider"></div>
+        <!-- 右栏 -->
+        <div class="info-right">
+          <div class="info-table-2col">
+            <div class="info-row-2col">
+              <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value">{{ item.brand }}</span></div>
+              <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value">{{ item.sku }}</span></div>
+            </div>
+            <div class="info-row-2col">
+              <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value">{{ item.commentCount }}</span></div>
+              <div class="info-cell"><span class="info-label">点赞数：</span><span class="info-value">{{ item.likeCount }}</span></div>
+            </div>
+            <div class="info-row-2col">
+              <div class="info-cell"><span class="info-label">播放量：</span><span class="info-value">{{ item.viewCount }}</span></div>
+              <div class="info-cell"><span class="info-label">情感倾向：</span><span class="info-value info-sentiment">{{ getSentimentIcon(item.sentiment) }}</span></div>
+            </div>
+            <div class="info-row-2col last-row">
+              <div class="info-cell" style="width:100%"><span class="info-label">抓取时间：</span><span class="info-value">{{ formatDateYMD(item.crawlTime) }}</span></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -517,22 +572,116 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
 });
+
+// 模拟信息数据
+const informationList = ref([
+  {
+    id: 1,
+    channelName: 'Revopoint官方',
+    channelAvatar: '/api/avatar/revopoint.jpg',
+    channelType: 'official',
+    fansCount: 125000,
+    platform: 'YouTube',
+    title: 'POP3 3D扫描仪开箱评测 - 超高精度扫描体验',
+    description: '今天为大家带来Revopoint POP3 3D扫描仪的开箱评测，这款扫描仪具有超高精度和便携性，非常适合3D建模爱好者使用。',
+    publishTime: '2024-01-15T10:30:00Z',
+    brand: 'Revopoint',
+    commentCount: 156,
+    sku: 'POP3',
+    likeCount: 2340,
+    viewCount: 45600,
+    sentiment: 'positive',
+    crawlTime: '2024-01-15T11:00:00Z'
+  },
+  {
+    id: 2,
+    channelName: '3D打印达人',
+    channelAvatar: '/api/avatar/3d-print.jpg',
+    channelType: 'kol',
+    fansCount: 89000,
+    platform: 'Bilibili',
+    title: '',
+    description: 'Creality MINI打印机使用体验分享，小巧便携但功能强大，适合入门用户。',
+    publishTime: '2024-01-14T15:20:00Z',
+    brand: 'Creality',
+    commentCount: 89,
+    sku: 'MINI',
+    likeCount: 1200,
+    viewCount: 23400,
+    sentiment: 'neutral',
+    crawlTime: '2024-01-14T16:00:00Z'
+  },
+  {
+    id: 3,
+    channelName: '用户12345',
+    channelAvatar: '/api/avatar/user.jpg',
+    channelType: 'user',
+    fansCount: 1200,
+    platform: '抖音',
+    title: 'Anycubic GO打印机问题求助',
+    description: '我的Anycubic GO打印机最近总是出现卡料问题，有朋友遇到过类似情况吗？求解决方案。',
+    publishTime: '2024-01-13T09:15:00Z',
+    brand: 'Anycubic',
+    commentCount: 23,
+    sku: 'GO',
+    likeCount: 45,
+    viewCount: 1200,
+    sentiment: 'negative',
+    crawlTime: '2024-01-13T10:00:00Z'
+  }
+]);
+
+// 格式化数字
+function formatNumber(num: number): string {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + '万';
+  }
+  return num.toString();
+}
+
+// 新增日期格式化方法
+function formatDateYMD(timeStr: string): string {
+  const date = new Date(timeStr);
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+// 获取平台图标
+function getPlatformIcon(platform: string): string {
+  const iconMap: Record<string, string> = {
+    'YouTube': '/api/icons/youtube.png',
+    'Bilibili': '/api/icons/bilibili.png',
+    '抖音': '/api/icons/douyin.png',
+    '快手': '/api/icons/kuaishou.png',
+    '小红书': '/api/icons/xiaohongshu.png'
+  };
+  return iconMap[platform] || '/api/icons/default.png';
+}
+
+// 获取情感图标
+function getSentimentIcon(sentiment: string): string {
+  const iconMap: Record<string, string> = {
+    'positive': '😊',
+    'neutral': '😐',
+    'negative': '😞'
+  };
+  return iconMap[sentiment] || '😐';
+}
 </script>
 
 <style scoped>
-
 .filter-panel {
-  margin-top: 24px;
-  margin-right: 12px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-
 .form-row {
   display: flex;
   gap: 24px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
-
 .form-item {
   display: flex;
   align-items: center;
@@ -540,7 +689,6 @@ onUnmounted(() => {
   min-width: 200px;
   flex: 1;
 }
-
 .form-item label {
   min-width: 80px;
   font-size: 14px;
@@ -549,14 +697,12 @@ onUnmounted(() => {
   text-align: right;
   flex-shrink: 0;
 }
-
 .custom-multiselect,
 .custom-select {
   position: relative;
   flex: 1;
   min-width: 150px;
 }
-
 .multiselect-container,
 .select-container {
   border: 1px solid #dcdfe6;
@@ -570,30 +716,25 @@ onUnmounted(() => {
   background: #fff;
   transition: border-color 0.3s;
 }
-
 .multiselect-container:hover,
 .select-container:hover {
   border-color: #c0c4cc;
 }
-
 .selected-items {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   flex: 1;
 }
-
 .placeholder {
   color: #c0c4cc;
   font-size: 14px;
 }
-
 .item-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
-
 .item-tag {
   background: #f0f2f5;
   border-radius: 3px;
@@ -603,7 +744,6 @@ onUnmounted(() => {
   align-items: center;
   color: #333;
 }
-
 .tag-close {
   margin-left: 4px;
   cursor: pointer;
@@ -611,22 +751,18 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: bold;
 }
-
 .tag-close:hover {
   color: #ff4d4f;
 }
-
 .dropdown-arrow {
   font-size: 12px;
   transition: transform 0.3s;
   color: #999;
   flex-shrink: 0;
 }
-
 .dropdown-arrow.open {
   transform: rotate(180deg);
 }
-
 .dropdown-options {
   position: absolute;
   left: 0;
@@ -640,7 +776,6 @@ onUnmounted(() => {
   max-height: 200px;
   overflow-y: auto;
 }
-
 .dropdown-option {
   padding: 8px 12px;
   cursor: pointer;
@@ -648,28 +783,23 @@ onUnmounted(() => {
   align-items: center;
   transition: background-color 0.3s;
 }
-
 .dropdown-option:hover {
   background: #f5f7fa;
 }
-
 .dropdown-option input {
   margin-right: 8px;
   pointer-events: none;
 }
-
 .dropdown-option label {
   margin: 0;
   cursor: pointer;
   font-size: 14px;
 }
-
 .select-value {
   color: #333;
   font-size: 14px;
   flex: 1;
 }
-
 .search-input {
   height: 36px;
   padding: 0 12px;
@@ -679,22 +809,16 @@ onUnmounted(() => {
   transition: border-color 0.3s;
   flex: 1;
 }
-
 .search-input:hover {
   border-color: #c0c4cc;
 }
-
 .search-input:focus {
   border-color: #409eff;
   outline: none;
 }
-
 .date-picker {
   width: 100%;
 }
-
-
-
 .filter-actions {
   display: flex;
   justify-content: flex-end;
@@ -703,7 +827,6 @@ onUnmounted(() => {
   padding-top: 20px;
   border-top: 1px solid #f0f0f0;
 }
-
 .btn-reset,
 .btn-search {
   height: 36px;
@@ -715,22 +838,198 @@ onUnmounted(() => {
   font-weight: 500;
   transition: all 0.3s;
 }
-
 .btn-reset {
   background: #f5f5f5;
   color: #333;
 }
-
 .btn-reset:hover {
   background: #e8e8e8;
 }
-
 .btn-search {
   background: #409eff;
   color: white;
 }
-
 .btn-search:hover {
   background: #66b1ff;
+}
+.information-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.info-card {
+  display: flex;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 0px 24px;
+  align-items: stretch;
+  gap: 18px;
+}
+.info-left {
+  min-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.info-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+.info-channel {
+  font-size: 15px;
+  color: #222;
+  font-weight: 500;
+}
+.info-fans {
+  font-size: 12px;
+  color: #888;
+}
+.info-fans span {
+  color: #222;
+  font-weight: 500;
+}
+.info-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  position: relative;
+  padding-bottom: 28px;
+}
+.info-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #222;
+}
+.info-platform-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.info-content-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.info-cover {
+  width: 120px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #eee;
+  flex-shrink: 0;
+}
+.info-content-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.info-desc {
+  color: #444;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 2px 0 0 0;
+  max-height: 3.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.info-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 12px;
+  color: #b0b0b0;
+  font-size: 16px;
+}
+.info-actions i:hover {
+  color: #3a6ff7;
+  cursor: pointer;
+}
+.info-meta-row-bottom {
+  color: #aaa;
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+.info-meta-row-bottom span {
+  white-space: pre;
+}
+.info-table-2col {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.info-row-2col {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 2px;
+}
+.info-row-2col.last-row {
+  gap: 0;
+}
+.info-row-2col.last-row .info-cell {
+  flex: 2 1 0;
+}
+.info-cell {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  min-width: 0;
+}
+.info-label {
+  width: 60px;
+  text-align: right;
+  color: #888;
+  margin-right: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.info-value {
+  flex: 1 1 0;
+  text-align: left;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 2px;
+}
+.info-sentiment {
+  font-size: 18px;
+  margin-left: 4px;
+}
+.info-divider {
+  width: 1px;
+  background: #e5e6eb;
+  height: 80px;
+  margin: 0 18px;
+  align-self: center;
+}
+.info-right {
+  min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
 }
 </style>
