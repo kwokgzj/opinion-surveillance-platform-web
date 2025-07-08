@@ -269,9 +269,9 @@
       <div v-for="item in informationList" :key="item.id" class="info-card">
         <!-- 左栏 -->
         <div class="info-left">
-          <img :src="item.channelThumbnailUrl" class="info-logo" />
-          <div class="info-channel" :title="item.channelName">{{ item.channelName }}</div>
-          <div class="info-fans">粉丝：<span>{{ formatNumber(parseInt(item.subscriberCount)) }}</span></div>
+          <img :src="item.channelThumbnailUrl" class="info-logo" :class="{ 'inactive': !item.isActive }" />
+          <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
+          <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(parseInt(item.subscriberCount)) }}</span></div>
         </div>
         <!-- 中栏 -->
         <div class="info-center">
@@ -282,17 +282,19 @@
               target="_blank"
               rel="noopener noreferrer"
               class="info-title-link"
+              :class="{ 'inactive': !item.isActive }"
               :title="item.title"
             >
               {{ item.title }}
             </a>
           </div>
           <div class="info-content-row">
-            <img :src="item.thumbnailUrl" class="info-cover" />
+            <img :src="item.thumbnailUrl" class="info-cover" :class="{ 'inactive': !item.isActive }" />
             <div class="info-content-main">
               <div
                 v-if="item.description"
                 class="info-desc"
+                :class="{ 'inactive': !item.isActive }"
                 :title="item.description"
               >
                 {{ item.description }}
@@ -306,8 +308,39 @@
             <i class="iconfont icon-delete"></i>
           </div>
           <div class="info-meta-row-bottom">
-            <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
-            <span v-if="item.platform">| {{ item.platform }}</span>
+            <div class="info-meta-left">
+              <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
+              <span v-if="item.platform">| {{ item.platform }}</span>
+              <span v-if="item.region">| {{ getRegionLabel(item.region) }}</span>
+              <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
+            </div>
+            <div class="info-meta-actions">
+              <button 
+                class="action-btn tag-btn" 
+                @click="handleAddTag(item)"
+                title="添加标签"
+              >
+                <img src="/src/components/icons/tag.svg" alt="添加标签" />
+              </button>
+              <button 
+                class="action-btn capture-btn" 
+                :class="{ active: item.isActive }"
+                @click="handleToggleCapture(item)"
+                :title="item.isActive ? '停止抓取' : '开始抓取'"
+              >
+                <img 
+                  :src="item.isActive ? '/src/components/icons/capture-active.svg' : '/src/components/icons/capture-inactive.svg'" 
+                  :alt="item.isActive ? '停止抓取' : '开始抓取'" 
+                />
+              </button>
+              <button 
+                class="action-btn delete-btn" 
+                @click="handleDelete(item)"
+                title="删除"
+              >
+                <img src="/src/components/icons/delete.svg" alt="删除" />
+              </button>
+            </div>
           </div>
         </div>
         <!-- 竖线分割 -->
@@ -339,7 +372,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { getInformationList, getFilterOptions } from '@/api/information/information';
+import { getInformationList, getFilterOptions, updateLinkActiveStatus } from '@/api/information/information';
 import type { Information, InformationFilt, FilterOptions } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
 
@@ -398,6 +431,11 @@ const fetchFilterOptions = async () => {
     if (response) {
       filterOptions.value = response;
       console.log('设置筛选选项:', filterOptions.value);
+      
+      // 设置第一个排序选项为默认值
+      if (response.sortBy && response.sortBy.length > 0 && !filter.value.sort) {
+        filter.value.sort = response.sortBy[0].label;
+      }
     } else {
       console.warn('筛选选项响应为空:', response);
     }
@@ -436,6 +474,14 @@ const regionOptions = computed(() => {
 const sortOptions = computed(() => {
   const options = filterOptions.value.sortBy?.map(item => item.label) || [];
   return options;
+});
+
+// 获取第一个排序选项的value
+const firstSortValue = computed(() => {
+  if (filterOptions.value.sortBy && filterOptions.value.sortBy.length > 0) {
+    return filterOptions.value.sortBy[0].value;
+  }
+  return 'publishedAt:desc'; // 默认值
 });
 const durationOptions = computed(() => {
   const options = filterOptions.value.durations?.map(item => item.label) || [];
@@ -747,7 +793,7 @@ const fetchInformationData = async () => {
       sentiments: filter.value.sentiments,
       languages: filter.value.languages,
       regions: filter.value.regions,
-      sortBy: filter.value.sort || 'publishedAt:desc',
+      sortBy: filter.value.sort || firstSortValue.value,
       minDuration: 0,
       maxDuration: 0,
       channels: filter.value.channels,
@@ -848,7 +894,7 @@ function formatDateYMDOnly(timeStr: string): string {
       return '-';
     }
 
-    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   } catch (error) {
     console.error('日期格式化错误:', error, '原始值:', timeStr);
     return '-';
@@ -902,6 +948,64 @@ function getSentimentFromContent(item: Information): number {
     return Math.round(item.contentMentionedBrands[0].sentiment * 100);
   }
   return 50; // 默认中性
+}
+
+// 根据value获取语言的label
+function getLanguageLabel(value: string): string {
+  if (!value || !filterOptions.value.languages) return value;
+  const language = filterOptions.value.languages.find(item => item.value === value);
+  return language ? language.label : value;
+}
+
+// 根据value获取地区的label
+function getRegionLabel(value: string): string {
+  if (!value || !filterOptions.value.regions) return value;
+  const region = filterOptions.value.regions.find(item => item.value === value);
+  return region ? region.label : value;
+}
+
+// 处理添加标签
+function handleAddTag(item: Information) {
+  console.log('添加标签:', item);
+  // TODO: 实现添加标签逻辑
+  // 这里可以打开一个弹窗让用户选择或输入标签
+}
+
+// 处理切换抓取状态
+async function handleToggleCapture(item: Information) {
+  try {
+    console.log('切换抓取状态:', item);
+    
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      console.error('没有项目ID');
+      return;
+    }
+
+    // 调用API更新抓取状态
+    const response = await updateLinkActiveStatus(currentProjectId, item.id, !item.isActive);
+    
+    if (response && response.code === 0) {
+      // 更新本地数据
+      item.isActive = !item.isActive;
+      console.log('抓取状态更新成功:', item.isActive);
+    } else {
+      console.error('抓取状态更新失败:', response);
+    }
+  } catch (error) {
+    console.error('切换抓取状态失败:', error);
+  }
+}
+
+// 处理删除
+function handleDelete(item: Information) {
+  console.log('删除项目:', item);
+  // TODO: 实现删除逻辑
+  // 这里可以显示确认对话框，然后调用删除API
+  if (confirm('确定要删除这个信息项吗？')) {
+    // 调用删除API
+    console.log('确认删除:', item.id);
+  }
 }
 
 
@@ -1103,18 +1207,17 @@ function getSentimentFromContent(item: Information): number {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 0px 24px;
+  padding: 0px 0px;
   align-items: stretch;
-  gap: 18px;
+  gap: 10px;
 }
 .info-left {
-  min-width: 110px;
+  min-width: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-left: 10px;
   margin-right: 10px;
 }
 .info-logo {
@@ -1123,12 +1226,17 @@ function getSentimentFromContent(item: Information): number {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 4px;
+  transition: filter 0.3s;
+}
+
+.info-logo.inactive {
+  filter: grayscale(40%) opacity(0.8);
 }
 .info-channel {
   font-size: 15px;
   color: #222;
   font-weight: 500;
-  max-width: 100px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1176,6 +1284,7 @@ function getSentimentFromContent(item: Information): number {
   pointer-events: auto;
   position: relative;
   z-index: 1;
+  max-width: calc(100vw - 600px);
 }
 
 .info-title-link:hover {
@@ -1185,6 +1294,16 @@ function getSentimentFromContent(item: Information): number {
 
 .info-title-link:active {
   color: #337ecc;
+}
+
+.info-title-link.inactive {
+  color: #999 !important;
+  cursor: not-allowed;
+}
+
+.info-title-link.inactive:hover {
+  color: #999 !important;
+  text-decoration: none;
 }
 .info-platform-icon {
   width: 24px;
@@ -1222,6 +1341,11 @@ function getSentimentFromContent(item: Information): number {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   cursor: help;
+  max-width: calc(100vw - 700px);
+}
+
+.info-desc.inactive {
+  color: #999 !important;
 }
 .info-actions {
   margin-top: 6px;
@@ -1240,12 +1364,79 @@ function getSentimentFromContent(item: Information): number {
   display: flex;
   gap: 8px;
   align-items: center;
+  justify-content: space-between;
   position: absolute;
   bottom: 0;
   left: 0;
+  right: 0;
+  margin-bottom: 6px;
+  max-width: calc(100vw - 700px);
+  overflow: hidden;
+}
+
+.info-meta-left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+.info-meta-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
 }
 .info-meta-row-bottom span {
-  white-space: pre;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.action-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.action-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.tag-btn:hover {
+  background: rgba(64, 158, 255, 0.1);
+}
+
+.capture-btn {
+  opacity: 0.6;
+}
+
+.capture-btn.active {
+  opacity: 1;
+}
+
+.capture-btn:hover {
+  background: rgba(103, 194, 58, 0.1);
+}
+
+.delete-btn:hover {
+  background: rgba(245, 108, 108, 0.1);
 }
 .info-table-2col {
   width: 100%;
@@ -1271,12 +1462,13 @@ function getSentimentFromContent(item: Information): number {
   min-width: 0;
 }
 .info-label {
-  width: 60px;
+  width: 70px;
   text-align: right;
   color: #888;
-  margin-right: 6px;
+  margin-right: 8px;
   white-space: nowrap;
   flex-shrink: 0;
+  font-size: 14px;
 }
 .info-value {
   flex: 1 1 0;
@@ -1286,6 +1478,8 @@ function getSentimentFromContent(item: Information): number {
   overflow: hidden;
   text-overflow: ellipsis;
   padding-left: 2px;
+  font-size: 14px;
+  max-width: 120px;
 }
 .info-sentiment {
   display: flex;
@@ -1300,12 +1494,13 @@ function getSentimentFromContent(item: Information): number {
 .info-divider {
   width: 1px;
   background: #e5e6eb;
-  height: 80px;
+  height: 100px;
   margin: 0 18px;
   align-self: center;
 }
 .info-right {
-  min-width: 360px;
+  min-width: 320px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -1396,5 +1591,17 @@ function getSentimentFromContent(item: Information): number {
   color: #999;
   font-size: 14px;
   margin: 0;
+}
+
+/* 置灰样式补充 */
+.info-channel.inactive,
+.info-fans.inactive {
+  color: #bbb !important;
+}
+.info-cover.inactive {
+  filter: grayscale(40%) opacity(0.8);
+}
+.info-fans.inactive span {
+  color: #bbb !important;
 }
 </style>

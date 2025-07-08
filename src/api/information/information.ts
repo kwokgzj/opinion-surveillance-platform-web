@@ -66,3 +66,20 @@ export const getFilterOptions = async (projectId: string) => {
     throw error;
   }
 };
+
+/**
+ * 更新链接抓取状态
+ * @param projectId 项目ID
+ * @param linkId 链接ID
+ * @param isActived 是否激活
+ * @returns 更新结果
+ */
+export const updateLinkActiveStatus = async (projectId: string, linkId: string, isActived: boolean) => {
+  try {
+    const response = await post(`/informations/active?projectId=${projectId}&linkId=${linkId}&isActived=${isActived}`, {});
+    return response;
+  } catch (error) {
+    console.error('更新链接抓取状态失败:', error);
+    throw error;
+  }
+};
