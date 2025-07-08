@@ -271,7 +271,7 @@
         <div class="info-left">
           <img :src="item.channelThumbnailUrl" class="info-logo" :class="{ 'inactive': !item.isActive }" />
           <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
-          <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(parseInt(item.subscriberCount)) }}</span></div>
+          <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(item.subscriberCount) }}</span></div>
         </div>
         <!-- 中栏 -->
         <div class="info-center">
@@ -372,7 +372,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { getInformationList, getFilterOptions, updateLinkActiveStatus } from '@/api/information/information';
+import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink } from '@/api/information/information';
 import type { Information, InformationFilt, FilterOptions } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
 
@@ -701,11 +701,17 @@ async function searchData() {
   console.log('搜索条件:', filter.value);
   console.log('==================');
 
-  // 如果项目ID变化，重新获取筛选选项
-  const currentProjectId = projectStore.currentProjectId;
-  if (currentProjectId) {
-    await fetchFilterOptions();
+  // 检查排序是否已选择，如果没有选择则提醒用户
+  if (!filter.value.sort) {
+    alert('请选择排序方式');
+    return;
   }
+
+  // 如果项目ID变化，重新获取筛选选项
+  // const currentProjectId = projectStore.currentProjectId;
+  // if (currentProjectId) {
+  //   await fetchFilterOptions();
+  // }
 
   fetchInformationData();
 }
@@ -793,7 +799,7 @@ const fetchInformationData = async () => {
       sentiments: filter.value.sentiments,
       languages: filter.value.languages,
       regions: filter.value.regions,
-      sortBy: filter.value.sort || firstSortValue.value,
+      sortBy: getSortValue(filter.value.sort),
       minDuration: 0,
       maxDuration: 0,
       channels: filter.value.channels,
@@ -964,6 +970,13 @@ function getRegionLabel(value: string): string {
   return region ? region.label : value;
 }
 
+// 根据label获取排序的value
+function getSortValue(label: string): string {
+  if (!label || !filterOptions.value.sortBy) return firstSortValue.value;
+  const sortOption = filterOptions.value.sortBy.find(item => item.label === label);
+  return sortOption ? sortOption.value : firstSortValue.value;
+}
+
 // 处理添加标签
 function handleAddTag(item: Information) {
   console.log('添加标签:', item);
@@ -998,13 +1011,31 @@ async function handleToggleCapture(item: Information) {
 }
 
 // 处理删除
-function handleDelete(item: Information) {
+async function handleDelete(item: Information) {
   console.log('删除项目:', item);
-  // TODO: 实现删除逻辑
-  // 这里可以显示确认对话框，然后调用删除API
+  
   if (confirm('确定要删除这个信息项吗？')) {
-    // 调用删除API
-    console.log('确认删除:', item.id);
+    try {
+      const currentProjectId = projectStore.currentProjectId;
+      if (!currentProjectId) {
+        alert('项目ID不存在，无法删除');
+        return;
+      }
+
+      console.log('开始删除链接:', item.id);
+      const response = await deleteProjectLink(currentProjectId, item.id);
+      
+      if (response) {
+        alert('删除成功');
+        // 重新获取数据
+        fetchInformationData();
+      } else {
+        alert('删除失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('删除失败:', error);
+      alert('删除失败，请稍后重试');
+    }
   }
 }
 

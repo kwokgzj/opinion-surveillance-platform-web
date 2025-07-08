@@ -1,6 +1,7 @@
 import {
   post,
   get,
+  del,
 } from '@/utils/request';
 
 import type {
@@ -80,6 +81,22 @@ export const updateLinkActiveStatus = async (projectId: string, linkId: string, 
     return response;
   } catch (error) {
     console.error('更新链接抓取状态失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 删除链接
+ * @param projectId 项目ID
+ * @param linkId 链接ID
+ * @returns 删除结果
+ */
+export const deleteProjectLink = async (projectId: string, linkId: string) => {
+  try {
+    const response = await del(`/informations?projectId=${projectId}&linkId=${linkId}`, {});
+    return response;
+  } catch (error) {
+    console.error('删除链接失败:', error);
     throw error;
   }
 };

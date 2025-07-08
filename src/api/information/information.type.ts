@@ -85,7 +85,7 @@ export interface Information {
   publishedAt: string;                     // 发布时间
   channelName: string;                     // 频道名称
   channelThumbnailUrl: string;             // 频道缩略图URL
-  subscriberCount: string;                 // 订阅者数量
+  subscriberCount: number;                 // 订阅者数量
   viewCount: number;                       // 观看次数
   commentCount: number;                    // 评论次数
   likeCount: number;                       // 点赞次数
