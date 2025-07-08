@@ -1308,14 +1308,14 @@ async function handleDelete(item: Information) {
   transition: color 0.3s;
   cursor: pointer;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;      /* 最多显示2行，可根据需求调整 */
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-  pointer-events: auto;
-  position: relative;
-  z-index: 1;
-  max-width: calc(100vw - 600px);
+  white-space: normal;
+  word-break: break-all;
+  max-width: 100%;
 }
 
 .info-title-link:hover {
@@ -1365,14 +1365,15 @@ async function handleDelete(item: Information) {
   font-size: 14px;
   line-height: 1.6;
   margin: 2px 0 0 0;
-  max-height: 3.2em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 最多显示2行，可根据需求调整 */
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  cursor: help;
-  max-width: calc(100vw - 700px);
+  white-space: normal;
+  word-break: break-all;
+  max-width: 100%; /* 保证不会超出父容器 */
+  min-height: 40px; /* 可选：保证高度一致 */
 }
 
 .info-desc.inactive {
