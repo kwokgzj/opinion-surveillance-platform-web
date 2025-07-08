@@ -1,5 +1,5 @@
 import {
-  post
+  post,
 } from '@/utils/request';
 
 import type {
@@ -14,7 +14,7 @@ import type {
  */
 export const getInformationList = async (filter: InformationFilt): Promise<Information[]> => {
   try {
-    const response = await post<Information[]>('/information', filter);
+    const response = await post<Information[]>('/informations', filter);
     return response;
   } catch (error) {
     console.error('获取信息列表失败:', error);

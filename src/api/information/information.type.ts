@@ -52,7 +52,10 @@ export interface InformationFilt {
  */
 export interface Information {
   id: string;                              // 信息ID
+  type: string;                            // 链接的类型，post、video、new
   title: string;                           // 标题
+  platform: string;                        // 平台
+  url: string;                             // url
   description: string;                     // 描述
   thumbnailUrl: string;                    // 缩略图URL
   publishedAt: string;                     // 发布时间
@@ -66,14 +69,16 @@ export interface Information {
   engagementRate: number;                  // 参与率
   language: string;                        // 语言
   region: string;                          // 地区
-  duration: string;                        // 时长
+  duration: number;                        // 时长
   SU: number;                              // SU值
   newsPlatform: string;                    // 新闻平台
   newsPlatformRegion: string[];            // 新闻平台地区
   monthlyActiveUsers: string;              // 月活跃用户数
+  keyInformation: string;                  // 新闻关键信息
+  titleCN: string;                         // 新闻标题的中文翻译
   contentMentionedBrands: ContentMentionedBrand[];  // 内容中提到的品牌
   contentMentionedSkus: ContentMentionedSku[];      // 内容中提到的SKU
-  captureDate: string;                     // 捕获日期
+  captureAt: string;                       // 抓取日期
   isActive: boolean;                       // 是否活跃
   isCollected: boolean;                    // 是否已收集
   labels: string[];                         // 标签列表

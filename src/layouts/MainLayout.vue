@@ -90,11 +90,14 @@ import {
   Operation
 } from '@element-plus/icons-vue';
 import { getProjectList } from '@/api/project/project';
-import type { ProjectSummary } from '@/api/project/project.type';
 import { ElMessage } from 'element-plus';
+import { useProjectStore } from '@/stores/project';
 
 const route = useRoute();
 const router = useRouter();
+
+// 使用项目store
+const projectStore = useProjectStore();
 
 // 计算当前激活的菜单项
 const activeMenu = computed(() => {
@@ -121,6 +124,7 @@ const fetchProjects = async () => {
     console.log('获取到的项目列表:', projectList);
 
     if (projectList.length > 0) {
+      // 更新本地选项
       projectOptions.value = projectList.map((project) => {
         return {
           value: project.projectId,
@@ -128,20 +132,37 @@ const fetchProjects = async () => {
           type: project.projectType,
         };
       });
+
+      // 更新store中的项目列表
+      const storeProjectList = projectList.map((project) => ({
+        projectId: project.projectId,
+        projectName: project.projectName,
+        projectType: project.projectType,
+      }));
+      projectStore.setProjectList(storeProjectList);
+
+      // 如果没有当前选中的项目，选择第一个
+      if (!projectStore.currentProjectId) {
+        const firstProject = storeProjectList[0];
+        projectStore.setCurrentProject(firstProject);
+        selectedProject.value = firstProject.projectId;
+      }
     } else {
       projectOptions.value = [];
+      projectStore.setProjectList([]);
     }
   } catch (error) {
     ElMessage.error('加载项目列表失败');
     console.error('加载项目列表失败:', error);
     projectOptions.value = [];
+    projectStore.setProjectList([]);
   } finally {
     isProjectLoading.value = false;
   }
 };
 
 // 监听路由变化
-watch(() => route.query, async (newQuery, oldQuery) => {
+watch(() => route.query, async (newQuery) => {
   const { refresh, projectId } = newQuery;
 
   console.log('路由查询参数变化:', newQuery);
@@ -179,6 +200,13 @@ watch(() => route.query, async (newQuery, oldQuery) => {
       // 找到项目，设置选中状态并跳转到设置页面
       selectedProject.value = targetProject.value as string;
 
+      // 更新store中的当前项目
+      projectStore.setCurrentProject({
+        projectId: targetProject.value,
+        projectName: targetProject.label,
+        projectType: targetProject.type,
+      });
+
       router.push({
         name: 'settings',
         query: {
@@ -204,6 +232,13 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     const firstProject = projectOptions.value[0];
     selectedProject.value = firstProject.value;
 
+    // 更新store中的当前项目
+    projectStore.setCurrentProject({
+      projectId: firstProject.value,
+      projectName: firstProject.label,
+      projectType: firstProject.type,
+    });
+
     router.push({
       name: 'settings',
       query: {
@@ -216,6 +251,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     // 项目列表为空，跳转到新建项目页面
     ElMessage.error('项目列表为空，跳转到新建项目页面');
     selectedProject.value = '';
+    projectStore.clearCurrentProject();
     router.push({ name: 'newProject' });
   }
 }, { immediate: true, deep: true });
@@ -227,6 +263,13 @@ const handleProjectChange = (value: string) => {
   // 获取选中项目的详细信息
   const selectedProjectInfo = projectOptions.value.find(p => p.value === value);
   if (selectedProjectInfo) {
+    // 更新store中的当前项目
+    projectStore.setCurrentProject({
+      projectId: value,
+      projectName: selectedProjectInfo.label,
+      projectType: selectedProjectInfo.type,
+    });
+
     // 如果当前在设置页面，需要更新URL参数
     if (route.path === '/settings' || route.path.includes('Setting')) {
       router.push({
@@ -257,7 +300,7 @@ const refreshProjects = () => {
 };
 
 // 暴露设置当前项目的方法
-const setCurrentProject = (projectId: string, projectName?: string) => {
+const setCurrentProject = (projectId: string) => {
   const existingProject = projectOptions.value.find(p => p.value === projectId);
   if (existingProject) {
     selectedProject.value = projectId;

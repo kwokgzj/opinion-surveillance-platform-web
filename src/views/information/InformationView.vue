@@ -251,24 +251,51 @@
     </div>
 
     <!-- 信息展示区域 -->
-    <div class="information-list">
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>正在加载数据...</p>
+    </div>
+
+    <div v-else-if="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button class="btn-retry" @click="fetchInformationData">重试</button>
+    </div>
+
+    <div v-else-if="informationList.length === 0" class="empty-container">
+      <p>暂无数据</p>
+    </div>
+
+    <div v-else class="information-list">
       <div v-for="item in informationList" :key="item.id" class="info-card">
         <!-- 左栏 -->
         <div class="info-left">
-          <img :src="item.channelAvatar" class="info-logo" />
-          <div class="info-channel">{{ item.channelName }}</div>
-          <div class="info-fans">粉丝：<span>{{ formatNumber(item.fansCount) }}</span></div>
+          <img :src="item.channelThumbnailUrl" class="info-logo" />
+          <div class="info-channel" :title="item.channelName">{{ item.channelName }}</div>
+          <div class="info-fans">粉丝：<span>{{ formatNumber(parseInt(item.subscriberCount)) }}</span></div>
         </div>
         <!-- 中栏 -->
         <div class="info-center">
           <div class="info-title-row">
             <img :src="getPlatformIcon(item.platform)" class="info-platform-icon" />
-            <span class="info-title">{{ item.title }}</span>
+            <a
+              :href="item.url"
+              target="_blank"
+              class="info-title-link"
+              :title="item.title"
+            >
+              {{ item.title }}
+            </a>
           </div>
           <div class="info-content-row">
-            <img :src="item.channelAvatar" class="info-cover" />
+            <img :src="item.thumbnailUrl" class="info-cover" />
             <div class="info-content-main">
-              <div v-if="item.description" class="info-desc">{{ item.description }}</div>
+              <div
+                v-if="item.description"
+                class="info-desc"
+                :title="item.description"
+              >
+                {{ item.description }}
+              </div>
             </div>
           </div>
           <div class="info-actions">
@@ -278,7 +305,7 @@
             <i class="iconfont icon-delete"></i>
           </div>
           <div class="info-meta-row-bottom">
-            <span>发布时间：{{ formatDateYMD(item.publishTime) }}</span>
+            <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
             <span v-if="item.platform">| {{ item.platform }}</span>
           </div>
         </div>
@@ -288,8 +315,8 @@
         <div class="info-right">
           <div class="info-table-2col">
             <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value">{{ item.brand }}</span></div>
-              <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value">{{ item.sku }}</span></div>
+              <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value">{{ getBrandFromContent(item) }}</span></div>
+              <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value">{{ getSkuFromContent(item) }}</span></div>
             </div>
             <div class="info-row-2col">
               <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value">{{ item.commentCount }}</span></div>
@@ -297,10 +324,10 @@
             </div>
             <div class="info-row-2col">
               <div class="info-cell"><span class="info-label">播放量：</span><span class="info-value">{{ item.viewCount }}</span></div>
-              <div class="info-cell"><span class="info-label">情感倾向：</span><span class="info-value info-sentiment">{{ getSentimentIcon(item.sentiment) }}</span></div>
+              <div class="info-cell"><span class="info-label">情感倾向：</span><span class="info-value info-sentiment"><img :src="getSentimentIcon(getSentimentFromContent(item))" class="sentiment-icon" /></span></div>
             </div>
             <div class="info-row-2col last-row">
-              <div class="info-cell" style="width:100%"><span class="info-label">抓取时间：</span><span class="info-value">{{ formatDateYMD(item.crawlTime) }}</span></div>
+              <div class="info-cell" style="width:100%"><span class="info-label">抓取时间：</span><span class="info-value">{{ formatDateYMDOnly(item.captureAt) }}</span></div>
             </div>
           </div>
         </div>
@@ -311,6 +338,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { getInformationList } from '@/api/information/information';
+import type { Information, InformationFilt } from '@/api/information/information.type';
+import { useProjectStore } from '@/stores/project';
+
+// 使用项目store
+const projectStore = useProjectStore();
+
+// 加载状态
+const loading = ref(false);
+const error = ref('');
 
 const filter = ref({
   brands: [] as string[],
@@ -540,8 +577,10 @@ function resetFilter() {
 }
 
 function searchData() {
+  console.log('=== 用户点击搜索 ===');
   console.log('搜索条件:', filter.value);
-  // 这里添加搜索逻辑
+  console.log('==================');
+  fetchInformationData();
 }
 
 // 点击外部关闭下拉框
@@ -566,6 +605,8 @@ function handleClickOutside(event: Event) {
 // 组件挂载时添加全局点击监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  // 页面加载时获取数据
+  fetchInformationData();
 });
 
 // 组件卸载时移除全局点击监听
@@ -573,63 +614,66 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
 });
 
-// 模拟信息数据
-const informationList = ref([
-  {
-    id: 1,
-    channelName: 'Revopoint官方',
-    channelAvatar: '/api/avatar/revopoint.jpg',
-    channelType: 'official',
-    fansCount: 125000,
-    platform: 'YouTube',
-    title: 'POP3 3D扫描仪开箱评测 - 超高精度扫描体验',
-    description: '今天为大家带来Revopoint POP3 3D扫描仪的开箱评测，这款扫描仪具有超高精度和便携性，非常适合3D建模爱好者使用。',
-    publishTime: '2024-01-15T10:30:00Z',
-    brand: 'Revopoint',
-    commentCount: 156,
-    sku: 'POP3',
-    likeCount: 2340,
-    viewCount: 45600,
-    sentiment: 'positive',
-    crawlTime: '2024-01-15T11:00:00Z'
-  },
-  {
-    id: 2,
-    channelName: '3D打印达人',
-    channelAvatar: '/api/avatar/3d-print.jpg',
-    channelType: 'kol',
-    fansCount: 89000,
-    platform: 'Bilibili',
-    title: '',
-    description: 'Creality MINI打印机使用体验分享，小巧便携但功能强大，适合入门用户。',
-    publishTime: '2024-01-14T15:20:00Z',
-    brand: 'Creality',
-    commentCount: 89,
-    sku: 'MINI',
-    likeCount: 1200,
-    viewCount: 23400,
-    sentiment: 'neutral',
-    crawlTime: '2024-01-14T16:00:00Z'
-  },
-  {
-    id: 3,
-    channelName: '用户12345',
-    channelAvatar: '/api/avatar/user.jpg',
-    channelType: 'user',
-    fansCount: 1200,
-    platform: '抖音',
-    title: 'Anycubic GO打印机问题求助',
-    description: '我的Anycubic GO打印机最近总是出现卡料问题，有朋友遇到过类似情况吗？求解决方案。',
-    publishTime: '2024-01-13T09:15:00Z',
-    brand: 'Anycubic',
-    commentCount: 23,
-    sku: 'GO',
-    likeCount: 45,
-    viewCount: 1200,
-    sentiment: 'negative',
-    crawlTime: '2024-01-13T10:00:00Z'
+// 信息数据
+const informationList = ref<Information[]>([]);
+
+// 获取信息数据
+const fetchInformationData = async () => {
+  loading.value = true;
+  error.value = '';
+
+    try {
+    // 获取当前项目ID
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      error.value = '请先选择一个项目';
+      return;
+    }
+
+    // 构建过滤条件
+    const filterParams: InformationFilt = {
+      projectId: currentProjectId,
+      brands: filter.value.brands,
+      skus: filter.value.skus,
+      platforms: filter.value.platforms,
+      sentiments: filter.value.sentiments,
+      languages: filter.value.languages,
+      regions: filter.value.regions,
+      sortBy: filter.value.sort || 'publishedAt:desc',
+      minDuration: 0,
+      maxDuration: 0,
+      channels: filter.value.channels,
+      publishedAtStart: filter.value.dateRange[0] || '',
+      publishedAtEnd: filter.value.dateRange[1] || '',
+      labels: filter.value.tags,
+      page: 1,
+      size: 20
+    };
+
+    // 输出项目ID和过滤条件
+    console.log('=== 信息查询参数 ===');
+    console.log('项目ID:', currentProjectId);
+    console.log('当前项目名称:', projectStore.currentProjectName);
+    console.log('当前项目类型:', projectStore.currentProjectType);
+    console.log('过滤条件:', filterParams);
+    console.log('==================');
+
+    const data = await getInformationList(filterParams);
+    console.log('API返回的原始数据:', data);
+
+    // 检查数据结构
+    if (data && typeof data === 'object' && 'data' in data) {
+      informationList.value = (data as any).data;
+    } else {
+      informationList.value = data as Information[];
+    }
+  } catch (err) {
+    console.error('获取信息数据失败:', err);
+    error.value = '获取数据失败，请稍后重试';
+  } finally {
+    loading.value = false;
   }
-]);
+};
 
 // 格式化数字
 function formatNumber(num: number): string {
@@ -641,30 +685,113 @@ function formatNumber(num: number): string {
 
 // 新增日期格式化方法
 function formatDateYMD(timeStr: string): string {
-  const date = new Date(timeStr);
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+  if (!timeStr) return '-';
+
+  try {
+    // 尝试解析时间字符串
+    let date: Date;
+
+    // 如果是时间戳格式
+    if (/^\d{10,13}$/.test(timeStr)) {
+      // 如果是10位时间戳，转换为13位
+      const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr);
+      date = new Date(timestamp);
+    } else {
+      // 尝试直接解析时间字符串
+      date = new Date(timeStr);
+    }
+
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      console.warn('无效的日期格式:', timeStr);
+      return '-';
+    }
+
+    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  } catch (error) {
+    console.error('日期格式化错误:', error, '原始值:', timeStr);
+    return '-';
+  }
+}
+
+// 只显示年月日的日期格式化方法
+function formatDateYMDOnly(timeStr: string): string {
+  if (!timeStr) return '-';
+
+  try {
+    // 尝试解析时间字符串
+    let date: Date;
+
+    // 如果是时间戳格式
+    if (/^\d{10,13}$/.test(timeStr)) {
+      // 如果是10位时间戳，转换为13位
+      const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr);
+      date = new Date(timestamp);
+    } else {
+      // 尝试直接解析时间字符串
+      date = new Date(timeStr);
+    }
+
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      console.warn('无效的日期格式:', timeStr);
+      return '-';
+    }
+
+    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+  } catch (error) {
+    console.error('日期格式化错误:', error, '原始值:', timeStr);
+    return '-';
+  }
 }
 
 // 获取平台图标
 function getPlatformIcon(platform: string): string {
   const iconMap: Record<string, string> = {
-    'YouTube': '/api/icons/youtube.png',
-    'Bilibili': '/api/icons/bilibili.png',
-    '抖音': '/api/icons/douyin.png',
-    '快手': '/api/icons/kuaishou.png',
-    '小红书': '/api/icons/xiaohongshu.png'
+    'Youtube': '/src/components/icons/youtube.svg',
+    'Google new': '/src/components/icons/google_news.svg',
+    'X': '/src/components/icons/X.svg'
   };
-  return iconMap[platform] || '/api/icons/default.png';
+  return iconMap[platform] || '/src/components/icons/default.svg';
 }
 
 // 获取情感图标
-function getSentimentIcon(sentiment: string): string {
+function getSentimentIcon(sentiment: number): string {
+  let str = 'Neutral';
+  if (sentiment <= 30) str = 'Negative';
+  if (sentiment >= 71) str = 'Positive';
+  if (sentiment >= 31 && sentiment <= 70) str = 'Neutral';
   const iconMap: Record<string, string> = {
-    'positive': '😊',
-    'neutral': '😐',
-    'negative': '😞'
+    'Positive': '/src/components/icons/positive.svg',
+    'Neutral': '/src/components/icons/neutral.svg',
+    'Negative': '/src/components/icons/negative.svg'
   };
-  return iconMap[sentiment] || '😐';
+  return iconMap[str];
+}
+
+// 从内容中获取品牌信息
+function getBrandFromContent(item: Information): string {
+  if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
+    return item.contentMentionedBrands[0].brand;
+  }
+  return '-';
+}
+
+// 从内容中获取SKU信息
+function getSkuFromContent(item: Information): string {
+  if (item.contentMentionedSkus && item.contentMentionedSkus.length > 0) {
+    return item.contentMentionedSkus[0].sku;
+  }
+  return '-';
+}
+
+// 从内容中获取情感倾向
+function getSentimentFromContent(item: Information): number {
+  if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
+    // 将0-1的小数转换为0-100的整数
+    return Math.round(item.contentMentionedBrands[0].sentiment * 100);
+  }
+  return 50; // 默认中性
 }
 </script>
 
@@ -879,14 +1006,19 @@ function getSentimentIcon(sentiment: string): string {
 .info-logo {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
-  object-fit: contain;
+  border-radius: 50%;
+  object-fit: cover;
   margin-bottom: 4px;
 }
 .info-channel {
   font-size: 15px;
   color: #222;
   font-weight: 500;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
 }
 .info-fans {
   font-size: 12px;
@@ -913,6 +1045,22 @@ function getSentimentIcon(sentiment: string): string {
   font-size: 17px;
   font-weight: 600;
   color: #222;
+}
+
+.info-title-link {
+  color: #222;
+  text-decoration: none;
+  transition: color 0.3s;
+  cursor: pointer;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-title-link:hover {
+  color: #409eff;
+  text-decoration: underline;
 }
 .info-platform-icon {
   width: 24px;
@@ -949,6 +1097,7 @@ function getSentimentIcon(sentiment: string): string {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  cursor: help;
 }
 .info-actions {
   margin-top: 6px;
@@ -1015,7 +1164,13 @@ function getSentimentIcon(sentiment: string): string {
   padding-left: 2px;
 }
 .info-sentiment {
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.sentiment-icon {
+  width: 20px;
+  height: 20px;
   margin-left: 4px;
 }
 .info-divider {
@@ -1031,5 +1186,91 @@ function getSentimentIcon(sentiment: string): string {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #409eff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 错误状态样式 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.btn-retry {
+  height: 36px;
+  padding: 0 20px;
+  border: 1px solid #409eff;
+  border-radius: 4px;
+  background: #fff;
+  color: #409eff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-retry:hover {
+  background: #409eff;
+  color: white;
+}
+
+/* 空状态样式 */
+.empty-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.empty-container p {
+  color: #999;
+  font-size: 14px;
+  margin: 0;
 }
 </style>
