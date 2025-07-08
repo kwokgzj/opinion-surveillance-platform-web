@@ -8,8 +8,19 @@ export interface ProjectInfo {
 }
 
 export const useProjectStore = defineStore('project', () => {
+  // 从localStorage恢复当前选中的项目
+  const getStoredCurrentProject = (): ProjectInfo | null => {
+    try {
+      const stored = localStorage.getItem('currentProject')
+      return stored ? JSON.parse(stored) : null
+    } catch (error) {
+      console.error('解析存储的项目信息失败:', error)
+      return null
+    }
+  }
+
   // 当前选中的项目
-  const currentProject = ref<ProjectInfo | null>(null)
+  const currentProject = ref<ProjectInfo | null>(getStoredCurrentProject())
 
   // 项目列表
   const projectList = ref<ProjectInfo[]>([])
@@ -26,6 +37,12 @@ export const useProjectStore = defineStore('project', () => {
   // 设置当前项目
   function setCurrentProject(project: ProjectInfo) {
     currentProject.value = project
+    // 保存到localStorage
+    try {
+      localStorage.setItem('currentProject', JSON.stringify(project))
+    } catch (error) {
+      console.error('保存项目信息到localStorage失败:', error)
+    }
   }
 
   // 设置项目列表
@@ -37,13 +54,19 @@ export const useProjectStore = defineStore('project', () => {
   function setCurrentProjectById(projectId: string) {
     const project = projectList.value.find(p => p.projectId === projectId)
     if (project) {
-      currentProject.value = project
+      setCurrentProject(project)
     }
   }
 
   // 清除当前项目
   function clearCurrentProject() {
     currentProject.value = null
+    // 清除localStorage
+    try {
+      localStorage.removeItem('currentProject')
+    } catch (error) {
+      console.error('清除localStorage中的项目信息失败:', error)
+    }
   }
 
   return {

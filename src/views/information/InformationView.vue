@@ -280,6 +280,7 @@
             <a
               :href="item.url"
               target="_blank"
+              rel="noopener noreferrer"
               class="info-title-link"
               :title="item.title"
             >
@@ -337,9 +338,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { getInformationList } from '@/api/information/information';
-import type { Information, InformationFilt } from '@/api/information/information.type';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { getInformationList, getFilterOptions } from '@/api/information/information';
+import type { Information, InformationFilt, FilterOptions } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
 
 // 使用项目store
@@ -348,6 +349,20 @@ const projectStore = useProjectStore();
 // 加载状态
 const loading = ref(false);
 const error = ref('');
+
+// 筛选选项
+const filterOptions = ref<FilterOptions>({
+  brands: [],
+  skus: [],
+  sentiments: [],
+  platforms: [],
+  languages: [],
+  regions: [],
+  sortBy: [],
+  channels: [],
+  durations: [],
+  labels: []
+});
 
 const filter = ref({
   brands: [] as string[],
@@ -364,17 +379,76 @@ const filter = ref({
   tags: [] as string[],
 });
 
-// 选项数据
-const brandOptions = ['Revopoint', 'Creality', 'Anycubic', 'Elegoo'];
-const skuOptions = ['POP3', 'POP2', 'MINI', 'GO', 'PRO'];
-const sentimentOptions = ['正面', '负面', '中性'];
-const platformOptions = ['YouTube', 'Bilibili', '抖音', '快手', '小红书'];
-const languageOptions = ['中文(简体)', '中文(繁体)', '英语', '日语', '韩语'];
-const regionOptions = ['中国', '美国', '日本', '韩国', '欧洲'];
-const sortOptions = ['发布时间', '观看量', '点赞数', '评论数', '分享数'];
-const durationOptions = ['0-5分钟', '5-15分钟', '15-30分钟', '30分钟以上'];
-const channelOptions = ['官方频道', 'KOL频道', '用户频道', '媒体频道'];
-const tagOptions = ['3D打印', '扫描仪', '建模', '教程', '评测'];
+// 获取筛选选项
+const fetchFilterOptions = async () => {
+  try {
+    const currentProjectId = projectStore.currentProjectId;
+    console.log('=== 开始获取筛选选项 ===');
+    console.log('当前项目ID:', currentProjectId);
+    console.log('当前项目名称:', projectStore.currentProjectName);
+
+    if (!currentProjectId) {
+      console.warn('没有项目ID，无法获取筛选选项');
+      return;
+    }
+
+            const response = await getFilterOptions(currentProjectId);
+    console.log('筛选选项响应:', response);
+
+    if (response) {
+      filterOptions.value = response;
+      console.log('设置筛选选项:', filterOptions.value);
+    } else {
+      console.warn('筛选选项响应为空:', response);
+    }
+  } catch (error) {
+    console.error('获取筛选选项失败:', error);
+  }
+};
+
+// 选项数据（从API获取，如果没有数据则为空）
+const brandOptions = computed(() => {
+  console.log('计算品牌选项，filterOptions:', filterOptions.value);
+  const options = filterOptions.value.brands?.map(item => item.label) || [];
+  console.log('品牌选项:', options);
+  return options;
+});
+const skuOptions = computed(() => {
+  const options = filterOptions.value.skus?.map(item => item.label) || [];
+  return options;
+});
+const sentimentOptions = computed(() => {
+  const options = filterOptions.value.sentiments?.map(item => item.label) || [];
+  return options;
+});
+const platformOptions = computed(() => {
+  const options = filterOptions.value.platforms?.map(item => item.label) || [];
+  return options;
+});
+const languageOptions = computed(() => {
+  const options = filterOptions.value.languages?.map(item => item.label) || [];
+  return options;
+});
+const regionOptions = computed(() => {
+  const options = filterOptions.value.regions?.map(item => item.label) || [];
+  return options;
+});
+const sortOptions = computed(() => {
+  const options = filterOptions.value.sortBy?.map(item => item.label) || [];
+  return options;
+});
+const durationOptions = computed(() => {
+  const options = filterOptions.value.durations?.map(item => item.label) || [];
+  return options;
+});
+const channelOptions = computed(() => {
+  const options = filterOptions.value.channels?.map(item => item.label) || [];
+  return options;
+});
+const tagOptions = computed(() => {
+  const options = filterOptions.value.labels?.map(item => item.label) || [];
+  return options;
+});
 
 // 下拉框状态
 const brandDropdownOpen = ref(false);
@@ -576,16 +650,28 @@ function resetFilter() {
   };
 }
 
-function searchData() {
+async function searchData() {
   console.log('=== 用户点击搜索 ===');
   console.log('搜索条件:', filter.value);
   console.log('==================');
+
+  // 如果项目ID变化，重新获取筛选选项
+  const currentProjectId = projectStore.currentProjectId;
+  if (currentProjectId) {
+    await fetchFilterOptions();
+  }
+
   fetchInformationData();
 }
 
 // 点击外部关闭下拉框
 function handleClickOutside(event: Event) {
   const target = event.target as HTMLElement;
+
+  // 如果点击的是链接，不处理下拉框关闭逻辑
+  if (target.closest('a') || target.tagName === 'A') {
+    return;
+  }
 
   // 检查点击的元素是否在下拉框内部
   if (!target.closest('.custom-multiselect') && !target.closest('.custom-select')) {
@@ -602,10 +688,32 @@ function handleClickOutside(event: Event) {
   }
 }
 
+// 监听项目ID变化
+watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) => {
+  console.log('=== 项目ID变化 ===');
+  console.log('旧项目ID:', oldProjectId);
+  console.log('新项目ID:', newProjectId);
+
+  if (newProjectId && newProjectId !== oldProjectId) {
+    console.log('项目ID变化，重新获取筛选选项');
+    await fetchFilterOptions();
+    fetchInformationData();
+  }
+});
+
 // 组件挂载时添加全局点击监听
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
-  // 页面加载时获取数据
+
+  console.log('=== 组件挂载 ===');
+  console.log('当前项目ID:', projectStore.currentProjectId);
+  console.log('当前项目名称:', projectStore.currentProjectName);
+
+  // 等待一下确保项目状态已经加载
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  // 先获取筛选选项，再获取数据
+  await fetchFilterOptions();
   fetchInformationData();
 });
 
@@ -667,6 +775,8 @@ const fetchInformationData = async () => {
     } else {
       informationList.value = data as Information[];
     }
+    
+
   } catch (err) {
     console.error('获取信息数据失败:', err);
     error.value = '获取数据失败，请稍后重试';
@@ -793,6 +903,10 @@ function getSentimentFromContent(item: Information): number {
   }
   return 50; // 默认中性
 }
+
+
+
+
 </script>
 
 <style scoped>
@@ -1045,6 +1159,8 @@ function getSentimentFromContent(item: Information): number {
   font-size: 17px;
   font-weight: 600;
   color: #222;
+  position: relative;
+  z-index: 1;
 }
 
 .info-title-link {
@@ -1056,11 +1172,19 @@ function getSentimentFromContent(item: Information): number {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: block;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .info-title-link:hover {
   color: #409eff;
   text-decoration: underline;
+}
+
+.info-title-link:active {
+  color: #337ecc;
 }
 .info-platform-icon {
   width: 24px;

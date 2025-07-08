@@ -8,6 +8,30 @@ export interface ApiResponse<T> {
 }
 
 /**
+ * 筛选选项项
+ */
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+/**
+ * 筛选选项数据
+ */
+export interface FilterOptions {
+  brands: FilterOption[];
+  skus: FilterOption[];
+  sentiments: FilterOption[];
+  platforms: FilterOption[];
+  languages: FilterOption[];
+  regions: FilterOption[];
+  sortBy: FilterOption[];
+  channels: FilterOption[];
+  durations: FilterOption[];
+  labels: FilterOption[];
+}
+
+/**
  * 内容中提到的品牌信息
  */
 export interface ContentMentionedBrand {

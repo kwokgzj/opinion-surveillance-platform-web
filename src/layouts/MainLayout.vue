@@ -141,8 +141,20 @@ const fetchProjects = async () => {
       }));
       projectStore.setProjectList(storeProjectList);
 
-      // 如果没有当前选中的项目，选择第一个
-      if (!projectStore.currentProjectId) {
+      // 恢复选中的项目状态
+      if (projectStore.currentProjectId) {
+        // 如果store中有当前项目，检查是否在项目列表中
+        const currentProjectExists = projectOptions.value.find(p => p.value === projectStore.currentProjectId);
+        if (currentProjectExists) {
+          selectedProject.value = projectStore.currentProjectId;
+        } else {
+          // 如果当前项目不在列表中，选择第一个
+          const firstProject = storeProjectList[0];
+          projectStore.setCurrentProject(firstProject);
+          selectedProject.value = firstProject.projectId;
+        }
+      } else {
+        // 如果没有当前选中的项目，选择第一个
         const firstProject = storeProjectList[0];
         projectStore.setCurrentProject(firstProject);
         selectedProject.value = firstProject.projectId;
@@ -150,12 +162,14 @@ const fetchProjects = async () => {
     } else {
       projectOptions.value = [];
       projectStore.setProjectList([]);
+      selectedProject.value = '';
     }
   } catch (error) {
     ElMessage.error('加载项目列表失败');
     console.error('加载项目列表失败:', error);
     projectOptions.value = [];
     projectStore.setProjectList([]);
+    selectedProject.value = '';
   } finally {
     isProjectLoading.value = false;
   }
@@ -263,7 +277,7 @@ const handleProjectChange = (value: string) => {
   // 获取选中项目的详细信息
   const selectedProjectInfo = projectOptions.value.find(p => p.value === value);
   if (selectedProjectInfo) {
-    // 更新store中的当前项目
+    // 更新store中的当前项目（会自动保存到localStorage）
     projectStore.setCurrentProject({
       projectId: value,
       projectName: selectedProjectInfo.label,
@@ -300,7 +314,7 @@ const refreshProjects = () => {
 };
 
 // 暴露设置当前项目的方法
-const setCurrentProject = (projectId: string) => {
+const setCurrentProjectById = (projectId: string) => {
   const existingProject = projectOptions.value.find(p => p.value === projectId);
   if (existingProject) {
     selectedProject.value = projectId;
@@ -326,7 +340,7 @@ onMounted(() => {
 // 为了让其他组件能够调用这些方法，可以通过provide或者事件总线的方式暴露
 defineExpose({
   refreshProjects,
-  setCurrentProject
+  setCurrentProjectById
 });
 </script>
 
