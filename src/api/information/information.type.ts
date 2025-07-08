@@ -29,6 +29,7 @@ export interface FilterOptions {
   channels: FilterOption[];
   durations: FilterOption[];
   labels: FilterOption[];
+  count: number;
 }
 
 /**
@@ -68,7 +69,7 @@ export interface InformationFilt {
   publishedAtEnd: string;      // 发布时间范围-结束时间
   labels: string[];            // 标签过滤
   page: number;                // 分页参数，默认 1
-  size: number;                // 分页大小，默认 20
+  size: number;                // 分页大小，默认 30
 }
 
 /**

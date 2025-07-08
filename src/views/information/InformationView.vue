@@ -214,7 +214,7 @@
             start-placeholder="起始时间"
             end-placeholder="结束时间"
             format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
+            value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
             class="date-picker"
           />
         </div>
@@ -366,6 +366,43 @@
           </div>
         </div>
       </div>
+      
+      <!-- 分页组件 -->
+      <div v-if="totalPages > 1" class="pagination-container">
+        <div class="pagination-info">
+          <span>共 {{ totalCount }} 条记录，第 {{ currentPage }} / {{ totalPages }} 页</span>
+        </div>
+        <div class="pagination-controls">
+          <button 
+            class="pagination-btn" 
+            :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)"
+          >
+            上一页
+          </button>
+          
+          <!-- 页码按钮 -->
+          <div class="page-numbers">
+            <button 
+              v-for="page in visiblePages" 
+              :key="page"
+              class="pagination-btn page-number"
+              :class="{ active: page === currentPage }"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          </div>
+          
+          <button 
+            class="pagination-btn" 
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            下一页
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -394,7 +431,8 @@ const filterOptions = ref<FilterOptions>({
   sortBy: [],
   channels: [],
   durations: [],
-  labels: []
+  labels: [],
+  count: 0
 });
 
 const filter = ref({
@@ -436,6 +474,17 @@ const fetchFilterOptions = async () => {
       if (response.sortBy && response.sortBy.length > 0 && !filter.value.sort) {
         filter.value.sort = response.sortBy[0].label;
       }
+      
+      // 更新分页信息
+      if (response.count !== undefined) {
+        totalCount.value = response.count;
+        totalPages.value = Math.ceil(response.count / pageSize.value);
+      }
+      
+      console.log('更新分页信息:', {
+        count: response.count,
+        totalPages: totalPages.value
+      });
     } else {
       console.warn('筛选选项响应为空:', response);
     }
@@ -640,6 +689,98 @@ function selectDuration(duration: string) {
   durationDropdownOpen.value = false;
 }
 
+// 从时长选项中提取最小和最大时长
+function getDurationRange(durationLabel: string): { minDuration: number; maxDuration: number } {
+  if (!durationLabel) {
+    return { minDuration: 0, maxDuration: 0 };
+  }
+  
+  // 根据label找到对应的value
+  const durationOption = filterOptions.value.durations?.find(item => item.label === durationLabel);
+  if (!durationOption) {
+    return { minDuration: 0, maxDuration: 0 };
+  }
+  
+  const value = durationOption.value;
+  
+  // 解析value格式，例如"0-240"
+  if (value.includes('-')) {
+    const parts = value.split('-');
+    if (parts.length === 2) {
+      const min = parseInt(parts[0]);
+      const max = parseInt(parts[1]);
+      if (!isNaN(min) && !isNaN(max)) {
+        return { minDuration: min, maxDuration: max };
+      }
+    }
+  }
+  
+  // 如果解析失败，返回默认值
+  return { minDuration: 0, maxDuration: 0 };
+}
+
+// 格式化时间为标准格式
+function formatDateTime(dateString: string): string {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      console.warn('无效的日期格式:', dateString);
+      return '';
+    }
+    
+    // 格式化为标准ISO格式：YYYY-MM-DDTHH:mm:ss.SSSZ
+    return date.toISOString();
+  } catch (error) {
+    console.error('日期格式化错误:', error, '原始值:', dateString);
+    return '';
+  }
+}
+
+// 分页相关计算属性
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5; // 最多显示5个页码按钮
+  
+  if (totalPages.value <= maxVisible) {
+    // 如果总页数小于等于最大显示数，显示所有页码
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    // 否则显示当前页附近的页码
+    let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages.value, start + maxVisible - 1);
+    
+    // 调整起始位置，确保显示maxVisible个页码
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+  }
+  
+  return pages;
+});
+
+// 分页相关函数
+function goToPage(page: number) {
+  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+    currentPage.value = page;
+    fetchInformationData();
+  }
+}
+
+function resetPagination() {
+  currentPage.value = 1;
+  // 重置为筛选选项中的值
+  totalCount.value = totalCountFromOptions.value;
+  totalPages.value = Math.ceil(totalCountFromOptions.value / pageSize.value);
+}
+
 // 频道相关函数
 function toggleChannelDropdown() {
   channelDropdownOpen.value = !channelDropdownOpen.value;
@@ -694,6 +835,9 @@ function resetFilter() {
     dateRange: [],
     tags: [],
   };
+  
+  // 重置分页
+  resetPagination();
 }
 
 async function searchData() {
@@ -707,11 +851,8 @@ async function searchData() {
     return;
   }
 
-  // 如果项目ID变化，重新获取筛选选项
-  // const currentProjectId = projectStore.currentProjectId;
-  // if (currentProjectId) {
-  //   await fetchFilterOptions();
-  // }
+  // 重置分页到第一页
+  currentPage.value = 1;
 
   fetchInformationData();
 }
@@ -777,6 +918,15 @@ onUnmounted(() => {
 // 信息数据
 const informationList = ref<Information[]>([]);
 
+// 分页相关状态
+const currentPage = ref(1);
+const pageSize = ref(30); // 默认30条
+const totalCount = ref(0);
+const totalPages = ref(0);
+
+// 从筛选选项中获取分页信息的计算属性
+const totalCountFromOptions = computed(() => filterOptions.value.count || 0);
+
 // 获取信息数据
 const fetchInformationData = async () => {
   loading.value = true;
@@ -790,6 +940,9 @@ const fetchInformationData = async () => {
       return;
     }
 
+    // 从选中的时长选项中提取时长范围
+    const durationRange = getDurationRange(filter.value.duration);
+    
     // 构建过滤条件
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
@@ -800,14 +953,14 @@ const fetchInformationData = async () => {
       languages: filter.value.languages,
       regions: filter.value.regions,
       sortBy: getSortValue(filter.value.sort),
-      minDuration: 0,
-      maxDuration: 0,
+      minDuration: durationRange.minDuration,
+      maxDuration: durationRange.maxDuration,
       channels: filter.value.channels,
-      publishedAtStart: filter.value.dateRange[0] || '',
-      publishedAtEnd: filter.value.dateRange[1] || '',
+      publishedAtStart: formatDateTime(filter.value.dateRange[0]),
+      publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
       labels: filter.value.tags,
-      page: 1,
-      size: 20
+      page: currentPage.value,
+      size: pageSize.value
     };
 
     // 输出项目ID和过滤条件
@@ -821,11 +974,28 @@ const fetchInformationData = async () => {
     const data = await getInformationList(filterParams);
     console.log('API返回的原始数据:', data);
 
-    // 检查数据结构
-    if (data && typeof data === 'object' && 'data' in data) {
-      informationList.value = (data as any).data;
+    // 检查数据结构并处理分页信息
+    if (data && typeof data === 'object') {
+      if ('data' in data && 'total' in data) {
+        // 标准分页响应格式
+        informationList.value = (data as any).data;
+        totalCount.value = (data as any).total || totalCountFromOptions.value;
+        totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+      } else if ('data' in data) {
+        // 只有data字段的响应
+        informationList.value = (data as any).data;
+        totalCount.value = totalCountFromOptions.value || informationList.value.length;
+        totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+      } else {
+        // 直接是数组的响应
+        informationList.value = data as Information[];
+        totalCount.value = totalCountFromOptions.value || informationList.value.length;
+        totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+      }
     } else {
-      informationList.value = data as Information[];
+      informationList.value = [];
+      totalCount.value = totalCountFromOptions.value || 0;
+      totalPages.value = Math.ceil(totalCount.value / pageSize.value);
     }
     
 
@@ -996,7 +1166,7 @@ async function handleToggleCapture(item: Information) {
     }
 
     // 调用API更新抓取状态
-    const response = await updateLinkActiveStatus(currentProjectId, item.id, !item.isActive);
+    const response = await updateLinkActiveStatus(currentProjectId, [item.id], !item.isActive);
     
     if (response && response.code === 0) {
       // 更新本地数据
@@ -1023,7 +1193,7 @@ async function handleDelete(item: Information) {
       }
 
       console.log('开始删除链接:', item.id);
-      const response = await deleteProjectLink(currentProjectId, item.id);
+      const response = await deleteProjectLink(currentProjectId, [item.id]);
       
       if (response) {
         alert('删除成功');
@@ -1635,5 +1805,73 @@ async function handleDelete(item: Information) {
 }
 .info-fans.inactive span {
   color: #bbb !important;
+}
+
+/* 分页组件样式 */
+.pagination-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #dcdfe6;
+  background: #fff;
+  color: #606266;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  min-width: 32px;
+  text-align: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.pagination-btn:disabled {
+  background: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
+  border-color: #e4e7ed;
+}
+
+.pagination-btn.active {
+  background: #409eff;
+  border-color: #409eff;
+  color: #fff;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+
+.page-number {
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

@@ -69,34 +69,33 @@ export const getFilterOptions = async (projectId: string) => {
 };
 
 /**
- * 更新链接抓取状态
+ * 批量改变抓取状态
  * @param projectId 项目ID
- * @param linkId 链接ID
+ * @param linkIds 链接ID数组
  * @param isActived 是否激活
  * @returns 更新结果
  */
-export const updateLinkActiveStatus = async (projectId: string, linkId: string, isActived: boolean) => {
-  try {
-    const response = await post(`/informations/active?projectId=${projectId}&linkId=${linkId}&isActived=${isActived}`, {});
-    return response;
-  } catch (error) {
-    console.error('更新链接抓取状态失败:', error);
-    throw error;
-  }
+export const updateLinkActiveStatus = async (projectId: string, linkIds: string[], isActived: boolean) => {
+  return await post(`/informations/active`, {
+    params: {
+      projectId,
+      linkIds,   // axios会自动序列化为 linkIds=1&linkIds=2
+      isActived
+    }
+  });
 };
 
 /**
- * 删除链接
+ * 批量删除链接
  * @param projectId 项目ID
- * @param linkId 链接ID
+ * @param linkIds 链接ID数组
  * @returns 删除结果
  */
-export const deleteProjectLink = async (projectId: string, linkId: string) => {
-  try {
-    const response = await del(`/informations?projectId=${projectId}&linkId=${linkId}`, {});
-    return response;
-  } catch (error) {
-    console.error('删除链接失败:', error);
-    throw error;
-  }
+export const deleteProjectLink = async (projectId: string, linkIds: string[]) => {
+  return await del(`/informations`, {
+    params: {
+      projectId,
+      linkIds
+    }
+  });
 };
