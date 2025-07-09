@@ -1,7 +1,7 @@
 <template>
   <div class="information-page">
     <!-- 筛选区域 -->
-    <div class="filter-panel">
+    <div class="filter-panel" v-if="!isMultiSelectMode">
       <!-- 第一行：品牌、SKU、情感倾向、平台 -->
       <div class="form-row">
         <div class="form-item">
@@ -250,6 +250,29 @@
       </div>
     </div>
 
+    <!-- 多选按钮 -->
+    <div class="multiselect-toggle" v-if="!isMultiSelectMode">
+      <button 
+        class="multiselect-btn" 
+        @click="toggleMultiSelectMode"
+      >
+        批量操作
+      </button>
+    </div>
+
+    <!-- 退出多选按钮 -->
+    <div class="exit-multiselect-toggle" v-if="isMultiSelectMode">
+      <button 
+        class="exit-multiselect-btn" 
+        @click="toggleMultiSelectMode"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+        </svg>
+        退出批量操作
+      </button>
+    </div>
+
     <!-- 信息展示区域 -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
@@ -265,8 +288,21 @@
       <p>暂无数据</p>
     </div>
 
-    <div v-else class="information-list">
-      <div v-for="item in informationList" :key="item.id" class="info-card">
+    <div v-else class="information-list" :class="{ 'multi-select-mode': isMultiSelectMode }">
+      <div v-for="item in informationList" :key="item.id" class="info-card" :class="{ 
+        'multi-select-mode': isMultiSelectMode,
+        'selected': isMultiSelectMode && selectedItems.includes(item.id)
+      }" @click="isMultiSelectMode && handleCardClick(item.id)">
+        <!-- 多选单选框 -->
+        <div v-if="isMultiSelectMode" class="info-checkbox" @click.stop>
+          <input 
+            type="checkbox" 
+            :checked="selectedItems.includes(item.id)"
+            @change="toggleItemSelection(item.id)"
+            class="checkbox-input"
+          />
+        </div>
+        
         <!-- 左栏 -->
         <div class="info-left">
           <img :src="item.channelThumbnailUrl" class="info-logo" :class="{ 'inactive': !item.isActive }" />
@@ -284,6 +320,7 @@
               class="info-title-link"
               :class="{ 'inactive': !item.isActive }"
               :title="item.title"
+              @click="isMultiSelectMode && $event.preventDefault()"
             >
               {{ item.title }}
             </a>
@@ -314,7 +351,7 @@
               <span v-if="item.region">| {{ getRegionLabel(item.region) }}</span>
               <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
             </div>
-            <div class="info-meta-actions">
+            <div class="info-meta-actions" v-if="!isMultiSelectMode">
               <button 
                 class="action-btn tag-btn" 
                 @click="handleAddTag(item)"
@@ -368,7 +405,7 @@
       </div>
       
       <!-- 分页组件 -->
-      <div v-if="totalPages > 1" class="pagination-container">
+      <div v-if="totalPages > 1 && !isMultiSelectMode" class="pagination-container">
         <div class="pagination-info">
           <span>共 {{ totalCount }} 条记录，第 {{ currentPage }} / {{ totalPages }} 页</span>
         </div>
@@ -403,6 +440,50 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+  
+  <!-- 悬浮固钉 - 多选操作栏 -->
+  <div v-if="isMultiSelectMode" class="floating-action-bar">
+    <div class="selection-info">
+      已选择 {{ selectedItems.length }} 项
+      <button class="select-all-btn" @click="toggleSelectAll">
+        {{ selectedItems.length === informationList.length ? '取消全选' : '全选' }}
+      </button>
+    </div>
+    <div class="action-buttons">
+      <button 
+        class="action-bar-btn add-tag-btn" 
+        @click="handleBatchAddTag"
+        :disabled="selectedItems.length === 0"
+        title="加标签"
+      >
+        <img src="/src/components/icons/tag.svg" alt="加标签" />
+      </button>
+      <button 
+        class="action-bar-btn capture-btn" 
+        @click="handleBatchSetCapture(true)"
+        :disabled="selectedItems.length === 0"
+        title="设置为抓取状态"
+      >
+        <img src="/src/components/icons/capture-active.svg" alt="设置为抓取状态" />
+      </button>
+      <button 
+        class="action-bar-btn no-capture-btn" 
+        @click="handleBatchSetCapture(false)"
+        :disabled="selectedItems.length === 0"
+        title="设置为不抓取状态"
+      >
+        <img src="/src/components/icons/capture-inactive.svg" alt="设置为不抓取状态" />
+      </button>
+      <button 
+        class="action-bar-btn delete-btn" 
+        @click="handleBatchDelete"
+        :disabled="selectedItems.length === 0"
+        title="删除"
+      >
+        <img src="/src/components/icons/delete.svg" alt="删除" />
+      </button>
     </div>
   </div>
 </template>
@@ -556,6 +637,10 @@ const sortDropdownOpen = ref(false);
 const durationDropdownOpen = ref(false);
 const channelDropdownOpen = ref(false);
 const tagDropdownOpen = ref(false);
+
+// 多选模式状态
+const isMultiSelectMode = ref(false);
+const selectedItems = ref<string[]>([]);
 
 // 品牌相关函数
 function toggleBrandDropdown() {
@@ -819,6 +904,61 @@ function removeTag(tag: string) {
   }
 }
 
+// 多选模式相关函数
+function toggleMultiSelectMode() {
+  isMultiSelectMode.value = !isMultiSelectMode.value;
+  if (isMultiSelectMode.value) {
+    // 进入多选模式时，清空所有已选的筛选条件
+    filter.value = {
+      brands: [],
+      skus: [],
+      sentiments: [],
+      platforms: [],
+      languages: [],
+      regions: [],
+      searchKeyword: '',
+      sort: '',
+      duration: '',
+      channels: [],
+      dateRange: [],
+      tags: [],
+    };
+    // 重置分页
+    resetPagination();
+    // 清空已选项目
+    selectedItems.value = [];
+  } else {
+    // 退出多选模式时，清空已选项目
+    selectedItems.value = [];
+  }
+}
+
+// 切换单个项目的选择状态
+function toggleItemSelection(itemId: string) {
+  const index = selectedItems.value.indexOf(itemId);
+  if (index === -1) {
+    selectedItems.value.push(itemId);
+  } else {
+    selectedItems.value.splice(index, 1);
+  }
+}
+
+// 全选/取消全选
+function toggleSelectAll() {
+  if (selectedItems.value.length === informationList.value.length) {
+    selectedItems.value = [];
+  } else {
+    selectedItems.value = informationList.value.map(item => item.id);
+  }
+}
+
+// 处理卡片点击
+function handleCardClick(itemId: string) {
+  toggleItemSelection(itemId);
+}
+
+
+
 // 重置和搜索函数
 function resetFilter() {
   filter.value = {
@@ -996,6 +1136,11 @@ const fetchInformationData = async () => {
       informationList.value = [];
       totalCount.value = totalCountFromOptions.value || 0;
       totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+    }
+    
+    // 在多选模式下，如果数据发生变化，清空已选项目
+    if (isMultiSelectMode.value) {
+      selectedItems.value = [];
     }
     
 
@@ -1209,7 +1354,180 @@ async function handleDelete(item: Information) {
   }
 }
 
+// 批量添加标签
+async function handleBatchAddTag() {
+  if (selectedItems.value.length === 0) {
+    alert('请先选择要添加标签的项目');
+    return;
+  }
+  
+  const tag = prompt('请输入要添加的标签名称：');
+  if (!tag || tag.trim() === '') {
+    return;
+  }
+  
+  const trimmedTag = tag.trim();
+  if (!confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`)) {
+    return;
+  }
+  
+  try {
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      alert('项目ID不存在，无法添加标签');
+      return;
+    }
+    
+    console.log('批量添加标签:', {
+      projectId: currentProjectId,
+      linkIds: selectedItems.value,
+      tag: trimmedTag
+    });
+    
+    // TODO: 需要实现添加标签的API
+    // const response = await addTagsToLinks(currentProjectId, selectedItems.value, trimmedTag);
+    // console.log('批量添加标签响应:', response);
+    
+    // 临时提示
+    alert('添加标签功能暂未实现，请等待后续更新');
+    
+    // 实际的API调用逻辑（注释掉）
+    /*
+    if (response) {
+      if (response.code === 0 || response.success === true) {
+        alert(`批量添加标签成功，已添加标签"${trimmedTag}"`);
+        // 清空已选项目
+        selectedItems.value = [];
+        // 重新获取数据
+        await fetchInformationData();
+      } else {
+        alert(`批量添加标签失败：${response.message || response.msg || '未知错误'}`);
+      }
+    } else {
+      alert('批量添加标签失败：响应为空');
+    }
+    */
+  } catch (error) {
+    console.error('批量添加标签失败:', error);
+    alert('批量添加标签失败，请稍后重试');
+  }
+}
 
+// 批量设置抓取状态
+async function handleBatchSetCapture(isActive: boolean) {
+  if (selectedItems.value.length === 0) {
+    alert('请先选择要设置抓取状态的项目');
+    return;
+  }
+  
+  const actionText = isActive ? '抓取' : '不抓取';
+  if (!confirm(`确定要将选中的 ${selectedItems.value.length} 项设置为${actionText}状态吗？`)) {
+    return;
+  }
+  
+  try {
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      alert('项目ID不存在，无法设置抓取状态');
+      return;
+    }
+    
+    console.log('批量设置抓取状态:', {
+      projectId: currentProjectId,
+      linkIds: selectedItems.value,
+      isActive: isActive
+    });
+    
+    const response = await updateLinkActiveStatus(currentProjectId, selectedItems.value, isActive);
+    console.log('批量设置抓取状态响应:', response);
+    
+    // 处理不同的响应格式
+    if (response) {
+      if (response.code === 0 || response.success === true || response.status === 200) {
+        alert(`批量设置抓取状态成功，已设置为${actionText}`);
+        // 清空已选项目
+        selectedItems.value = [];
+        // 重新获取数据
+        await fetchInformationData();
+      } else {
+        const errorMsg = response.message || response.msg || response.error || '未知错误';
+        console.error('API返回错误:', response);
+        alert(`批量设置抓取状态失败：${errorMsg}`);
+      }
+    } else {
+      alert('批量设置抓取状态失败：响应为空');
+    }
+  } catch (error: any) {
+    console.error('批量设置抓取状态失败:', error);
+    // 显示更详细的错误信息
+    let errorMessage = '批量设置抓取状态失败，请稍后重试';
+    if (error.response) {
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+    } else if (error.request) {
+      errorMessage = '网络请求失败，请检查网络连接';
+    } else if (error.message) {
+      errorMessage = `请求错误: ${error.message}`;
+    }
+    alert(errorMessage);
+  }
+}
+
+// 批量删除
+async function handleBatchDelete() {
+  if (selectedItems.value.length === 0) {
+    alert('请先选择要删除的项目');
+    return;
+  }
+  
+  if (!confirm(`确定要删除选中的 ${selectedItems.value.length} 项信息吗？此操作不可恢复！`)) {
+    return;
+  }
+  
+  try {
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      alert('项目ID不存在，无法删除');
+      return;
+    }
+    
+    console.log('批量删除:', {
+      projectId: currentProjectId,
+      linkIds: selectedItems.value
+    });
+    
+    const response = await deleteProjectLink(currentProjectId, selectedItems.value);
+    console.log('批量删除响应:', response);
+    
+    // 处理不同的响应格式
+    if (response) {
+      if (response.code === 0 || response.success === true || response.status === 200) {
+        alert('批量删除成功');
+        // 清空已选项目
+        selectedItems.value = [];
+        // 重新获取数据
+        await fetchInformationData();
+      } else {
+        const errorMsg = response.message || response.msg || response.error || '未知错误';
+        console.error('API返回错误:', response);
+        alert(`批量删除失败：${errorMsg}`);
+      }
+    } else {
+      alert('批量删除失败：响应为空');
+    }
+  } catch (error: any) {
+    console.error('批量删除失败:', error);
+    // 显示更详细的错误信息
+    let errorMessage = '批量删除失败，请稍后重试';
+    if (error.response) {
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+    } else if (error.request) {
+      errorMessage = '网络请求失败，请检查网络连接';
+    } else if (error.message) {
+      errorMessage = `请求错误: ${error.message}`;
+    }
+    alert(errorMessage);
+  }
+}
 
 
 </script>
@@ -1373,6 +1691,7 @@ async function handleDelete(item: Information) {
   padding-top: 20px;
   border-top: 1px solid #f0f0f0;
 }
+
 .btn-reset,
 .btn-search {
   height: 36px;
@@ -1398,10 +1717,79 @@ async function handleDelete(item: Information) {
 .btn-search:hover {
   background: #66b1ff;
 }
+
+/* 多选按钮样式 */
+.multiselect-toggle {
+  display: flex;
+  justify-content: flex-start;
+  margin: 20px 0;
+  padding-left: 20px;
+}
+
+.multiselect-btn {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #409eff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.multiselect-btn:hover {
+  border-color: #409eff;
+  background: rgba(64, 158, 255, 0.1);
+}
+
+.multiselect-btn.active {
+  background: #409eff;
+  color: white;
+  border-color: #409eff;
+}
+
+/* 退出多选按钮样式 */
+.exit-multiselect-toggle {
+  display: flex;
+  justify-content: flex-start;
+  margin: 20px 0;
+  padding-left: 20px;
+}
+
+.exit-multiselect-btn {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #f56c6c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.exit-multiselect-btn:hover {
+  border-color: #f56c6c;
+  background: rgba(245, 108, 108, 0.1);
+}
 .information-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+/* 多选模式下的信息列表样式 */
+.information-list.multi-select-mode {
+  gap: 12px;
 }
 .info-card {
   display: flex;
@@ -1411,7 +1799,73 @@ async function handleDelete(item: Information) {
   padding: 0px 0px;
   align-items: stretch;
   gap: 10px;
+  position: relative;
+  transition: all 0.3s;
 }
+
+/* 多选模式下选中状态的样式 */
+.info-card.multi-select-mode.selected {
+  border: 2px solid #409eff;
+}
+
+/* 多选模式下的信息卡片基础样式 */
+.info-card.multi-select-mode {
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* 多选模式下的鼠标样式 */
+.info-card.multi-select-mode {
+  cursor: pointer;
+}
+
+.info-card.multi-select-mode:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 多选单选框样式 */
+.info-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: white;
+  border: 1px solid #dcdfe6;
+  border-radius: 2px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.checkbox-input:checked {
+  background-color: white;
+  border-color: #409eff;
+}
+
+.checkbox-input:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border: solid #409eff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-input:hover {
+  border-color: #409eff;
+}
+
 .info-left {
   min-width: 160px;
   display: flex;
@@ -1420,6 +1874,22 @@ async function handleDelete(item: Information) {
   justify-content: center;
   gap: 8px;
   margin-right: 10px;
+  padding-left: 0; /* 默认不添加左边距 */
+}
+
+/* 多选模式下的左边距调整 */
+.info-card.multi-select-mode .info-left {
+  padding-left: 40px; /* 为多选框留出空间 */
+}
+
+/* 多选模式下的信息卡片布局优化 */
+.info-card.multi-select-mode .info-center {
+  padding-bottom: 20px; /* 减少底部间距 */
+}
+
+.info-card.multi-select-mode .info-meta-row-bottom {
+  position: relative;
+  margin-bottom: 0;
 }
 .info-logo {
   width: 48px;
@@ -1506,6 +1976,18 @@ async function handleDelete(item: Information) {
   color: #999 !important;
   text-decoration: none;
 }
+
+/* 多选模式下的链接样式 */
+.info-card.multi-select-mode .info-title-link {
+  pointer-events: none;
+  color: #333 !important;
+  text-decoration: none !important;
+}
+
+.info-card.multi-select-mode .info-title-link:hover {
+  color: #333 !important;
+  text-decoration: none !important;
+}
 .info-platform-icon {
   width: 24px;
   height: 24px;
@@ -1559,6 +2041,17 @@ async function handleDelete(item: Information) {
 .info-actions i:hover {
   color: #3a6ff7;
   cursor: pointer;
+}
+
+/* 多选模式下的操作按钮样式 */
+.info-card.multi-select-mode .info-actions i {
+  pointer-events: none;
+  color: #b0b0b0 !important;
+  cursor: default !important;
+}
+
+.info-card.multi-select-mode .info-actions i:hover {
+  color: #b0b0b0 !important;
 }
 .info-meta-row-bottom {
   color: #aaa;
@@ -1701,7 +2194,7 @@ async function handleDelete(item: Information) {
   align-self: center;
 }
 .info-right {
-  min-width: 320px;
+  min-width: 360px;
   max-width: 400px;
   display: flex;
   flex-direction: column;
@@ -1873,5 +2366,164 @@ async function handleDelete(item: Information) {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 悬浮固钉样式 */
+.floating-action-bar {
+  position: fixed;
+  bottom: 30px; /* 距离底部30px */
+  left: 50%; /* 水平居中 */
+  transform: translateX(-50%); /* 水平居中 */
+  background: rgba(255, 255, 255, 0.95); /* 半透明背景 */
+  backdrop-filter: blur(10px); /* 毛玻璃效果 */
+  border-radius: 50px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1000; /* 确保在其他元素之上 */
+  padding: 12px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 400px;
+  max-width: 90vw; /* 响应式设计 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .floating-action-bar {
+    min-width: 300px;
+    padding: 8px 16px;
+    gap: 12px;
+  }
+  
+  .action-buttons {
+    gap: 6px;
+  }
+  
+  .action-bar-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .action-bar-btn img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .selection-info {
+    font-size: 12px;
+    gap: 8px;
+  }
+  
+  .select-all-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  /* 多选模式下的响应式设计 */
+  .info-card.multi-select-mode {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .info-left {
+    min-width: auto;
+    padding-left: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+  
+  .info-checkbox {
+    top: 8px;
+    left: 8px;
+  }
+  
+  .checkbox-input {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.select-all-btn {
+  padding: 6px 12px;
+  border: 1px solid rgba(64, 158, 255, 0.3);
+  border-radius: 20px;
+  background: rgba(64, 158, 255, 0.1);
+  color: #409eff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.select-all-btn:hover {
+  background: rgba(64, 158, 255, 0.2);
+  border-color: rgba(64, 158, 255, 0.5);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-bar-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-bar-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-bar-btn:disabled {
+  background: rgba(245, 247, 250, 0.8);
+  color: #c0c4cc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.action-bar-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* 不同按钮的特殊样式 */
+.add-tag-btn:hover:not(:disabled) {
+  background: rgba(64, 158, 255, 0.1);
+}
+
+.capture-btn:hover:not(:disabled) {
+  background: rgba(103, 194, 58, 0.1);
+}
+
+.no-capture-btn:hover:not(:disabled) {
+  background: rgba(230, 162, 60, 0.1);
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: rgba(245, 108, 108, 0.1);
 }
 </style>

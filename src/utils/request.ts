@@ -133,17 +133,33 @@ export const put = <T = any>(url: string, data: object = {}, config: RequestConf
 /**
  * 封装 DELETE 请求
  * @param {string} url - 请求URL
- * @param {object} params - 请求参数
+ * @param {object} params - 请求参数或请求体数据
  * @param {RequestConfig} config - 其他配置
  * @returns {Promise<T>} - 返回Promise
  */
 export const del = <T = any>(url: string, params: object = {}, config: RequestConfig = {}): Promise<T> => {
-  return instance({
-    url,
-    method: 'delete',
-    params,
-    ...config
-  });
+  // 检查是否包含数组或复杂对象，如果有则作为请求体发送
+  const hasComplexData = Object.values(params).some(value => 
+    Array.isArray(value) || (typeof value === 'object' && value !== null)
+  );
+  
+  if (hasComplexData) {
+    // 如果有复杂数据，作为请求体发送
+    return instance({
+      url,
+      method: 'delete',
+      data: params,
+      ...config
+    });
+  } else {
+    // 否则作为查询参数发送
+    return instance({
+      url,
+      method: 'delete',
+      params,
+      ...config
+    });
+  }
 };
 
 // 导出自定义的axios实例以及封装的方法

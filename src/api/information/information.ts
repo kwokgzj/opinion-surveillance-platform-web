@@ -77,11 +77,9 @@ export const getFilterOptions = async (projectId: string) => {
  */
 export const updateLinkActiveStatus = async (projectId: string, linkIds: string[], isActived: boolean) => {
   return await post(`/informations/active`, {
-    params: {
-      projectId,
-      linkIds,   // axios会自动序列化为 linkIds=1&linkIds=2
-      isActived
-    }
+    projectId,
+    linkIds,
+    isActived
   });
 };
 
@@ -93,9 +91,7 @@ export const updateLinkActiveStatus = async (projectId: string, linkIds: string[
  */
 export const deleteProjectLink = async (projectId: string, linkIds: string[]) => {
   return await del(`/informations`, {
-    params: {
-      projectId,
-      linkIds
-    }
+    projectId,
+    linkIds
   });
 };
