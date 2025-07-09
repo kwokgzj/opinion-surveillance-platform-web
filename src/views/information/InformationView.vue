@@ -246,7 +246,8 @@
 
       <!-- 第三行：视频时长范围、频道、发布起始时间、结束时间 -->
       <div class="form-row">
-        <div class="form-item">
+        <!-- 视频时长筛选 - 仅对video类型显示 -->
+        <div class="form-item" v-if="projectStore.currentProjectType === 'VideoList'">
           <label>视频时长：</label>
           <div class="custom-select">
             <div class="select-container" @click="toggleDurationDropdown">
@@ -409,14 +410,43 @@
         
         <!-- 左栏 -->
         <div class="info-left">
-          <img :src="item.channelThumbnailUrl" class="info-logo" :class="{ 'inactive': !item.isActive }" />
-          <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
-          <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(item.subscriberCount) }}</span></div>
+          <!-- 新闻类型特殊布局 -->
+          <template v-if="isNewsType(item)">
+            <img 
+              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'" 
+              class="info-logo" 
+              :class="{ 'inactive': !item.isActive }"
+              @error="handleImageError"
+            />
+            <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
+            <div class="info-platform" :class="{ 'inactive': !item.isActive }" v-if="item.newsPlatform">
+              {{ item.newsPlatform }}
+            </div>
+            <div class="info-fans" :class="{ 'inactive': !item.isActive }">月活：<span>{{ item.monthlyActiveUsers || '-' }}</span></div>
+            <div class="info-region" :class="{ 'inactive': !item.isActive }" v-if="item.newsPlatformRegion && item.newsPlatformRegion.length > 0">
+              受众地区：<span>{{ item.newsPlatformRegion.join(', ') }}</span>
+            </div>
+          </template>
+          <!-- 其他类型布局 -->
+          <template v-else>
+            <img 
+              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'" 
+              class="info-logo" 
+              :class="{ 'inactive': !item.isActive }"
+              @error="handleImageError"
+            />
+            <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
+            <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(item.subscriberCount) }}</span></div>
+          </template>
         </div>
         <!-- 中栏 -->
         <div class="info-center">
           <div class="info-title-row">
-            <img :src="getPlatformIcon(item.platform)" class="info-platform-icon" />
+            <img 
+              :src="getPlatformIcon(item.platform)" 
+              class="info-platform-icon"
+              @error="handleImageError"
+            />
             <a
               :href="item.url"
               target="_blank"
@@ -428,28 +458,38 @@
             >
               {{ item.title }}
             </a>
-                          <!-- 标签显示 -->
-              <div v-if="item.labels && item.labels.length > 0" class="info-labels">
-                <div 
-                  v-for="label in item.labels" 
-                  :key="label"
-                  class="info-label-item"
-                  :title="label"
+            <!-- 标签显示 -->
+            <div v-if="item.labels && item.labels.length > 0" class="info-labels">
+              <div 
+                v-for="label in item.labels" 
+                :key="label"
+                class="info-label-item"
+                :title="label"
+              >
+                <img 
+                  src="/src/components/icons/tag.svg" 
+                  alt="标签" 
+                  class="label-icon"
+                  @error="handleImageError"
+                />
+                <span class="label-text">{{ label }}</span>
+                <button 
+                  class="label-delete-btn"
+                  @click.stop="handleDeleteLabel(item, label)"
+                  title="删除标签"
                 >
-                  <img src="/src/components/icons/tag.svg" alt="标签" class="label-icon" />
-                  <span class="label-text">{{ label }}</span>
-                  <button 
-                    class="label-delete-btn"
-                    @click.stop="handleDeleteLabel(item, label)"
-                    title="删除标签"
-                  >
-                    <img src="/src/components/icons/X.svg" alt="删除" class="delete-icon" />
-                  </button>
-                </div>
+                  <img src="/src/components/icons/X.svg" alt="删除" class="delete-icon" />
+                </button>
               </div>
+            </div>
           </div>
           <div class="info-content-row">
-            <img :src="item.thumbnailUrl" class="info-cover" :class="{ 'inactive': !item.isActive }" />
+            <img 
+              :src="item.thumbnailUrl || '/src/components/icons/noPicture.svg'" 
+              class="info-cover" 
+              :class="{ 'inactive': !item.isActive }"
+              @error="handleImageError"
+            />
             <div class="info-content-main">
               <div
                 v-if="item.description"
@@ -469,10 +509,24 @@
           </div>
           <div class="info-meta-row-bottom">
             <div class="info-meta-left">
-              <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
-              <span v-if="item.platform">| {{ item.platform }}</span>
-              <span v-if="item.region">| {{ getRegionLabel(item.region) }}</span>
-              <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
+              <!-- 新闻类型特殊显示 -->
+              <template v-if="isNewsType(item)">
+                <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
+                <span style="margin-left: 8px;">| SU：{{ (item.su || item.su === 0) ? item.su : '-' }}</span>
+                <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
+              </template>
+              <!-- 其他类型显示 -->
+              <template v-else>
+                <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
+                <span v-if="item.platform">| {{ item.platform }}</span>
+                <span v-if="item.region">| {{ getRegionLabel(item.region) }}</span>
+                <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
+                              <!-- 视频类型特有的字段 -->
+              <span v-if="isVideoType(item) && item.duration">| 时长：{{ formatDuration(item.duration) }}</span>
+              <span v-if="isVideoType(item) && item.engagementRate">| 转化率：{{ item.engagementRate }}%</span>
+              <!-- 帖子类型特有的字段 -->
+              <span v-if="isPostType(item) && item.engagementRate">| 转化率：{{ item.engagementRate }}%</span>
+              </template>
             </div>
             <div class="info-meta-actions" v-if="!isMultiSelectMode">
               <button 
@@ -508,21 +562,97 @@
         <!-- 右栏 -->
         <div class="info-right">
           <div class="info-table-2col">
-            <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
-              <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
-            </div>
-            <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value" :title="String(item.commentCount)">{{ item.commentCount }}</span></div>
-              <div class="info-cell"><span class="info-label">点赞数：</span><span class="info-value" :title="String(item.likeCount)">{{ item.likeCount }}</span></div>
-            </div>
-            <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">播放量：</span><span class="info-value" :title="String(item.viewCount)">{{ item.viewCount }}</span></div>
-              <div class="info-cell"><span class="info-label">情感倾向：</span><span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))"><img :src="getSentimentIcon(getSentimentFromContent(item))" class="sentiment-icon" /></span></div>
-            </div>
-            <div class="info-row-2col last-row">
-              <div class="info-cell" style="width:100%"><span class="info-label">抓取时间：</span><span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{ formatDateYMDOnly(item.captureAt) }}</span></div>
-            </div>
+            <!-- 新闻类型特殊布局 -->
+            <template v-if="isNewsType(item)">
+              <div class="info-row-2col">
+                <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
+                <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell" style="width:100%">
+                  <span class="info-label">关键信息：</span>
+                  <span class="info-value info-long-text" :title="item.keyInformation">{{ item.keyInformation || '-' }}</span>
+                </div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell" style="width:100%">
+                  <span class="info-label">中文翻译：</span>
+                  <span class="info-value info-long-text" :title="item.titleCN">{{ item.titleCN || '-' }}</span>
+                </div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell">
+                  <span class="info-label">情感倾向：</span>
+                  <span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))">
+                    <img 
+                      v-if="hasSentimentData(item)"
+                      :src="getSentimentIcon(getSentimentFromContent(item))" 
+                      class="sentiment-icon" 
+                      @error="handleImageError"
+                    />
+                    <span v-else>-</span>
+                  </span>
+                </div>
+                <!-- 为新闻类型添加一个占位单元格，保持布局一致 -->
+                <div class="info-cell" v-if="isNewsType(item)">
+                  <span class="info-label"></span>
+                  <span class="info-value"></span>
+                </div>
+              </div>
+              <div class="info-row-2col last-row">
+                <div class="info-cell" style="width:100%">
+                  <span class="info-label">抓取时间：</span>
+                  <span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{ formatDateYMDOnly(item.captureAt) }}</span>
+                </div>
+              </div>
+            </template>
+            <!-- 其他类型布局 -->
+            <template v-else>
+              <div class="info-row-2col">
+                <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
+                <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value" :title="String(item.commentCount)">{{ item.commentCount }}</span></div>
+                <div class="info-cell"><span class="info-label">点赞数：</span><span class="info-value" :title="String(item.likeCount)">{{ item.likeCount }}</span></div>
+              </div>
+              <div class="info-row-2col">
+                <!-- 根据类型显示不同的字段 -->
+                <div class="info-cell" v-if="isVideoType(item)">
+                  <span class="info-label">播放量：</span>
+                  <span class="info-value" :title="String(item.viewCount)">{{ item.viewCount }}</span>
+                </div>
+                <div class="info-cell" v-else-if="isPostType(item)">
+                  <span class="info-label">分享数：</span>
+                  <span class="info-value" :title="String(item.shareCount)">{{ item.shareCount }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">情感倾向：</span>
+                  <span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))">
+                    <img 
+                      v-if="hasSentimentData(item)"
+                      :src="getSentimentIcon(getSentimentFromContent(item))" 
+                      class="sentiment-icon" 
+                      @error="handleImageError"
+                    />
+                    <span v-else>-</span>
+                  </span>
+                </div>
+              </div>
+              <!-- 帖子类型特有的字段 -->
+              <div class="info-row-2col" v-if="isPostType(item) && item.su">
+                <div class="info-cell">
+                  <span class="info-label">SU值：</span>
+                  <span class="info-value" :title="String(item.su)">{{ item.su }}</span>
+                </div>
+              </div>
+              <div class="info-row-2col last-row">
+                <div class="info-cell" style="width:100%">
+                  <span class="info-label">抓取时间：</span>
+                  <span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{ formatDateYMDOnly(item.captureAt) }}</span>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -1361,6 +1491,19 @@ const totalPages = ref(0);
 // 从筛选选项中获取分页信息的计算属性
 const totalCountFromOptions = computed(() => filterOptions.value.count || 0);
 
+// 信息类型判断函数
+function isVideoType(item: Information): boolean {
+  return item.type === 'video';
+}
+
+function isPostType(item: Information): boolean {
+  return item.type === 'post';
+}
+
+function isNewsType(item: Information): boolean {
+  return item.type === 'new';
+}
+
 // 获取信息数据
 const fetchInformationData = async () => {
   try {
@@ -1424,6 +1567,22 @@ const fetchInformationData = async () => {
         totalPages.value = resultData.totalPages || Math.ceil(totalCount.value / pageSize.value);
         currentPage.value = resultData.currentPage || 1;
         pageSize.value = resultData.pageSize || 30;
+        
+        // 调试SU值
+        console.log('=== SU值调试信息 ===');
+        informationList.value.forEach((item, index) => {
+          if (isNewsType(item) || isPostType(item)) {
+            console.log(`项目 ${index + 1}:`, {
+              type: item.type,
+              su: item.su,
+              suType: typeof item.su,
+              hasSu: 'su' in item,
+              allKeys: Object.keys(item),
+              itemData: item
+            });
+          }
+        });
+        console.log('==================');
       } else {
         // 兼容性处理：如果不是新格式，使用默认值
         informationList.value = [];
@@ -1523,10 +1682,10 @@ function formatDateYMDOnly(timeStr: string): string {
 function getPlatformIcon(platform: string): string {
   const iconMap: Record<string, string> = {
     'Youtube': '/src/components/icons/youtube.svg',
-    'Google new': '/src/components/icons/google_news.svg',
+    'GoogleNews': '/src/components/icons/google.svg',
     'X': '/src/components/icons/X.svg'
   };
-  return iconMap[platform] || '/src/components/icons/default.svg';
+  return iconMap[platform] || '/src/components/icons/noPicture.svg';
 }
 
 // 获取情感图标
@@ -1580,10 +1739,20 @@ function getSkuFromContent(item: Information): string {
 
 // 从内容中获取情感倾向
 function getSentimentFromContent(item: Information): number {
+  // 检查是否有品牌情感数据
   if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
     // 将0-1的小数转换为0-100的整数
-    return Math.round(item.contentMentionedBrands[0].sentiment * 100);
+    const sentiment = Math.round(item.contentMentionedBrands[0].sentiment * 100);
+    console.log('情感倾向计算:', {
+      original: item.contentMentionedBrands[0].sentiment,
+      converted: sentiment,
+      type: item.type
+    });
+    return sentiment;
   }
+  
+  // 如果没有品牌情感数据，返回默认中性值
+  console.log('使用默认情感倾向:', { type: item.type, defaultSentiment: 50 });
   return 50; // 默认中性
 }
 
@@ -1606,6 +1775,21 @@ function getSortValue(label: string): string {
   if (!label || !filterOptions.value.sortBy) return firstSortValue.value;
   const sortOption = filterOptions.value.sortBy.find(item => item.label === label);
   return sortOption ? sortOption.value : firstSortValue.value;
+}
+
+// 格式化视频时长
+function formatDuration(seconds: number): string {
+  if (!seconds || seconds <= 0) return '-';
+  
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
+  }
 }
 
 // 处理删除标签
@@ -1919,6 +2103,19 @@ async function handleBatchSetCapture(isActive: boolean) {
     }
     alert(errorMessage);
   }
+}
+
+// 处理图片加载错误
+function handleImageError(event: Event) {
+  const target = event.target as HTMLImageElement;
+  if (target) {
+    target.src = '/src/components/icons/noPicture.svg';
+  }
+}
+
+// 检查是否有情感数据
+function hasSentimentData(item: Information): boolean {
+  return item.contentMentionedBrands && item.contentMentionedBrands.length > 0;
 }
 
 // 批量删除
@@ -2898,6 +3095,14 @@ async function handleBatchDelete() {
   font-size: 14px;
   max-width: 120px;
 }
+
+/* 长文本样式 - 比品牌和抓取时间更长的宽度 */
+.info-long-text {
+  max-width: 260px !important;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .info-sentiment {
   display: flex;
   align-items: center;
@@ -3021,6 +3226,53 @@ async function handleBatchDelete() {
   filter: grayscale(40%) opacity(0.8);
 }
 .info-fans.inactive span {
+  color: #bbb !important;
+}
+
+/* 新闻类型特有的样式 */
+.info-platform {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-platform span {
+  color: #222;
+  font-weight: 500;
+}
+
+.info-platform.inactive {
+  color: #bbb !important;
+}
+
+.info-platform.inactive span {
+  color: #bbb !important;
+}
+
+.info-region {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-region span {
+  color: #222;
+  font-weight: 500;
+}
+
+.info-region.inactive {
+  color: #bbb !important;
+}
+
+.info-region.inactive span {
   color: #bbb !important;
 }
 

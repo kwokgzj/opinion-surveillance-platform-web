@@ -95,7 +95,7 @@ export interface Information {
   language: string;                        // 语言
   region: string;                          // 地区
   duration: number;                        // 时长
-  SU: number;                              // SU值
+  su: number;                              // SU值
   newsPlatform: string;                    // 新闻平台
   newsPlatformRegion: string[];            // 新闻平台地区
   monthlyActiveUsers: string;              // 月活跃用户数
