@@ -11,15 +11,28 @@
               <div class="selected-items">
                 <span v-if="filter.brands.length === 0" class="placeholder">请选择品牌</span>
                 <span v-else class="item-tags">
-                  <span v-for="brand in filter.brands" :key="brand" class="item-tag">
-                    {{ brand }}
-                    <span class="tag-close" @click.stop="removeBrand(brand)">×</span>
+                  <template v-if="filter.brands.length <= 3">
+                    <span v-for="brand in filter.brands" :key="brand" class="item-tag">
+                      {{ brand }}
+                      <span class="tag-close" @click.stop="removeBrand(brand)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.brands.length }} 项
+                    <span class="tag-close" @click.stop="clearBrands">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: brandDropdownOpen }">▼</span>
             </div>
             <div v-if="brandDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllBrands">
+                <input type="checkbox" :checked="isAllBrandsSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="brand in brandOptions" :key="brand" class="dropdown-option" @click="toggleBrand(brand)">
                 <input type="checkbox" :checked="filter.brands.includes(brand)" @click.stop />
                 <label>{{ brand }}</label>
@@ -34,15 +47,28 @@
               <div class="selected-items">
                 <span v-if="filter.skus.length === 0" class="placeholder">请选择SKU</span>
                 <span v-else class="item-tags">
-                  <span v-for="sku in filter.skus" :key="sku" class="item-tag">
-                    {{ sku }}
-                    <span class="tag-close" @click.stop="removeSku(sku)">×</span>
+                  <template v-if="filter.skus.length <= 3">
+                    <span v-for="sku in filter.skus" :key="sku" class="item-tag">
+                      {{ sku }}
+                      <span class="tag-close" @click.stop="removeSku(sku)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.skus.length }} 项
+                    <span class="tag-close" @click.stop="clearSkus">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: skuDropdownOpen }">▼</span>
             </div>
             <div v-if="skuDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllSkus">
+                <input type="checkbox" :checked="isAllSkusSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="sku in skuOptions" :key="sku" class="dropdown-option" @click="toggleSku(sku)">
                 <input type="checkbox" :checked="filter.skus.includes(sku)" @click.stop />
                 <label>{{ sku }}</label>
@@ -57,15 +83,28 @@
               <div class="selected-items">
                 <span v-if="filter.sentiments.length === 0" class="placeholder">请选择情感倾向</span>
                 <span v-else class="item-tags">
-                  <span v-for="sentiment in filter.sentiments" :key="sentiment" class="item-tag">
-                    {{ sentiment }}
-                    <span class="tag-close" @click.stop="removeSentiment(sentiment)">×</span>
+                  <template v-if="filter.sentiments.length <= 3">
+                    <span v-for="sentiment in filter.sentiments" :key="sentiment" class="item-tag">
+                      {{ sentiment }}
+                      <span class="tag-close" @click.stop="removeSentiment(sentiment)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.sentiments.length }} 项
+                    <span class="tag-close" @click.stop="clearSentiments">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: sentimentDropdownOpen }">▼</span>
             </div>
             <div v-if="sentimentDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllSentiments">
+                <input type="checkbox" :checked="isAllSentimentsSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="sentiment in sentimentOptions" :key="sentiment" class="dropdown-option" @click="toggleSentiment(sentiment)">
                 <input type="checkbox" :checked="filter.sentiments.includes(sentiment)" @click.stop />
                 <label>{{ sentiment }}</label>
@@ -80,15 +119,28 @@
               <div class="selected-items">
                 <span v-if="filter.platforms.length === 0" class="placeholder">请选择平台</span>
                 <span v-else class="item-tags">
-                  <span v-for="platform in filter.platforms" :key="platform" class="item-tag">
-                    {{ platform }}
-                    <span class="tag-close" @click.stop="removePlatform(platform)">×</span>
+                  <template v-if="filter.platforms.length <= 3">
+                    <span v-for="platform in filter.platforms" :key="platform" class="item-tag">
+                      {{ platform }}
+                      <span class="tag-close" @click.stop="removePlatform(platform)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.platforms.length }} 项
+                    <span class="tag-close" @click.stop="clearPlatforms">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: platformDropdownOpen }">▼</span>
             </div>
             <div v-if="platformDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllPlatforms">
+                <input type="checkbox" :checked="isAllPlatformsSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="platform in platformOptions" :key="platform" class="dropdown-option" @click="togglePlatform(platform)">
                 <input type="checkbox" :checked="filter.platforms.includes(platform)" @click.stop />
                 <label>{{ platform }}</label>
@@ -107,15 +159,28 @@
               <div class="selected-items">
                 <span v-if="filter.languages.length === 0" class="placeholder">请选择语言</span>
                 <span v-else class="item-tags">
-                  <span v-for="language in filter.languages" :key="language" class="item-tag">
-                    {{ language }}
-                    <span class="tag-close" @click.stop="removeLanguage(language)">×</span>
+                  <template v-if="filter.languages.length <= 3">
+                    <span v-for="language in filter.languages" :key="language" class="item-tag">
+                      {{ language }}
+                      <span class="tag-close" @click.stop="removeLanguage(language)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.languages.length }} 项
+                    <span class="tag-close" @click.stop="clearLanguages">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: languageDropdownOpen }">▼</span>
             </div>
             <div v-if="languageDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllLanguages">
+                <input type="checkbox" :checked="isAllLanguagesSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="language in languageOptions" :key="language" class="dropdown-option" @click="toggleLanguage(language)">
                 <input type="checkbox" :checked="filter.languages.includes(language)" @click.stop />
                 <label>{{ language }}</label>
@@ -130,15 +195,28 @@
               <div class="selected-items">
                 <span v-if="filter.regions.length === 0" class="placeholder">请选择地区</span>
                 <span v-else class="item-tags">
-                  <span v-for="region in filter.regions" :key="region" class="item-tag">
-                    {{ region }}
-                    <span class="tag-close" @click.stop="removeRegion(region)">×</span>
+                  <template v-if="filter.regions.length <= 3">
+                    <span v-for="region in filter.regions" :key="region" class="item-tag">
+                      {{ region }}
+                      <span class="tag-close" @click.stop="removeRegion(region)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.regions.length }} 项
+                    <span class="tag-close" @click.stop="clearRegions">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: regionDropdownOpen }">▼</span>
             </div>
             <div v-if="regionDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllRegions">
+                <input type="checkbox" :checked="isAllRegionsSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="region in regionOptions" :key="region" class="dropdown-option" @click="toggleRegion(region)">
                 <input type="checkbox" :checked="filter.regions.includes(region)" @click.stop />
                 <label>{{ region }}</label>
@@ -189,15 +267,28 @@
               <div class="selected-items">
                 <span v-if="filter.channels.length === 0" class="placeholder">请选择频道</span>
                 <span v-else class="item-tags">
-                  <span v-for="channel in filter.channels" :key="channel" class="item-tag">
-                    {{ channel }}
-                    <span class="tag-close" @click.stop="removeChannel(channel)">×</span>
+                  <template v-if="filter.channels.length <= 3">
+                    <span v-for="channel in filter.channels" :key="channel" class="item-tag">
+                      {{ channel }}
+                      <span class="tag-close" @click.stop="removeChannel(channel)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.channels.length }} 项
+                    <span class="tag-close" @click.stop="clearChannels">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: channelDropdownOpen }">▼</span>
             </div>
             <div v-if="channelDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllChannels">
+                <input type="checkbox" :checked="isAllChannelsSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="channel in channelOptions" :key="channel" class="dropdown-option" @click="toggleChannel(channel)">
                 <input type="checkbox" :checked="filter.channels.includes(channel)" @click.stop />
                 <label>{{ channel }}</label>
@@ -225,15 +316,28 @@
               <div class="selected-items">
                 <span v-if="filter.tags.length === 0" class="placeholder">请选择标签</span>
                 <span v-else class="item-tags">
-                  <span v-for="tag in filter.tags" :key="tag" class="item-tag">
-                    {{ tag }}
-                    <span class="tag-close" @click.stop="removeTag(tag)">×</span>
+                  <template v-if="filter.tags.length <= 3">
+                    <span v-for="tag in filter.tags" :key="tag" class="item-tag">
+                      {{ tag }}
+                      <span class="tag-close" @click.stop="removeTag(tag)">×</span>
+                    </span>
+                  </template>
+                  <span v-else class="item-tag summary">
+                    已选择 {{ filter.tags.length }} 项
+                    <span class="tag-close" @click.stop="clearTags">×</span>
                   </span>
                 </span>
               </div>
               <span class="dropdown-arrow" :class="{ open: tagDropdownOpen }">▼</span>
             </div>
             <div v-if="tagDropdownOpen" class="dropdown-options">
+              <!-- 全选按钮 -->
+              <div class="select-all-option" @click="toggleSelectAllTags">
+                <input type="checkbox" :checked="isAllTagsSelected" @click.stop />
+                <label>全选</label>
+              </div>
+              <div class="dropdown-divider"></div>
+              <!-- 选项列表 -->
               <div v-for="tag in tagOptions" :key="tag" class="dropdown-option" @click="toggleTag(tag)">
                 <input type="checkbox" :checked="filter.tags.includes(tag)" @click.stop />
                 <label>{{ tag }}</label>
@@ -510,7 +614,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink, updateLinksLabelsBatch } from '@/api/information/information';
-import type { Information, InformationFilt, FilterOptions } from '@/api/information/information.type';
+import type { Information, InformationFilt, FilterOptions, FilterOption } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
 
 // 使用项目store
@@ -563,7 +667,7 @@ const fetchFilterOptions = async () => {
       return;
     }
 
-            const response = await getFilterOptions(currentProjectId);
+    const response = await getFilterOptions(currentProjectId);
     console.log('筛选选项响应:', response);
 
     if (response) {
@@ -588,8 +692,9 @@ const fetchFilterOptions = async () => {
     } else {
       console.warn('筛选选项响应为空:', response);
     }
-  } catch (error) {
-    console.error('获取筛选选项失败:', error);
+  } catch (err) {
+    console.error('获取筛选选项失败:', err);
+    throw new Error('获取筛选选项失败，请稍后重试');
   }
 };
 
@@ -645,6 +750,39 @@ const tagOptions = computed(() => {
   return options;
 });
 
+// 全选状态计算属性
+const isAllBrandsSelected = computed(() => {
+  return brandOptions.value.length > 0 && filter.value.brands.length === brandOptions.value.length;
+});
+
+const isAllSkusSelected = computed(() => {
+  return skuOptions.value.length > 0 && filter.value.skus.length === skuOptions.value.length;
+});
+
+const isAllSentimentsSelected = computed(() => {
+  return sentimentOptions.value.length > 0 && filter.value.sentiments.length === sentimentOptions.value.length;
+});
+
+const isAllPlatformsSelected = computed(() => {
+  return platformOptions.value.length > 0 && filter.value.platforms.length === platformOptions.value.length;
+});
+
+const isAllLanguagesSelected = computed(() => {
+  return languageOptions.value.length > 0 && filter.value.languages.length === languageOptions.value.length;
+});
+
+const isAllRegionsSelected = computed(() => {
+  return regionOptions.value.length > 0 && filter.value.regions.length === regionOptions.value.length;
+});
+
+const isAllChannelsSelected = computed(() => {
+  return channelOptions.value.length > 0 && filter.value.channels.length === channelOptions.value.length;
+});
+
+const isAllTagsSelected = computed(() => {
+  return tagOptions.value.length > 0 && filter.value.tags.length === tagOptions.value.length;
+});
+
 // 下拉框状态
 const brandDropdownOpen = ref(false);
 const skuDropdownOpen = ref(false);
@@ -680,6 +818,10 @@ function removeBrand(brand: string) {
   }
 }
 
+function clearBrands() {
+  filter.value.brands = [];
+}
+
 // SKU相关函数
 function toggleSkuDropdown() {
   skuDropdownOpen.value = !skuDropdownOpen.value;
@@ -697,6 +839,10 @@ function removeSku(sku: string) {
   if (idx !== -1) {
     filter.value.skus.splice(idx, 1);
   }
+}
+
+function clearSkus() {
+  filter.value.skus = [];
 }
 
 // 情感倾向相关函数
@@ -718,6 +864,10 @@ function removeSentiment(sentiment: string) {
   }
 }
 
+function clearSentiments() {
+  filter.value.sentiments = [];
+}
+
 // 平台相关函数
 function togglePlatformDropdown() {
   platformDropdownOpen.value = !platformDropdownOpen.value;
@@ -735,6 +885,10 @@ function removePlatform(platform: string) {
   if (idx !== -1) {
     filter.value.platforms.splice(idx, 1);
   }
+}
+
+function clearPlatforms() {
+  filter.value.platforms = [];
 }
 
 // 语言相关函数
@@ -756,6 +910,10 @@ function removeLanguage(language: string) {
   }
 }
 
+function clearLanguages() {
+  filter.value.languages = [];
+}
+
 // 地区相关函数
 function toggleRegionDropdown() {
   regionDropdownOpen.value = !regionDropdownOpen.value;
@@ -773,6 +931,10 @@ function removeRegion(region: string) {
   if (idx !== -1) {
     filter.value.regions.splice(idx, 1);
   }
+}
+
+function clearRegions() {
+  filter.value.regions = [];
 }
 
 // 排序相关函数
@@ -871,10 +1033,20 @@ const visiblePages = computed(() => {
 });
 
 // 分页相关函数
-function goToPage(page: number) {
+async function goToPage(page: number) {
   if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
     currentPage.value = page;
-    fetchInformationData();
+    loading.value = true;
+    error.value = '';
+    
+    try {
+      await fetchInformationData();
+    } catch (err) {
+      console.error('分页切换失败:', err);
+      error.value = err instanceof Error ? err.message : '分页切换失败，请稍后重试';
+    } finally {
+      loading.value = false;
+    }
   }
 }
 
@@ -904,6 +1076,10 @@ function removeChannel(channel: string) {
   }
 }
 
+function clearChannels() {
+  filter.value.channels = [];
+}
+
 // 标签相关函数
 function toggleTagDropdown() {
   tagDropdownOpen.value = !tagDropdownOpen.value;
@@ -920,6 +1096,75 @@ function removeTag(tag: string) {
   const idx = filter.value.tags.indexOf(tag);
   if (idx !== -1) {
     filter.value.tags.splice(idx, 1);
+  }
+}
+
+function clearTags() {
+  filter.value.tags = [];
+}
+
+// 全选切换函数
+function toggleSelectAllBrands() {
+  if (isAllBrandsSelected.value) {
+    filter.value.brands = [];
+  } else {
+    filter.value.brands = [...brandOptions.value];
+  }
+}
+
+function toggleSelectAllSkus() {
+  if (isAllSkusSelected.value) {
+    filter.value.skus = [];
+  } else {
+    filter.value.skus = [...skuOptions.value];
+  }
+}
+
+function toggleSelectAllSentiments() {
+  if (isAllSentimentsSelected.value) {
+    filter.value.sentiments = [];
+  } else {
+    filter.value.sentiments = [...sentimentOptions.value];
+  }
+}
+
+function toggleSelectAllPlatforms() {
+  if (isAllPlatformsSelected.value) {
+    filter.value.platforms = [];
+  } else {
+    filter.value.platforms = [...platformOptions.value];
+  }
+}
+
+function toggleSelectAllLanguages() {
+  if (isAllLanguagesSelected.value) {
+    filter.value.languages = [];
+  } else {
+    filter.value.languages = [...languageOptions.value];
+  }
+}
+
+function toggleSelectAllRegions() {
+  if (isAllRegionsSelected.value) {
+    filter.value.regions = [];
+  } else {
+    filter.value.regions = [...regionOptions.value];
+  }
+}
+
+function toggleSelectAllChannels() {
+  if (isAllChannelsSelected.value) {
+    filter.value.channels = [];
+  } else {
+    filter.value.channels = [...channelOptions.value];
+  }
+}
+
+function toggleSelectAllTags() {
+  if (isAllTagsSelected.value) {
+    filter.value.tags = [];
+  } else {
+    filter.value.tags = [...tagOptions.value];
   }
 }
 
@@ -1013,7 +1258,17 @@ async function searchData() {
   // 重置分页到第一页
   currentPage.value = 1;
 
-  fetchInformationData();
+  loading.value = true;
+  error.value = '';
+  
+  try {
+    await fetchInformationData();
+  } catch (err) {
+    console.error('搜索失败:', err);
+    error.value = err instanceof Error ? err.message : '搜索失败，请稍后重试';
+  } finally {
+    loading.value = false;
+  }
 }
 
 // 点击外部关闭下拉框
@@ -1048,8 +1303,18 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
 
   if (newProjectId && newProjectId !== oldProjectId) {
     console.log('项目ID变化，重新获取筛选选项');
-    await fetchFilterOptions();
-    fetchInformationData();
+    loading.value = true;
+    error.value = '';
+    
+    try {
+      await fetchFilterOptions();
+      await fetchInformationData();
+    } catch (err) {
+      console.error('项目切换失败:', err);
+      error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
+    } finally {
+      loading.value = false;
+    }
   }
 });
 
@@ -1061,12 +1326,22 @@ onMounted(async () => {
   console.log('当前项目ID:', projectStore.currentProjectId);
   console.log('当前项目名称:', projectStore.currentProjectName);
 
+  // 显示初始loading状态
+  loading.value = true;
+
   // 等待一下确保项目状态已经加载
   await new Promise(resolve => setTimeout(resolve, 100));
 
-  // 先获取筛选选项，再获取数据
-  await fetchFilterOptions();
-  fetchInformationData();
+  try {
+    // 先获取筛选选项，再获取数据
+    await fetchFilterOptions();
+    await fetchInformationData();
+  } catch (err) {
+    console.error('组件初始化失败:', err);
+    error.value = '页面加载失败，请刷新重试';
+  } finally {
+    loading.value = false;
+  }
 });
 
 // 组件卸载时移除全局点击监听
@@ -1088,10 +1363,7 @@ const totalCountFromOptions = computed(() => filterOptions.value.count || 0);
 
 // 获取信息数据
 const fetchInformationData = async () => {
-  loading.value = true;
-  error.value = '';
-
-    try {
+  try {
     // 获取当前项目ID
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
@@ -1105,19 +1377,19 @@ const fetchInformationData = async () => {
     // 构建过滤条件
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
-      brands: filter.value.brands,
-      skus: filter.value.skus,
-      platforms: filter.value.platforms,
-      sentiments: filter.value.sentiments,
-      languages: filter.value.languages,
-      regions: filter.value.regions,
+      brands: convertLabelsToValues(filterOptions.value.brands || [], filter.value.brands),
+      skus: convertLabelsToValues(filterOptions.value.skus || [], filter.value.skus),
+      platforms: convertLabelsToValues(filterOptions.value.platforms || [], filter.value.platforms),
+      sentiments: convertLabelsToValues(filterOptions.value.sentiments || [], filter.value.sentiments),
+      languages: convertLabelsToValues(filterOptions.value.languages || [], filter.value.languages),
+      regions: convertLabelsToValues(filterOptions.value.regions || [], filter.value.regions),
       sortBy: getSortValue(filter.value.sort),
       minDuration: durationRange.minDuration,
       maxDuration: durationRange.maxDuration,
-      channels: filter.value.channels,
+      channels: convertLabelsToValues(filterOptions.value.channels || [], filter.value.channels),
       publishedAtStart: formatDateTime(filter.value.dateRange[0]),
       publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
-      labels: filter.value.tags,
+      labels: convertLabelsToValues(filterOptions.value.labels || [], filter.value.tags),
       page: currentPage.value,
       size: pageSize.value
     };
@@ -1132,26 +1404,34 @@ const fetchInformationData = async () => {
 
     const data = await getInformationList(filterParams);
     console.log('API返回的原始数据:', data);
+    console.log('数据结构检查:', {
+      hasData: data && 'data' in data,
+      hasRecords: (data as any)?.data && 'records' in (data as any).data,
+      hasTotalCount: (data as any)?.data && 'totalCount' in (data as any).data,
+      recordsLength: (data as any)?.data?.records?.length,
+      totalCount: (data as any)?.data?.totalCount,
+      currentPage: (data as any)?.data?.currentPage,
+      totalPages: (data as any)?.data?.totalPages
+    });
 
-    // 检查数据结构并处理分页信息
-    if (data && typeof data === 'object') {
-      if ('data' in data && 'total' in data) {
-        // 标准分页响应格式
-        informationList.value = (data as any).data;
-        totalCount.value = (data as any).total || totalCountFromOptions.value;
-        totalPages.value = Math.ceil(totalCount.value / pageSize.value);
-      } else if ('data' in data) {
-        // 只有data字段的响应
-        informationList.value = (data as any).data;
-        totalCount.value = totalCountFromOptions.value || informationList.value.length;
-        totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+    // 处理API响应格式：{ code: 0, data: { records: [...], totalCount: 239, ... }, msg: "成功" }
+    if (data && typeof data === 'object' && 'data' in data && data.data) {
+      const resultData = data.data as any;
+      if (resultData && 'records' in resultData && 'totalCount' in resultData) {
+        // 新的InformationsResult格式
+        informationList.value = resultData.records || [];
+        totalCount.value = resultData.totalCount || 0;
+        totalPages.value = resultData.totalPages || Math.ceil(totalCount.value / pageSize.value);
+        currentPage.value = resultData.currentPage || 1;
+        pageSize.value = resultData.pageSize || 30;
       } else {
-        // 直接是数组的响应
-        informationList.value = data as Information[];
-        totalCount.value = totalCountFromOptions.value || informationList.value.length;
+        // 兼容性处理：如果不是新格式，使用默认值
+        informationList.value = [];
+        totalCount.value = totalCountFromOptions.value || 0;
         totalPages.value = Math.ceil(totalCount.value / pageSize.value);
       }
     } else {
+      // 兼容性处理：如果不是新格式，使用默认值
       informationList.value = [];
       totalCount.value = totalCountFromOptions.value || 0;
       totalPages.value = Math.ceil(totalCount.value / pageSize.value);
@@ -1165,9 +1445,7 @@ const fetchInformationData = async () => {
 
   } catch (err) {
     console.error('获取信息数据失败:', err);
-    error.value = '获取数据失败，请稍后重试';
-  } finally {
-    loading.value = false;
+    throw new Error('获取数据失败，请稍后重试');
   }
 };
 
@@ -1271,6 +1549,17 @@ function getSentimentText(sentiment: number): string {
   if (sentiment >= 71) return '正面';
   if (sentiment >= 31 && sentiment <= 70) return '中性';
   return '中性';
+}
+
+// 根据label获取对应的value
+function getValueByLabel(options: FilterOption[], label: string): string {
+  const option = options.find(opt => opt.label === label);
+  return option ? option.value : label;
+}
+
+// 将label数组转换为value数组
+function convertLabelsToValues(options: FilterOption[], labels: string[]): string[] {
+  return labels.map(label => getValueByLabel(options, label));
 }
 
 // 从内容中获取品牌信息
@@ -1749,6 +2038,9 @@ async function handleBatchDelete() {
   flex-wrap: wrap;
   gap: 4px;
   flex: 1;
+  max-height: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .placeholder {
   color: #c0c4cc;
@@ -1797,8 +2089,13 @@ async function handleBatchDelete() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   z-index: 10;
   min-width: 100%;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
+  overflow-x: hidden;
+  /* 确保下拉框不会超出屏幕边界 */
+  max-width: calc(100vw - 40px);
+  /* 添加内边距，让滚动条不贴边 */
+  padding: 4px 0;
 }
 .dropdown-option {
   padding: 8px 12px;
@@ -1806,6 +2103,9 @@ async function handleBatchDelete() {
   display: flex;
   align-items: center;
   transition: background-color 0.3s;
+  min-height: 36px;
+  margin: 2px 4px;
+  border-radius: 4px;
 }
 .dropdown-option:hover {
   background: #f5f7fa;
@@ -1818,6 +2118,73 @@ async function handleBatchDelete() {
   margin: 0;
   cursor: pointer;
   font-size: 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+}
+
+/* 全选按钮样式 */
+.select-all-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 500;
+  min-height: 36px;
+  margin: 2px 4px;
+  border-radius: 4px;
+}
+
+.select-all-option:hover {
+  background: #e9ecef;
+}
+
+.select-all-option input {
+  margin-right: 8px;
+  pointer-events: none;
+}
+
+.select-all-option label {
+  margin: 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #409eff;
+}
+
+/* 分割线样式 */
+.dropdown-divider {
+  height: 1px;
+  background: #e9ecef;
+  margin: 6px 8px;
+}
+
+/* 自定义滚动条样式 */
+.dropdown-options::-webkit-scrollbar,
+.selected-items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-options::-webkit-scrollbar-track,
+.selected-items::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb,
+.selected-items::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb:hover,
+.selected-items::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 .select-value {
   color: #333;
@@ -2288,6 +2655,11 @@ async function handleBatchDelete() {
   
   .info-content-main {
     max-width: 100%; /* 小屏幕下内容占满宽度 */
+  }
+  
+  /* 小屏幕下限制下拉框高度 */
+  .dropdown-options {
+    max-height: 200px;
   }
 }
 

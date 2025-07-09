@@ -108,3 +108,23 @@ export interface Information {
   isCollected: boolean;                    // 是否已收集
   labels: string[];                         // 标签列表
 }
+
+/**
+ * 信息查询结果
+ */
+export interface InformationsResult {
+  totalCount: number;                      // 符合的记录的总数
+  currentPage: number;                     // 当前的页数
+  pageSize: number;                        // 每页的记录数
+  totalPages: number;                      // 总页数
+  records: Information[];                  // 信息记录列表
+}
+
+/**
+ * API响应包装器
+ */
+export interface ApiResponseWrapper<T> {
+  code: number;                            // 响应码
+  data: T;                                 // 响应数据
+  msg: string;                             // 响应消息
+}

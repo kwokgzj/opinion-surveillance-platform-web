@@ -6,7 +6,8 @@ import {
 
 import type {
   InformationFilt,
-  Information
+  InformationsResult,
+  ApiResponseWrapper
 } from './information.type';
 
 /**
@@ -14,9 +15,9 @@ import type {
  * @param filter 过滤条件
  * @returns 信息列表
  */
-export const getInformationList = async (filter: InformationFilt): Promise<Information[]> => {
+export const getInformationList = async (filter: InformationFilt): Promise<ApiResponseWrapper<InformationsResult>> => {
   try {
-    const response = await post<Information[]>('/informations', filter);
+    const response = await post<ApiResponseWrapper<InformationsResult>>('/informations', filter);
     return response;
   } catch (error) {
     console.error('获取信息列表失败:', error);
