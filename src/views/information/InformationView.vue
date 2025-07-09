@@ -324,6 +324,25 @@
             >
               {{ item.title }}
             </a>
+                          <!-- 标签显示 -->
+              <div v-if="item.labels && item.labels.length > 0" class="info-labels">
+                <div 
+                  v-for="label in item.labels" 
+                  :key="label"
+                  class="info-label-item"
+                  :title="label"
+                >
+                  <img src="/src/components/icons/tag.svg" alt="标签" class="label-icon" />
+                  <span class="label-text">{{ label }}</span>
+                  <button 
+                    class="label-delete-btn"
+                    @click.stop="handleDeleteLabel(item, label)"
+                    title="删除标签"
+                  >
+                    <img src="/src/components/icons/X.svg" alt="删除" class="delete-icon" />
+                  </button>
+                </div>
+              </div>
           </div>
           <div class="info-content-row">
             <img :src="item.thumbnailUrl" class="info-cover" :class="{ 'inactive': !item.isActive }" />
@@ -386,19 +405,19 @@
         <div class="info-right">
           <div class="info-table-2col">
             <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value">{{ getBrandFromContent(item) }}</span></div>
-              <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value">{{ getSkuFromContent(item) }}</span></div>
+              <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
+              <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
             </div>
             <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value">{{ item.commentCount }}</span></div>
-              <div class="info-cell"><span class="info-label">点赞数：</span><span class="info-value">{{ item.likeCount }}</span></div>
+              <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value" :title="String(item.commentCount)">{{ item.commentCount }}</span></div>
+              <div class="info-cell"><span class="info-label">点赞数：</span><span class="info-value" :title="String(item.likeCount)">{{ item.likeCount }}</span></div>
             </div>
             <div class="info-row-2col">
-              <div class="info-cell"><span class="info-label">播放量：</span><span class="info-value">{{ item.viewCount }}</span></div>
-              <div class="info-cell"><span class="info-label">情感倾向：</span><span class="info-value info-sentiment"><img :src="getSentimentIcon(getSentimentFromContent(item))" class="sentiment-icon" /></span></div>
+              <div class="info-cell"><span class="info-label">播放量：</span><span class="info-value" :title="String(item.viewCount)">{{ item.viewCount }}</span></div>
+              <div class="info-cell"><span class="info-label">情感倾向：</span><span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))"><img :src="getSentimentIcon(getSentimentFromContent(item))" class="sentiment-icon" /></span></div>
             </div>
             <div class="info-row-2col last-row">
-              <div class="info-cell" style="width:100%"><span class="info-label">抓取时间：</span><span class="info-value">{{ formatDateYMDOnly(item.captureAt) }}</span></div>
+              <div class="info-cell" style="width:100%"><span class="info-label">抓取时间：</span><span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{ formatDateYMDOnly(item.captureAt) }}</span></div>
             </div>
           </div>
         </div>
@@ -490,7 +509,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink } from '@/api/information/information';
+import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink, updateLinksLabelsBatch } from '@/api/information/information';
 import type { Information, InformationFilt, FilterOptions } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
 
@@ -1246,6 +1265,14 @@ function getSentimentIcon(sentiment: number): string {
   return iconMap[str];
 }
 
+// 获取情感文本
+function getSentimentText(sentiment: number): string {
+  if (sentiment <= 30) return '负面';
+  if (sentiment >= 71) return '正面';
+  if (sentiment >= 31 && sentiment <= 70) return '中性';
+  return '中性';
+}
+
 // 从内容中获取品牌信息
 function getBrandFromContent(item: Information): string {
   if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
@@ -1292,11 +1319,124 @@ function getSortValue(label: string): string {
   return sortOption ? sortOption.value : firstSortValue.value;
 }
 
+// 处理删除标签
+async function handleDeleteLabel(item: Information, labelToDelete: string) {
+  if (!confirm(`确定要删除标签"${labelToDelete}"吗？`)) {
+    return;
+  }
+  
+  try {
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      alert('项目ID不存在，无法删除标签');
+      return;
+    }
+    
+    console.log('删除标签:', {
+      projectId: currentProjectId,
+      linkId: item.id,
+      labelToDelete: labelToDelete
+    });
+    
+    // 构建新的标签列表（移除要删除的标签）
+    const currentLabels = item.labels || [];
+    const newLabels = currentLabels.filter(label => label !== labelToDelete);
+    
+    const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels]);
+    console.log('删除标签响应:', response);
+    
+    if (response) {
+      if (response.code === 0 || response.success === true || response.status === 200) {
+        alert(`删除标签成功，已删除标签"${labelToDelete}"`);
+        // 更新本地数据
+        item.labels = newLabels;
+        // 重新获取数据以确保数据同步
+        await fetchInformationData();
+      } else {
+        const errorMsg = response.message || response.msg || response.error || '未知错误';
+        console.error('API返回错误:', response);
+        alert(`删除标签失败：${errorMsg}`);
+      }
+    } else {
+      alert('删除标签失败：响应为空');
+    }
+  } catch (error: any) {
+    console.error('删除标签失败:', error);
+    // 显示更详细的错误信息
+    let errorMessage = '删除标签失败，请稍后重试';
+    if (error.response) {
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+    } else if (error.request) {
+      errorMessage = '网络请求失败，请检查网络连接';
+    } else if (error.message) {
+      errorMessage = `请求错误: ${error.message}`;
+    }
+    alert(errorMessage);
+  }
+}
+
 // 处理添加标签
-function handleAddTag(item: Information) {
+async function handleAddTag(item: Information) {
   console.log('添加标签:', item);
-  // TODO: 实现添加标签逻辑
-  // 这里可以打开一个弹窗让用户选择或输入标签
+  
+  const tag = prompt('请输入要添加的标签名称：');
+  if (!tag || tag.trim() === '') {
+    return;
+  }
+  
+  const trimmedTag = tag.trim();
+  if (!confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`)) {
+    return;
+  }
+  
+  try {
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      alert('项目ID不存在，无法添加标签');
+      return;
+    }
+    
+    console.log('添加标签:', {
+      projectId: currentProjectId,
+      linkId: item.id,
+      tag: trimmedTag
+    });
+    
+    // 构建新的标签列表
+    const currentLabels = item.labels || [];
+    const newLabels = [...currentLabels, trimmedTag];
+    
+    const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels]);
+    console.log('添加标签响应:', response);
+    
+    if (response) {
+      if (response.code === 0 || response.success === true || response.status === 200) {
+        alert(`添加标签成功，已添加标签"${trimmedTag}"`);
+        // 更新本地数据
+        item.labels = newLabels;
+        // 重新获取数据以确保数据同步
+        await fetchInformationData();
+      } else {
+        const errorMsg = response.message || response.msg || response.error || '未知错误';
+        console.error('API返回错误:', response);
+        alert(`添加标签失败：${errorMsg}`);
+      }
+    } else {
+      alert('添加标签失败：响应为空');
+    }
+  } catch (error: any) {
+    console.error('添加标签失败:', error);
+    // 显示更详细的错误信息
+    let errorMessage = '添加标签失败，请稍后重试';
+    if (error.response) {
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+    } else if (error.request) {
+      errorMessage = '网络请求失败，请检查网络连接';
+    } else if (error.message) {
+      errorMessage = `请求错误: ${error.message}`;
+    }
+    alert(errorMessage);
+  }
 }
 
 // 处理切换抓取状态
@@ -1384,32 +1524,52 @@ async function handleBatchAddTag() {
       tag: trimmedTag
     });
     
-    // TODO: 需要实现添加标签的API
-    // const response = await addTagsToLinks(currentProjectId, selectedItems.value, trimmedTag);
-    // console.log('批量添加标签响应:', response);
+    // 为每个选中的项目添加标签
+    const labelsList: string[][] = [];
+    for (const linkId of selectedItems.value) {
+      // 找到对应的信息项
+      const item = informationList.value.find(info => info.id === linkId);
+      if (item) {
+        // 如果项目已有标签，则添加新标签；否则创建新标签数组
+        const currentLabels = item.labels || [];
+        const newLabels = [...currentLabels, trimmedTag];
+        labelsList.push(newLabels);
+      } else {
+        // 如果找不到项目，则只添加新标签
+        labelsList.push([trimmedTag]);
+      }
+    }
     
-    // 临时提示
-    alert('添加标签功能暂未实现，请等待后续更新');
+    const response = await updateLinksLabelsBatch(currentProjectId, selectedItems.value, labelsList);
+    console.log('批量添加标签响应:', response);
     
-    // 实际的API调用逻辑（注释掉）
-    /*
     if (response) {
-      if (response.code === 0 || response.success === true) {
+      if (response.code === 0 || response.success === true || response.status === 200) {
         alert(`批量添加标签成功，已添加标签"${trimmedTag}"`);
         // 清空已选项目
         selectedItems.value = [];
         // 重新获取数据
         await fetchInformationData();
       } else {
-        alert(`批量添加标签失败：${response.message || response.msg || '未知错误'}`);
+        const errorMsg = response.message || response.msg || response.error || '未知错误';
+        console.error('API返回错误:', response);
+        alert(`批量添加标签失败：${errorMsg}`);
       }
     } else {
       alert('批量添加标签失败：响应为空');
     }
-    */
-  } catch (error) {
+  } catch (error: any) {
     console.error('批量添加标签失败:', error);
-    alert('批量添加标签失败，请稍后重试');
+    // 显示更详细的错误信息
+    let errorMessage = '批量添加标签失败，请稍后重试';
+    if (error.response) {
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+    } else if (error.request) {
+      errorMessage = '网络请求失败，请检查网络连接';
+    } else if (error.message) {
+      errorMessage = `请求错误: ${error.message}`;
+    }
+    alert(errorMessage);
   }
 }
 
@@ -1875,6 +2035,7 @@ async function handleBatchDelete() {
   gap: 8px;
   margin-right: 10px;
   padding-left: 0; /* 默认不添加左边距 */
+  flex-shrink: 0; /* 防止被压缩 */
 }
 
 /* 多选模式下的左边距调整 */
@@ -1930,6 +2091,9 @@ async function handleBatchDelete() {
   justify-content: flex-start;
   position: relative;
   padding-bottom: 28px;
+  padding-top: 4px; /* 在标题上面添加4px空白 */
+  min-width: 0; /* 允许容器收缩 */
+  max-width: calc(100% - 16px); /* 确保不会超出父容器 */
 }
 .info-title-row {
   display: flex;
@@ -1940,6 +2104,191 @@ async function handleBatchDelete() {
   color: #222;
   position: relative;
   z-index: 1;
+  width: 100%; /* 确保占满宽度 */
+  min-width: 0; /* 允许收缩 */
+}
+
+.info-title-link {
+  flex: 1;
+  min-width: 0; /* 允许标题收缩 */
+  max-width: calc(100% - 200px); /* 为标签预留空间 */
+}
+
+.info-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0; /* 防止标签被压缩 */
+  margin-left: auto; /* 标签靠右 */
+  max-width: 300px; /* 限制标签区域宽度 */
+}
+
+.info-label-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(64, 158, 255, 0.1);
+  border: 1px solid rgba(64, 158, 255, 0.2);
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #409eff;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: visible; /* 改为visible，让删除按钮不被截断 */
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.3s ease;
+  position: relative; /* 为删除按钮定位 */
+}
+
+.info-label-item:hover {
+  background: rgba(64, 158, 255, 0.15);
+  border-color: rgba(64, 158, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.info-label-item .label-icon {
+  width: 10px;
+  height: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.info-label-item .label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.info-label-item .label-delete-btn {
+  display: none;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  border: none;
+  background: #ff4d4f;
+  border-radius: 50%;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.info-label-item .label-delete-btn:hover {
+  background: #ff7875;
+  transform: scale(1.1);
+}
+
+.info-label-item .delete-icon {
+  width: 6px;
+  height: 6px;
+  object-fit: contain;
+  filter: brightness(0) invert(1); /* 将图标变为白色 */
+}
+
+.info-label-item:hover .label-delete-btn {
+  display: flex;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .info-label-item {
+    max-width: 100px;
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+  
+  .info-label-item .label-icon {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .info-right {
+    min-width: 280px;
+    max-width: 320px;
+  }
+  
+  .info-left {
+    min-width: 140px;
+  }
+  
+  .info-title-link {
+    max-width: calc(100% - 160px); /* 为标签预留空间 */
+  }
+  
+  .info-labels {
+    max-width: 300px; /* 限制标签区域宽度 */
+  }
+}
+
+@media (max-width: 768px) {
+  .info-card {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .info-left {
+    min-width: auto;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  .info-right {
+    min-width: auto;
+    max-width: none;
+    width: 100%;
+    margin-left: 0; /* 移除左边距 */
+  }
+  
+  .info-divider {
+    display: none; /* 隐藏分割线 */
+  }
+  
+  .info-title-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .info-title-link {
+    max-width: 100%; /* 小屏幕下标题占满宽度 */
+  }
+  
+  .info-labels {
+    gap: 2px;
+    margin-left: 0; /* 小屏幕下标签不靠右 */
+    width: 100%; /* 占满宽度 */
+    justify-content: flex-end; /* 标签靠右对齐 */
+    max-width: 100%; /* 移除宽度限制 */
+  }
+  
+  .info-label-item {
+    max-width: auto;
+    font-size: 9px;
+    padding: 1px 3px;
+  }
+  
+  .info-content-main {
+    max-width: 100%; /* 小屏幕下内容占满宽度 */
+  }
 }
 
 .info-title-link {
@@ -1947,15 +2296,12 @@ async function handleBatchDelete() {
   text-decoration: none;
   transition: color 0.3s;
   cursor: pointer;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;      /* 最多显示2行，可根据需求调整 */
-  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;
-  word-break: break-all;
+  white-space: nowrap; /* 标题只显示一行 */
   max-width: 100%;
+  min-width: 0; /* 允许标题收缩 */
+  flex: 1; /* 标题占据剩余空间 */
 }
 
 .info-title-link:hover {
@@ -1997,6 +2343,8 @@ async function handleBatchDelete() {
   display: flex;
   align-items: flex-start;
   gap: 16px;
+  min-width: 0; /* 允许容器收缩 */
+  width: 100%; /* 确保占满宽度 */
 }
 .info-cover {
   width: 120px;
@@ -2011,6 +2359,8 @@ async function handleBatchDelete() {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0; /* 允许收缩 */
+  max-width: calc(100% - 136px); /* 为封面图预留空间 */
 }
 .info-desc {
   color: #444;
@@ -2200,6 +2550,8 @@ async function handleBatchDelete() {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
+  flex-shrink: 0; /* 防止被压缩 */
+  margin-left: 16px; /* 添加左边距 */
 }
 
 /* 加载状态样式 */

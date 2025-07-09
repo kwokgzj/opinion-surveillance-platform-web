@@ -95,3 +95,18 @@ export const deleteProjectLink = async (projectId: string, linkIds: string[]) =>
     linkIds
   });
 };
+
+/**
+ * 批量更新链接标签
+ * @param projectId 项目ID
+ * @param linkIds 链接ID数组
+ * @param labelsList 标签列表数组（每个元素对应一个链接的标签数组）
+ * @returns 更新结果
+ */
+export const updateLinksLabelsBatch = async (projectId: string, linkIds: string[], labelsList: string[][]) => {
+  return await post(`/informations/labels`, {
+    projectId,
+    linkIds,
+    labelsList
+  });
+};
