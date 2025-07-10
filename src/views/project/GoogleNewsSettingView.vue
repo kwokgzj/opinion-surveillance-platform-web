@@ -249,8 +249,8 @@
   </div>
 </template>
 
-<script>
-import { createProject, getProjectById, updateProject, deleteProject } from '@/api/project/project';
+<script lang="ts">
+import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask } from '@/api/project/project';
 export default {
   name: 'NewKeywordProjectView',
   data() {
@@ -786,9 +786,26 @@ export default {
     },
 
     // 搜索测试功能
-    testSearch() {
-      // TODO: 实现搜索测试功能
-      alert('搜索测试功能开发中...');
+    async testSearch() {
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+      
+      if (!projectId) {
+        alert('项目ID不存在，无法执行搜索测试');
+        return;
+      }
+
+      try {
+        const response = await executeDataCrawlTask(projectId);
+        
+        if (response.code === 0) {
+          alert('搜索测试任务已启动，请稍后查看结果');
+        } else {
+          alert(`搜索测试失败：${response.msg}`);
+        }
+      } catch (error) {
+        console.error('搜索测试失败:', error);
+        alert('网络错误，请检查网络连接后重试');
+      }
     },
   }
 }

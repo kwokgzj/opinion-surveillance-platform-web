@@ -245,9 +245,9 @@
       </div>
 
       <!-- 第三行：视频时长范围、频道、发布起始时间、结束时间 -->
-      <div class="form-row">
-        <!-- 视频时长筛选 - 仅对video类型显示 -->
-        <div class="form-item" v-if="projectStore.currentProjectType === 'VideoList'">
+      <div class="form-row" :class="{ 'google-news-layout': projectStore.currentProjectType === 'GoogleNews' }">
+        <!-- 视频时长筛选 - 仅对VideoList和SocialMediaKeywords类型显示 -->
+        <div class="form-item" v-if="projectStore.currentProjectType === 'VideoList' || projectStore.currentProjectType === 'SocialMediaKeywords'">
           <label>视频时长：</label>
           <div class="custom-select">
             <div class="select-container" @click="toggleDurationDropdown">
@@ -357,8 +357,8 @@
 
     <!-- 多选按钮 -->
     <div class="multiselect-toggle" v-if="!isMultiSelectMode">
-      <button 
-        class="multiselect-btn" 
+      <button
+        class="multiselect-btn"
         @click="toggleMultiSelectMode"
       >
         批量操作
@@ -367,8 +367,8 @@
 
     <!-- 退出多选按钮 -->
     <div class="exit-multiselect-toggle" v-if="isMultiSelectMode">
-      <button 
-        class="exit-multiselect-btn" 
+      <button
+        class="exit-multiselect-btn"
         @click="toggleMultiSelectMode"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -394,27 +394,27 @@
     </div>
 
     <div v-else class="information-list" :class="{ 'multi-select-mode': isMultiSelectMode }">
-      <div v-for="item in informationList" :key="item.id" class="info-card" :class="{ 
+      <div v-for="item in informationList" :key="item.id" class="info-card" :class="{
         'multi-select-mode': isMultiSelectMode,
         'selected': isMultiSelectMode && selectedItems.includes(item.id)
       }" @click="isMultiSelectMode && handleCardClick(item.id)">
         <!-- 多选单选框 -->
         <div v-if="isMultiSelectMode" class="info-checkbox" @click.stop>
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             :checked="selectedItems.includes(item.id)"
             @change="toggleItemSelection(item.id)"
             class="checkbox-input"
           />
         </div>
-        
+
         <!-- 左栏 -->
         <div class="info-left">
           <!-- 新闻类型特殊布局 -->
           <template v-if="isNewsType(item)">
-            <img 
-              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'" 
-              class="info-logo" 
+            <img
+              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'"
+              class="info-logo"
               :class="{ 'inactive': !item.isActive }"
               @error="handleImageError"
             />
@@ -429,9 +429,9 @@
           </template>
           <!-- 其他类型布局 -->
           <template v-else>
-            <img 
-              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'" 
-              class="info-logo" 
+            <img
+              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'"
+              class="info-logo"
               :class="{ 'inactive': !item.isActive }"
               @error="handleImageError"
             />
@@ -442,8 +442,8 @@
         <!-- 中栏 -->
         <div class="info-center">
           <div class="info-title-row">
-            <img 
-              :src="getPlatformIcon(item.platform)" 
+            <img
+              :src="getPlatformIcon(item.platform)"
               class="info-platform-icon"
               @error="handleImageError"
             />
@@ -460,20 +460,20 @@
             </a>
             <!-- 标签显示 -->
             <div v-if="item.labels && item.labels.length > 0" class="info-labels">
-              <div 
-                v-for="label in item.labels" 
+              <div
+                v-for="label in item.labels"
                 :key="label"
                 class="info-label-item"
                 :title="label"
               >
-                <img 
-                  src="/src/components/icons/tag.svg" 
-                  alt="标签" 
+                <img
+                  src="/src/components/icons/tag.svg"
+                  alt="标签"
                   class="label-icon"
                   @error="handleImageError"
                 />
                 <span class="label-text">{{ label }}</span>
-                <button 
+                <button
                   class="label-delete-btn"
                   @click.stop="handleDeleteLabel(item, label)"
                   title="删除标签"
@@ -484,9 +484,9 @@
             </div>
           </div>
           <div class="info-content-row">
-            <img 
-              :src="item.thumbnailUrl || '/src/components/icons/noPicture.svg'" 
-              class="info-cover" 
+            <img
+              :src="item.thumbnailUrl || '/src/components/icons/noPicture.svg'"
+              class="info-cover"
               :class="{ 'inactive': !item.isActive }"
               @error="handleImageError"
             />
@@ -529,26 +529,26 @@
               </template>
             </div>
             <div class="info-meta-actions" v-if="!isMultiSelectMode">
-              <button 
-                class="action-btn tag-btn" 
+              <button
+                class="action-btn tag-btn"
                 @click="handleAddTag(item)"
                 title="添加标签"
               >
                 <img src="/src/components/icons/tag.svg" alt="添加标签" />
               </button>
-              <button 
-                class="action-btn capture-btn" 
+              <button
+                class="action-btn capture-btn"
                 :class="{ active: item.isActive }"
                 @click="handleToggleCapture(item)"
                 :title="item.isActive ? '停止抓取' : '开始抓取'"
               >
-                <img 
-                  :src="item.isActive ? '/src/components/icons/capture-active.svg' : '/src/components/icons/capture-inactive.svg'" 
-                  :alt="item.isActive ? '停止抓取' : '开始抓取'" 
+                <img
+                  :src="item.isActive ? '/src/components/icons/capture-active.svg' : '/src/components/icons/capture-inactive.svg'"
+                  :alt="item.isActive ? '停止抓取' : '开始抓取'"
                 />
               </button>
-              <button 
-                class="action-btn delete-btn" 
+              <button
+                class="action-btn delete-btn"
                 @click="handleDelete(item)"
                 title="删除"
               >
@@ -584,10 +584,10 @@
                 <div class="info-cell">
                   <span class="info-label">情感倾向：</span>
                   <span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))">
-                    <img 
+                    <img
                       v-if="hasSentimentData(item)"
-                      :src="getSentimentIcon(getSentimentFromContent(item))" 
-                      class="sentiment-icon" 
+                      :src="getSentimentIcon(getSentimentFromContent(item))"
+                      class="sentiment-icon"
                       @error="handleImageError"
                     />
                     <span v-else>-</span>
@@ -629,10 +629,10 @@
                 <div class="info-cell">
                   <span class="info-label">情感倾向：</span>
                   <span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))">
-                    <img 
+                    <img
                       v-if="hasSentimentData(item)"
-                      :src="getSentimentIcon(getSentimentFromContent(item))" 
-                      class="sentiment-icon" 
+                      :src="getSentimentIcon(getSentimentFromContent(item))"
+                      class="sentiment-icon"
                       @error="handleImageError"
                     />
                     <span v-else>-</span>
@@ -656,25 +656,25 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 分页组件 -->
       <div v-if="totalPages > 1 && !isMultiSelectMode" class="pagination-container">
         <div class="pagination-info">
           <span>共 {{ totalCount }} 条记录，第 {{ currentPage }} / {{ totalPages }} 页</span>
         </div>
         <div class="pagination-controls">
-          <button 
-            class="pagination-btn" 
+          <button
+            class="pagination-btn"
             :disabled="currentPage === 1"
             @click="goToPage(currentPage - 1)"
           >
             上一页
           </button>
-          
+
           <!-- 页码按钮 -->
           <div class="page-numbers">
-            <button 
-              v-for="page in visiblePages" 
+            <button
+              v-for="page in visiblePages"
               :key="page"
               class="pagination-btn page-number"
               :class="{ active: page === currentPage }"
@@ -683,9 +683,9 @@
               {{ page }}
             </button>
           </div>
-          
-          <button 
-            class="pagination-btn" 
+
+          <button
+            class="pagination-btn"
             :disabled="currentPage === totalPages"
             @click="goToPage(currentPage + 1)"
           >
@@ -695,7 +695,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- 悬浮固钉 - 多选操作栏 -->
   <div v-if="isMultiSelectMode" class="floating-action-bar">
     <div class="selection-info">
@@ -705,32 +705,32 @@
       </button>
     </div>
     <div class="action-buttons">
-      <button 
-        class="action-bar-btn add-tag-btn" 
+      <button
+        class="action-bar-btn add-tag-btn"
         @click="handleBatchAddTag"
         :disabled="selectedItems.length === 0"
         title="加标签"
       >
         <img src="/src/components/icons/tag.svg" alt="加标签" />
       </button>
-      <button 
-        class="action-bar-btn capture-btn" 
+      <button
+        class="action-bar-btn capture-btn"
         @click="handleBatchSetCapture(true)"
         :disabled="selectedItems.length === 0"
         title="设置为抓取状态"
       >
         <img src="/src/components/icons/capture-active.svg" alt="设置为抓取状态" />
       </button>
-      <button 
-        class="action-bar-btn no-capture-btn" 
+      <button
+        class="action-bar-btn no-capture-btn"
         @click="handleBatchSetCapture(false)"
         :disabled="selectedItems.length === 0"
         title="设置为不抓取状态"
       >
         <img src="/src/components/icons/capture-inactive.svg" alt="设置为不抓取状态" />
       </button>
-      <button 
-        class="action-bar-btn delete-btn" 
+      <button
+        class="action-bar-btn delete-btn"
         @click="handleBatchDelete"
         :disabled="selectedItems.length === 0"
         title="删除"
@@ -803,18 +803,18 @@ const fetchFilterOptions = async () => {
     if (response) {
       filterOptions.value = response;
       console.log('设置筛选选项:', filterOptions.value);
-      
+
       // 设置第一个排序选项为默认值
       if (response.sortBy && response.sortBy.length > 0 && !filter.value.sort) {
         filter.value.sort = response.sortBy[0].label;
       }
-      
+
       // 更新分页信息
       if (response.count !== undefined) {
         totalCount.value = response.count;
         totalPages.value = Math.ceil(response.count / pageSize.value);
       }
-      
+
       console.log('更新分页信息:', {
         count: response.count,
         totalPages: totalPages.value
@@ -1090,15 +1090,15 @@ function getDurationRange(durationLabel: string): { minDuration: number; maxDura
   if (!durationLabel) {
     return { minDuration: 0, maxDuration: 0 };
   }
-  
+
   // 根据label找到对应的value
   const durationOption = filterOptions.value.durations?.find(item => item.label === durationLabel);
   if (!durationOption) {
     return { minDuration: 0, maxDuration: 0 };
   }
-  
+
   const value = durationOption.value;
-  
+
   // 解析value格式，例如"0-240"
   if (value.includes('-')) {
     const parts = value.split('-');
@@ -1110,7 +1110,7 @@ function getDurationRange(durationLabel: string): { minDuration: number; maxDura
       }
     }
   }
-  
+
   // 如果解析失败，返回默认值
   return { minDuration: 0, maxDuration: 0 };
 }
@@ -1118,14 +1118,14 @@ function getDurationRange(durationLabel: string): { minDuration: number; maxDura
 // 格式化时间为标准格式
 function formatDateTime(dateString: string): string {
   if (!dateString) return '';
-  
+
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       console.warn('无效的日期格式:', dateString);
       return '';
     }
-    
+
     // 格式化为标准ISO格式：YYYY-MM-DDTHH:mm:ss.SSSZ
     return date.toISOString();
   } catch (error) {
@@ -1138,7 +1138,7 @@ function formatDateTime(dateString: string): string {
 const visiblePages = computed(() => {
   const pages = [];
   const maxVisible = 5; // 最多显示5个页码按钮
-  
+
   if (totalPages.value <= maxVisible) {
     // 如果总页数小于等于最大显示数，显示所有页码
     for (let i = 1; i <= totalPages.value; i++) {
@@ -1148,17 +1148,17 @@ const visiblePages = computed(() => {
     // 否则显示当前页附近的页码
     let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
     const end = Math.min(totalPages.value, start + maxVisible - 1);
-    
+
     // 调整起始位置，确保显示maxVisible个页码
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);
     }
-    
+
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
   }
-  
+
   return pages;
 });
 
@@ -1168,7 +1168,7 @@ async function goToPage(page: number) {
     currentPage.value = page;
     loading.value = true;
     error.value = '';
-    
+
     try {
       await fetchInformationData();
     } catch (err) {
@@ -1369,7 +1369,7 @@ function resetFilter() {
     dateRange: [],
     tags: [],
   };
-  
+
   // 重置分页
   resetPagination();
 }
@@ -1390,7 +1390,7 @@ async function searchData() {
 
   loading.value = true;
   error.value = '';
-  
+
   try {
     await fetchInformationData();
   } catch (err) {
@@ -1435,7 +1435,7 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
     console.log('项目ID变化，重新获取筛选选项');
     loading.value = true;
     error.value = '';
-    
+
     try {
       await fetchFilterOptions();
       await fetchInformationData();
@@ -1516,7 +1516,7 @@ const fetchInformationData = async () => {
 
     // 从选中的时长选项中提取时长范围
     const durationRange = getDurationRange(filter.value.duration);
-    
+
     // 构建过滤条件
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
@@ -1567,7 +1567,7 @@ const fetchInformationData = async () => {
         totalPages.value = resultData.totalPages || Math.ceil(totalCount.value / pageSize.value);
         currentPage.value = resultData.currentPage || 1;
         pageSize.value = resultData.pageSize || 30;
-        
+
         // 调试SU值
         console.log('=== SU值调试信息 ===');
         informationList.value.forEach((item, index) => {
@@ -1595,12 +1595,12 @@ const fetchInformationData = async () => {
       totalCount.value = totalCountFromOptions.value || 0;
       totalPages.value = Math.ceil(totalCount.value / pageSize.value);
     }
-    
+
     // 在多选模式下，如果数据发生变化，清空已选项目
     if (isMultiSelectMode.value) {
       selectedItems.value = [];
     }
-    
+
 
   } catch (err) {
     console.error('获取信息数据失败:', err);
@@ -1750,7 +1750,7 @@ function getSentimentFromContent(item: Information): number {
     });
     return sentiment;
   }
-  
+
   // 如果没有品牌情感数据，返回默认中性值
   console.log('使用默认情感倾向:', { type: item.type, defaultSentiment: 50 });
   return 50; // 默认中性
@@ -1780,11 +1780,11 @@ function getSortValue(label: string): string {
 // 格式化视频时长
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '-';
-  
+
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = seconds % 60;
-  
+
   if (hours > 0) {
     return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   } else {
@@ -1797,27 +1797,27 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
   if (!confirm(`确定要删除标签"${labelToDelete}"吗？`)) {
     return;
   }
-  
+
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
       alert('项目ID不存在，无法删除标签');
       return;
     }
-    
+
     console.log('删除标签:', {
       projectId: currentProjectId,
       linkId: item.id,
       labelToDelete: labelToDelete
     });
-    
+
     // 构建新的标签列表（移除要删除的标签）
     const currentLabels = item.labels || [];
     const newLabels = currentLabels.filter(label => label !== labelToDelete);
-    
+
     const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels]);
     console.log('删除标签响应:', response);
-    
+
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
         alert(`删除标签成功，已删除标签"${labelToDelete}"`);
@@ -1851,37 +1851,37 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
 // 处理添加标签
 async function handleAddTag(item: Information) {
   console.log('添加标签:', item);
-  
+
   const tag = prompt('请输入要添加的标签名称：');
   if (!tag || tag.trim() === '') {
     return;
   }
-  
+
   const trimmedTag = tag.trim();
   if (!confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`)) {
     return;
   }
-  
+
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
       alert('项目ID不存在，无法添加标签');
       return;
     }
-    
+
     console.log('添加标签:', {
       projectId: currentProjectId,
       linkId: item.id,
       tag: trimmedTag
     });
-    
+
     // 构建新的标签列表
     const currentLabels = item.labels || [];
     const newLabels = [...currentLabels, trimmedTag];
-    
+
     const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels]);
     console.log('添加标签响应:', response);
-    
+
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
         alert(`添加标签成功，已添加标签"${trimmedTag}"`);
@@ -1916,7 +1916,7 @@ async function handleAddTag(item: Information) {
 async function handleToggleCapture(item: Information) {
   try {
     console.log('切换抓取状态:', item);
-    
+
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
       console.error('没有项目ID');
@@ -1925,7 +1925,7 @@ async function handleToggleCapture(item: Information) {
 
     // 调用API更新抓取状态
     const response = await updateLinkActiveStatus(currentProjectId, [item.id], !item.isActive);
-    
+
     if (response && response.code === 0) {
       // 更新本地数据
       item.isActive = !item.isActive;
@@ -1941,7 +1941,7 @@ async function handleToggleCapture(item: Information) {
 // 处理删除
 async function handleDelete(item: Information) {
   console.log('删除项目:', item);
-  
+
   if (confirm('确定要删除这个信息项吗？')) {
     try {
       const currentProjectId = projectStore.currentProjectId;
@@ -1952,7 +1952,7 @@ async function handleDelete(item: Information) {
 
       console.log('开始删除链接:', item.id);
       const response = await deleteProjectLink(currentProjectId, [item.id]);
-      
+
       if (response) {
         alert('删除成功');
         // 重新获取数据
@@ -1973,30 +1973,30 @@ async function handleBatchAddTag() {
     alert('请先选择要添加标签的项目');
     return;
   }
-  
+
   const tag = prompt('请输入要添加的标签名称：');
   if (!tag || tag.trim() === '') {
     return;
   }
-  
+
   const trimmedTag = tag.trim();
   if (!confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`)) {
     return;
   }
-  
+
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
       alert('项目ID不存在，无法添加标签');
       return;
     }
-    
+
     console.log('批量添加标签:', {
       projectId: currentProjectId,
       linkIds: selectedItems.value,
       tag: trimmedTag
     });
-    
+
     // 为每个选中的项目添加标签
     const labelsList: string[][] = [];
     for (const linkId of selectedItems.value) {
@@ -2012,10 +2012,10 @@ async function handleBatchAddTag() {
         labelsList.push([trimmedTag]);
       }
     }
-    
+
     const response = await updateLinksLabelsBatch(currentProjectId, selectedItems.value, labelsList);
     console.log('批量添加标签响应:', response);
-    
+
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
         alert(`批量添加标签成功，已添加标签"${trimmedTag}"`);
@@ -2052,28 +2052,28 @@ async function handleBatchSetCapture(isActive: boolean) {
     alert('请先选择要设置抓取状态的项目');
     return;
   }
-  
+
   const actionText = isActive ? '抓取' : '不抓取';
   if (!confirm(`确定要将选中的 ${selectedItems.value.length} 项设置为${actionText}状态吗？`)) {
     return;
   }
-  
+
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
       alert('项目ID不存在，无法设置抓取状态');
       return;
     }
-    
+
     console.log('批量设置抓取状态:', {
       projectId: currentProjectId,
       linkIds: selectedItems.value,
       isActive: isActive
     });
-    
+
     const response = await updateLinkActiveStatus(currentProjectId, selectedItems.value, isActive);
     console.log('批量设置抓取状态响应:', response);
-    
+
     // 处理不同的响应格式
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
@@ -2124,26 +2124,26 @@ async function handleBatchDelete() {
     alert('请先选择要删除的项目');
     return;
   }
-  
+
   if (!confirm(`确定要删除选中的 ${selectedItems.value.length} 项信息吗？此操作不可恢复！`)) {
     return;
   }
-  
+
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
       alert('项目ID不存在，无法删除');
       return;
     }
-    
+
     console.log('批量删除:', {
       projectId: currentProjectId,
       linkIds: selectedItems.value
     });
-    
+
     const response = await deleteProjectLink(currentProjectId, selectedItems.value);
     console.log('批量删除响应:', response);
-    
+
     // 处理不同的响应格式
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
@@ -2191,6 +2191,12 @@ async function handleBatchDelete() {
   gap: 24px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+/* GoogleNews项目布局 - 当隐藏视频时长时，保持其他三个筛选条件的合适宽度 */
+.form-row.google-news-layout .form-item {
+  flex: 0 0 calc(33.333% - 16px);
+  max-width: calc(33.333% - 16px);
 }
 .form-item {
   display: flex;
@@ -2780,25 +2786,25 @@ async function handleBatchDelete() {
     font-size: 10px;
     padding: 1px 4px;
   }
-  
+
   .info-label-item .label-icon {
     width: 8px;
     height: 8px;
   }
-  
+
   .info-right {
     min-width: 280px;
     max-width: 320px;
   }
-  
+
   .info-left {
     min-width: 140px;
   }
-  
+
   .info-title-link {
     max-width: calc(100% - 160px); /* 为标签预留空间 */
   }
-  
+
   .info-labels {
     max-width: 300px; /* 限制标签区域宽度 */
   }
@@ -2809,33 +2815,33 @@ async function handleBatchDelete() {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .info-left {
     min-width: auto;
     margin-right: 0;
     margin-bottom: 8px;
   }
-  
+
   .info-right {
     min-width: auto;
     max-width: none;
     width: 100%;
     margin-left: 0; /* 移除左边距 */
   }
-  
+
   .info-divider {
     display: none; /* 隐藏分割线 */
   }
-  
+
   .info-title-row {
     flex-wrap: wrap;
     gap: 6px;
   }
-  
+
   .info-title-link {
     max-width: 100%; /* 小屏幕下标题占满宽度 */
   }
-  
+
   .info-labels {
     gap: 2px;
     margin-left: 0; /* 小屏幕下标签不靠右 */
@@ -2843,17 +2849,17 @@ async function handleBatchDelete() {
     justify-content: flex-end; /* 标签靠右对齐 */
     max-width: 100%; /* 移除宽度限制 */
   }
-  
+
   .info-label-item {
     max-width: auto;
     font-size: 9px;
     padding: 1px 3px;
   }
-  
+
   .info-content-main {
     max-width: 100%; /* 小屏幕下内容占满宽度 */
   }
-  
+
   /* 小屏幕下限制下拉框高度 */
   .dropdown-options {
     max-height: 200px;
@@ -3371,37 +3377,37 @@ async function handleBatchDelete() {
     padding: 8px 16px;
     gap: 12px;
   }
-  
+
   .action-buttons {
     gap: 6px;
   }
-  
+
   .action-bar-btn {
     width: 36px;
     height: 36px;
   }
-  
+
   .action-bar-btn img {
     width: 18px;
     height: 18px;
   }
-  
+
   .selection-info {
     font-size: 12px;
     gap: 8px;
   }
-  
+
   .select-all-btn {
     padding: 4px 8px;
     font-size: 11px;
   }
-  
+
   /* 多选模式下的响应式设计 */
   .info-card.multi-select-mode {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .info-left {
     min-width: auto;
     padding-left: 0;
@@ -3409,12 +3415,12 @@ async function handleBatchDelete() {
     justify-content: center;
     gap: 16px;
   }
-  
+
   .info-checkbox {
     top: 8px;
     left: 8px;
   }
-  
+
   .checkbox-input {
     width: 16px;
     height: 16px;

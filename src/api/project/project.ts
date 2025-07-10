@@ -83,3 +83,20 @@ export async function deleteProject(projectId: string) {
     throw error;
   }
 }
+
+/**
+ * 执行数据抓取任务
+ * @param {string} projectId 项目ID
+ * @returns {Promise<ApiResponse<null>>} API响应
+ */
+export async function executeDataCrawlTask(projectId: string) {
+  try {
+    const response = await post<ApiResponse<null>>('/dataCrawl/executeTask', {}, {
+      params: { projectId }
+    });
+    return response;
+  } catch (error) {
+    console.error('执行数据抓取任务出错:', error);
+    throw error;
+  }
+}
