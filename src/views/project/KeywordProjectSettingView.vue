@@ -93,39 +93,34 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">抓取平台：</label>
-          <div class="platform-multiselect">
-            <div class="multiselect-container" @click="toggleDropdown">
-              <div class="selected-platforms">
-                <span v-if="searchPlatforms.length === 0" class="placeholder">请选择抓取平台</span>
-                <span v-else class="platform-tags">
-                  <span
-                    v-for="platformValue in searchPlatforms"
-                    :key="platformValue"
-                    class="platform-tag"
-                  >
-                    {{ getPlatformLabel(platformValue) }}
-                    <span class="tag-close" @click.stop="removePlatform(platformValue)">×</span>
-                  </span>
-                </span>
-              </div>
-              <span class="dropdown-arrow" :class="{ 'open': dropdownOpen }">▼</span>
-            </div>
-            <div v-if="dropdownOpen" class="dropdown-options">
-              <div
-                v-for="platform in platformOptions"
-                :key="platform.value"
-                class="dropdown-option"
-                @click="togglePlatform(platform.value)"
+          <el-select
+            v-model="searchPlatforms"
+            multiple
+            clearable
+            collapse-tags
+            collapse-tags-tooltip
+            filterable
+            placeholder="请选择抓取平台"
+            popper-class="custom-header"
+            :max-collapse-tags="1"
+            style="width: 100%"
+          >
+            <template #header>
+              <el-checkbox
+                v-model="platformCheckAll"
+                :indeterminate="platformIndeterminate"
+                @change="handlePlatformCheckAll"
               >
-                <input
-                  type="checkbox"
-                  :checked="searchPlatforms.includes(platform.value)"
-                  @click.stop
-                />
-                <label>{{ platform.label }}</label>
-              </div>
-            </div>
-          </div>
+                全选
+              </el-checkbox>
+            </template>
+            <el-option
+              v-for="platform in platformOptions"
+              :key="platform.value"
+              :label="platform.label"
+              :value="platform.value"
+            />
+          </el-select>
         </div>
       </div>
 
@@ -266,6 +261,10 @@ export default {
       timeRangeDropdownOpen: false,
       frequencyDropdownOpen: false,
 
+      // Element Plus 全选状态
+      platformCheckAll: false,
+      platformIndeterminate: false,
+
       // 用于检测页面变更
       hasChanges: false,
       initialFormData: null,
@@ -369,6 +368,16 @@ export default {
     searchPlatforms: {
       handler() {
         this.checkForChanges();
+        // 更新平台全选状态
+        if (this.searchPlatforms.length === 0) {
+          this.platformCheckAll = false;
+          this.platformIndeterminate = false;
+        } else if (this.searchPlatforms.length === this.platformOptions.length) {
+          this.platformCheckAll = true;
+          this.platformIndeterminate = false;
+        } else {
+          this.platformIndeterminate = true;
+        }
       },
       deep: true
     },
@@ -637,6 +646,16 @@ export default {
     getPlatformLabel(value) {
       const platform = this.platformOptions.find(p => p.value === value);
       return platform ? platform.label : value;
+    },
+
+    // Element Plus 全选处理函数
+    handlePlatformCheckAll(val) {
+      this.platformIndeterminate = false;
+      if (val) {
+        this.searchPlatforms = this.platformOptions.map(platform => platform.value);
+      } else {
+        this.searchPlatforms = [];
+      }
     },
 
     handleClickOutside(event) {
@@ -1467,5 +1486,23 @@ button {
     margin-bottom: 5px;
     width: auto;
   }
+}
+
+/* Element Plus 自定义样式 */
+:deep(.custom-header) {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+:deep(.custom-header .el-checkbox) {
+  margin: 0;
+}
+
+:deep(.el-select-dropdown__item) {
+  padding: 0 12px;
+}
+
+:deep(.el-select__tags) {
+  max-width: calc(100% - 30px);
 }
 </style>

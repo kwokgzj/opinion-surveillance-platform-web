@@ -82,39 +82,34 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">语言：</label>
-          <div class="language-multiselect">
-            <div class="multiselect-container" @click="toggleLanguageDropdown">
-              <div class="selected-platforms">
-                <span v-if="selectedLanguages.length === 0" class="placeholder">请选择语言</span>
-                <span v-else class="platform-tags">
-                  <span
-                    v-for="languageValue in selectedLanguages"
-                    :key="languageValue"
-                    class="platform-tag"
-                  >
-                    {{ getLanguageLabel(languageValue) }}
-                    <span class="tag-close" @click.stop="removeLanguage(languageValue)">×</span>
-                  </span>
-                </span>
-              </div>
-              <span class="dropdown-arrow" :class="{ 'open': languageDropdownOpen }">▼</span>
-            </div>
-            <div v-if="languageDropdownOpen" class="dropdown-options">
-              <div
-                v-for="language in languageOptions"
-                :key="language.value"
-                class="dropdown-option"
-                @click="toggleLanguage(language.value)"
+          <el-select
+            v-model="selectedLanguages"
+            multiple
+            clearable
+            collapse-tags
+            collapse-tags-tooltip
+            filterable
+            placeholder="请选择语言"
+            popper-class="custom-header"
+            :max-collapse-tags="1"
+            style="width: 100%"
+          >
+            <template #header>
+              <el-checkbox
+                v-model="languageCheckAll"
+                :indeterminate="languageIndeterminate"
+                @change="handleLanguageCheckAll"
               >
-                <input
-                  type="checkbox"
-                  :checked="selectedLanguages.includes(language.value)"
-                  @click.stop
-                />
-                <label>{{ language.label }}</label>
-              </div>
-            </div>
-          </div>
+                全选
+              </el-checkbox>
+            </template>
+            <el-option
+              v-for="language in languageOptions"
+              :key="language.value"
+              :label="language.label"
+              :value="language.value"
+            />
+          </el-select>
         </div>
       </div>
 
@@ -122,39 +117,34 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">地区：</label>
-          <div class="region-multiselect">
-            <div class="multiselect-container" @click="toggleRegionDropdown">
-              <div class="selected-platforms">
-                <span v-if="selectedRegions.length === 0" class="placeholder">请选择地区</span>
-                <span v-else class="platform-tags">
-                  <span
-                    v-for="regionValue in selectedRegions"
-                    :key="regionValue"
-                    class="platform-tag"
-                  >
-                    {{ getRegionLabel(regionValue) }}
-                    <span class="tag-close" @click.stop="removeRegion(regionValue)">×</span>
-                  </span>
-                </span>
-              </div>
-              <span class="dropdown-arrow" :class="{ 'open': regionDropdownOpen }">▼</span>
-            </div>
-            <div v-if="regionDropdownOpen" class="dropdown-options">
-              <div
-                v-for="region in regionOptions"
-                :key="region.value"
-                class="dropdown-option"
-                @click="toggleRegion(region.value)"
+          <el-select
+            v-model="selectedRegions"
+            multiple
+            clearable
+            collapse-tags
+            collapse-tags-tooltip
+            filterable
+            placeholder="请选择地区"
+            popper-class="custom-header"
+            :max-collapse-tags="1"
+            style="width: 100%"
+          >
+            <template #header>
+              <el-checkbox
+                v-model="regionCheckAll"
+                :indeterminate="regionIndeterminate"
+                @change="handleRegionCheckAll"
               >
-                <input
-                  type="checkbox"
-                  :checked="selectedRegions.includes(region.value)"
-                  @click.stop
-                />
-                <label>{{ region.label }}</label>
-              </div>
-            </div>
-          </div>
+                全选
+              </el-checkbox>
+            </template>
+            <el-option
+              v-for="region in regionOptions"
+              :key="region.value"
+              :label="region.label"
+              :value="region.value"
+            />
+          </el-select>
         </div>
       </div>
 
@@ -275,6 +265,12 @@ export default {
       timeRangeDropdownOpen: false,
       frequencyDropdownOpen: false,
 
+      // Element Plus 全选状态
+      languageCheckAll: false,
+      languageIndeterminate: false,
+      regionCheckAll: false,
+      regionIndeterminate: false,
+
       // 用于检测页面变更
       hasChanges: false,
       initialFormData: null,
@@ -391,12 +387,32 @@ export default {
     selectedLanguages: {
       handler() {
         this.checkForChanges();
+        // 更新语言全选状态
+        if (this.selectedLanguages.length === 0) {
+          this.languageCheckAll = false;
+          this.languageIndeterminate = false;
+        } else if (this.selectedLanguages.length === this.languageOptions.length) {
+          this.languageCheckAll = true;
+          this.languageIndeterminate = false;
+        } else {
+          this.languageIndeterminate = true;
+        }
       },
       deep: true
     },
     selectedRegions: {
       handler() {
         this.checkForChanges();
+        // 更新地区全选状态
+        if (this.selectedRegions.length === 0) {
+          this.regionCheckAll = false;
+          this.regionIndeterminate = false;
+        } else if (this.selectedRegions.length === this.regionOptions.length) {
+          this.regionCheckAll = true;
+          this.regionIndeterminate = false;
+        } else {
+          this.regionIndeterminate = true;
+        }
       },
       deep: true
     },
@@ -650,6 +666,25 @@ export default {
       const region = this.regionOptions.find(r => r.value === value);
       return region ? region.label : value;
     },
+
+    // Element Plus 全选处理函数
+    handleLanguageCheckAll(val) {
+      this.languageIndeterminate = false;
+      if (val) {
+        this.selectedLanguages = this.languageOptions.map(lang => lang.value);
+      } else {
+        this.selectedLanguages = [];
+      }
+    },
+
+    handleRegionCheckAll(val) {
+      this.regionIndeterminate = false;
+      if (val) {
+        this.selectedRegions = this.regionOptions.map(region => region.value);
+      } else {
+        this.selectedRegions = [];
+      }
+    },
     handleClickOutside(event) {
       const languageMultiselect = this.$el.querySelector('.language-multiselect');
       const regionMultiselect = this.$el.querySelector('.region-multiselect');
@@ -788,7 +823,7 @@ export default {
     // 搜索测试功能
     async testSearch() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
-      
+
       if (!projectId) {
         alert('项目ID不存在，无法执行搜索测试');
         return;
@@ -796,7 +831,7 @@ export default {
 
       try {
         const response = await executeDataCrawlTask(projectId);
-        
+
         if (response.code === 0) {
           alert('搜索测试任务已启动，请稍后查看结果');
         } else {
@@ -1293,5 +1328,23 @@ button {
     margin-bottom: 5px;
     width: auto;
   }
+}
+
+/* Element Plus 自定义样式 */
+:deep(.custom-header) {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+:deep(.custom-header .el-checkbox) {
+  margin: 0;
+}
+
+:deep(.el-select-dropdown__item) {
+  padding: 0 12px;
+}
+
+:deep(.el-select__tags) {
+  max-width: calc(100% - 30px);
 }
 </style>
