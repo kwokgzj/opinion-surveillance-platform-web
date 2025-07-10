@@ -156,6 +156,7 @@
 
 <script>
 import { createProject, getProjectById, updateProject, deleteProject } from '@/api/project/project';
+import { ElMessage, ElMessageBox } from 'element-plus';
 export default {
   name: 'VideoListSettingView',
   data() {
@@ -332,13 +333,13 @@ export default {
           });
 
         } else {
-          alert(`加载项目数据失败：${response.msg}`);
+          ElMessage.error(`加载项目数据失败：${response.msg}`);
           this.$router.go(-1);
         }
 
       } catch (error) {
         console.error('加载项目数据失败:', error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
         this.$router.go(-1);
       } finally {
         this.isLoading = false;
@@ -424,12 +425,12 @@ export default {
       const platformID = this.generatePlatformID(video.url);
 
       if (platform === 'Unknown' || !platform) {
-        alert(`第 ${index + 1} 行的视频链接无法识别平台，请检查链接格式：${video.url}`);
+        ElMessage.warning(`第 ${index + 1} 行的视频链接无法识别平台，请检查链接格式：${video.url}`);
         return;
       }
 
       if (platformID === 'unknown' || !platformID) {
-        alert(`第 ${index + 1} 行的视频链接无法提取ID，请检查链接格式：${video.url}`);
+        ElMessage.warning(`第 ${index + 1} 行的视频链接无法提取ID，请检查链接格式：${video.url}`);
         return;
       }
 
@@ -567,7 +568,7 @@ export default {
 
     async saveProject() {
       if (!this.isFormValid) {
-        alert('请填写完整的表单信息');
+        ElMessage.warning('请填写完整的表单信息');
         return;
       }
 
@@ -576,7 +577,7 @@ export default {
       );
 
       if (validVideos.length === 0) {
-        alert('请至少添加一个有效的监控视频');
+        ElMessage.warning('请至少添加一个有效的监控视频');
         return;
       }
 
@@ -612,7 +613,7 @@ export default {
 
         if (response.code === 0) {
           console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
-          alert(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+          ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
 
           if (!this.isEditMode) {
             this.$router.push({
@@ -629,25 +630,30 @@ export default {
             this.hasChanges = false;
           }
         } else {
-          alert(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
         }
 
       } catch (error) {
         console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
       }
     },
 
     // 确认删除项目
-    confirmDelete() {
+    async confirmDelete() {
       if (!this.canClickDelete) {
         return;
       }
 
-      const confirmMessage = `确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`;
-
-      if (confirm(confirmMessage)) {
+      try {
+        await ElMessageBox.confirm(`确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`, '确认删除', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
         this.deleteProject();
+      } catch {
+        // 用户取消删除
       }
     },
 
@@ -656,7 +662,7 @@ export default {
       const projectId = this.$route.params.id || this.$route.query.projectId;
 
       if (!projectId) {
-        alert('项目ID不存在，无法删除');
+        ElMessage.error('项目ID不存在，无法删除');
         return;
       }
 
@@ -664,7 +670,7 @@ export default {
         const response = await deleteProject(projectId);
 
         if (response.code === 0) {
-          alert('项目删除成功！');
+          ElMessage.success('项目删除成功！');
           this.$router.push({
               name: 'settings',
               query: {
@@ -674,18 +680,18 @@ export default {
               }
             });
         } else {
-          alert(`删除项目失败：${response.msg}`);
+          ElMessage.error(`删除项目失败：${response.msg}`);
         }
       } catch (error) {
         console.error('删除项目失败:', error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
       }
     },
 
     // 搜索测试功能
     testSearch() {
       // TODO: 实现搜索测试功能
-      alert('搜索测试功能开发中...');
+      ElMessage.info('搜索测试功能开发中...');
     },
   }
 }

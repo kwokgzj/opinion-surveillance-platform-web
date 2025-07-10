@@ -2,311 +2,335 @@
   <div class="information-page">
     <!-- 筛选区域 -->
     <div class="filter-panel" v-if="!isMultiSelectMode">
-      <!-- 第一行：品牌、SKU、情感倾向、平台 -->
-      <div class="form-row">
-        <div class="form-item">
-          <label>品牌：</label>
-          <el-select
-            v-model="filter.brands"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择品牌"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="brandCheckAll"
-                :indeterminate="brandIndeterminate"
-                @change="handleBrandCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="brand in brandOptions"
-              :key="brand"
-              :label="brand"
-              :value="brand"
-            />
-          </el-select>
-        </div>
-        <div class="form-item">
-          <label>SKU：</label>
-          <el-select
-            v-model="filter.skus"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择SKU"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="skuCheckAll"
-                :indeterminate="skuIndeterminate"
-                @change="handleSkuCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="sku in skuOptions"
-              :key="sku"
-              :label="sku"
-              :value="sku"
-            />
-          </el-select>
-        </div>
-        <div class="form-item">
-          <label>情感倾向：</label>
-          <el-select
-            v-model="filter.sentiments"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择情感倾向"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="sentimentCheckAll"
-                :indeterminate="sentimentIndeterminate"
-                @change="handleSentimentCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="sentiment in sentimentOptions"
-              :key="sentiment"
-              :label="sentiment"
-              :value="sentiment"
-            />
-          </el-select>
-        </div>
-        <div class="form-item">
-          <label>平台：</label>
-          <el-select
-            v-model="filter.platforms"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择平台"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="platformCheckAll"
-                :indeterminate="platformIndeterminate"
-                @change="handlePlatformCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="platform in platformOptions"
-              :key="platform"
-              :label="platform"
-              :value="platform"
-            />
-          </el-select>
-        </div>
-      </div>
+      <el-row :gutter="24">
+        <!-- 第一行：品牌、SKU、情感倾向、平台 -->
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>品牌：</label>
+            <el-select
+              v-model="filter.brands"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择品牌"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="brandCheckAll"
+                  :indeterminate="brandIndeterminate"
+                  @change="handleBrandCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="brand in brandOptions"
+                :key="brand"
+                :label="brand"
+                :value="brand"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>SKU：</label>
+            <el-select
+              v-model="filter.skus"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择SKU"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="skuCheckAll"
+                  :indeterminate="skuIndeterminate"
+                  @change="handleSkuCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="sku in skuOptions"
+                :key="sku"
+                :label="sku"
+                :value="sku"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>情感倾向：</label>
+            <el-select
+              v-model="filter.sentiments"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择情感倾向"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="sentimentCheckAll"
+                  :indeterminate="sentimentIndeterminate"
+                  @change="handleSentimentCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="sentiment in sentimentOptions"
+                :key="sentiment"
+                :label="sentiment"
+                :value="sentiment"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>平台：</label>
+            <el-select
+              v-model="filter.platforms"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择平台"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="platformCheckAll"
+                  :indeterminate="platformIndeterminate"
+                  @change="handlePlatformCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="platform in platformOptions"
+                :key="platform"
+                :label="platform"
+                :value="platform"
+              />
+            </el-select>
+          </div>
+        </el-col>
+      </el-row>
 
-      <!-- 第二行：语言、地区、搜索框、排序 -->
-      <div class="form-row">
-        <div class="form-item">
-          <label>语言：</label>
-          <el-select
-            v-model="filter.languages"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择语言"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="languageCheckAll"
-                :indeterminate="languageIndeterminate"
-                @change="handleLanguageCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="language in languageOptions"
-              :key="language"
-              :label="language"
-              :value="language"
-            />
-          </el-select>
-        </div>
-        <div class="form-item">
-          <label>地区：</label>
-          <el-select
-            v-model="filter.regions"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择地区"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="regionCheckAll"
-                :indeterminate="regionIndeterminate"
-                @change="handleRegionCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="region in regionOptions"
-              :key="region"
-              :label="region"
-              :value="region"
-            />
-          </el-select>
-        </div>
-        <div class="form-item">
-          <label>搜索：</label>
-          <input v-model="filter.searchKeyword" type="text" placeholder="请输入搜索关键词" class="search-input" />
-        </div>
-        <div class="form-item">
-          <label>排序：</label>
-          <div class="custom-select">
-            <div class="select-container" @click="toggleSortDropdown">
-              <span class="select-value">{{ filter.sort || '请选择排序' }}</span>
-              <span class="dropdown-arrow" :class="{ open: sortDropdownOpen }">▼</span>
-            </div>
-            <div v-if="sortDropdownOpen" class="dropdown-options">
-              <div v-for="sort in sortOptions" :key="sort" class="dropdown-option" @click="selectSort(sort)">
-                {{ sort }}
+      <el-row :gutter="24">
+        <!-- 第二行：语言、地区、搜索框、排序 -->
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>语言：</label>
+            <el-select
+              v-model="filter.languages"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择语言"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="languageCheckAll"
+                  :indeterminate="languageIndeterminate"
+                  @change="handleLanguageCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="language in languageOptions"
+                :key="language"
+                :label="language"
+                :value="language"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>地区：</label>
+            <el-select
+              v-model="filter.regions"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择地区"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="regionCheckAll"
+                  :indeterminate="regionIndeterminate"
+                  @change="handleRegionCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="region in regionOptions"
+                :key="region"
+                :label="region"
+                :value="region"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item search-form-item">
+            <label>搜索：</label>
+            <input v-model="filter.searchKeyword" type="text" placeholder="请输入搜索关键词" class="search-input" />
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>排序：</label>
+            <div class="custom-select">
+              <div class="select-container" @click="toggleSortDropdown">
+                <span class="select-value">{{ filter.sort || '请选择排序' }}</span>
+                <span class="dropdown-arrow" :class="{ open: sortDropdownOpen }">▼</span>
+              </div>
+              <div v-if="sortDropdownOpen" class="dropdown-options">
+                <div v-for="sort in sortOptions" :key="sort" class="dropdown-option" @click="selectSort(sort)">
+                  {{ sort }}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </el-col>
+      </el-row>
 
-      <!-- 第三行：视频时长范围、频道、发布起始时间、结束时间 -->
-      <div class="form-row" :class="{ 'google-news-layout': projectStore.currentProjectType === 'GoogleNews' }">
-        <!-- 视频时长筛选 - 仅对VideoList和SocialMediaKeywords类型显示 -->
-        <div class="form-item" v-if="projectStore.currentProjectType === 'VideoList' || projectStore.currentProjectType === 'SocialMediaKeywords'">
-          <label>视频时长：</label>
-          <div class="custom-select">
-            <div class="select-container" @click="toggleDurationDropdown">
-              <span class="select-value">{{ filter.duration || '请选择时长范围' }}</span>
-              <span class="dropdown-arrow" :class="{ open: durationDropdownOpen }">▼</span>
-            </div>
-            <div v-if="durationDropdownOpen" class="dropdown-options">
-              <div v-for="duration in durationOptions" :key="duration" class="dropdown-option" @click="selectDuration(duration)">
-                {{ duration }}
+      <el-row :gutter="24">
+        <!-- 第三行：视频时长范围、频道、时间范围、标签 -->
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6" v-if="projectStore.currentProjectType === 'VideoList' || projectStore.currentProjectType === 'SocialMediaKeywords'">
+          <div class="form-item">
+            <label>视频时长：</label>
+            <div class="custom-select">
+              <div class="select-container" @click="toggleDurationDropdown">
+                <span class="select-value">{{ filter.duration || '请选择时长范围' }}</span>
+                <span class="dropdown-arrow" :class="{ open: durationDropdownOpen }">▼</span>
+              </div>
+              <div v-if="durationDropdownOpen" class="dropdown-options">
+                <div v-for="duration in durationOptions" :key="duration" class="dropdown-option" @click="selectDuration(duration)">
+                  {{ duration }}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="form-item">
-          <label>频道：</label>
-          <el-select
-            v-model="filter.channels"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择频道"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="channelCheckAll"
-                :indeterminate="channelIndeterminate"
-                @change="handleChannelCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="channel in channelOptions"
-              :key="channel"
-              :label="channel"
-              :value="channel"
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>频道：</label>
+            <el-select
+              v-model="filter.channels"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择频道"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="channelCheckAll"
+                  :indeterminate="channelIndeterminate"
+                  @change="handleChannelCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="channel in channelOptions"
+                :key="channel"
+                :label="channel"
+                :value="channel"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>时间范围：</label>
+            <el-date-picker
+              v-model="filter.dateRange"
+              type="daterange"
+              range-separator="—"
+              start-placeholder="起始时间"
+              end-placeholder="结束时间"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
+              class="date-picker"
+              style="width: 100%"
             />
-          </el-select>
-        </div>
-        <div class="form-item">
-          <label>时间范围：</label>
-          <el-date-picker
-            v-model="filter.dateRange"
-            type="daterange"
-            range-separator="—"
-            start-placeholder="起始时间"
-            end-placeholder="结束时间"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
-            class="date-picker"
-          />
-        </div>
-        <div class="form-item">
-          <label>标签：</label>
-          <el-select
-            v-model="filter.tags"
-            multiple
-            clearable
-            collapse-tags
-            collapse-tags-tooltip
-            filterable
-            placeholder="请选择标签"
-            popper-class="custom-header"
-            :max-collapse-tags="1"
-            style="width: 100%"
-          >
-            <template #header>
-              <el-checkbox
-                v-model="tagCheckAll"
-                :indeterminate="tagIndeterminate"
-                @change="handleTagCheckAll"
-              >
-                全选
-              </el-checkbox>
-            </template>
-            <el-option
-              v-for="tag in tagOptions"
-              :key="tag"
-              :label="tag"
-              :value="tag"
-            />
-          </el-select>
-        </div>
-      </div>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>标签：</label>
+            <el-select
+              v-model="filter.tags"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              filterable
+              placeholder="请选择标签"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="tagCheckAll"
+                  :indeterminate="tagIndeterminate"
+                  @change="handleTagCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="tag in tagOptions"
+                :key="tag"
+                :label="tag"
+                :value="tag"
+              />
+            </el-select>
+          </div>
+        </el-col>
+      </el-row>
 
       <!-- 操作按钮 -->
       <div class="filter-actions">
@@ -703,6 +727,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink, updateLinksLabelsBatch } from '@/api/information/information';
 import type { Information, InformationFilt, FilterOptions, FilterOption } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
@@ -1150,10 +1175,10 @@ async function searchData() {
   console.log('==================');
 
   // 检查排序是否已选择，如果没有选择则提醒用户
-  if (!filter.value.sort) {
-    alert('请选择排序方式');
-    return;
-  }
+      if (!filter.value.sort) {
+      ElMessage.warning('请选择排序方式');
+      return;
+    }
 
   // 重置分页到第一页
   currentPage.value = 1;
@@ -1653,14 +1678,20 @@ function formatDuration(seconds: number): string {
 
 // 处理删除标签
 async function handleDeleteLabel(item: Information, labelToDelete: string) {
-  if (!confirm(`确定要删除标签"${labelToDelete}"吗？`)) {
+  try {
+    await ElMessageBox.confirm(`确定要删除标签"${labelToDelete}"吗？`, '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+  } catch {
     return;
   }
 
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
-      alert('项目ID不存在，无法删除标签');
+      ElMessage.error('项目ID不存在，无法删除标签');
       return;
     }
 
@@ -1679,7 +1710,7 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        alert(`删除标签成功，已删除标签"${labelToDelete}"`);
+        ElMessage.success(`删除标签成功，已删除标签"${labelToDelete}"`);
         // 更新本地数据
         item.labels = newLabels;
         // 重新获取数据以确保数据同步
@@ -1687,10 +1718,10 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
       } else {
         const errorMsg = response.message || response.msg || response.error || '未知错误';
         console.error('API返回错误:', response);
-        alert(`删除标签失败：${errorMsg}`);
+        ElMessage.error(`删除标签失败：${errorMsg}`);
       }
     } else {
-      alert('删除标签失败：响应为空');
+      ElMessage.error('删除标签失败：响应为空');
     }
   } catch (error: any) {
     console.error('删除标签失败:', error);
@@ -1703,7 +1734,7 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
     } else if (error.message) {
       errorMessage = `请求错误: ${error.message}`;
     }
-    alert(errorMessage);
+    ElMessage.error(errorMessage);
   }
 }
 
@@ -1711,20 +1742,33 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
 async function handleAddTag(item: Information) {
   console.log('添加标签:', item);
 
-  const tag = prompt('请输入要添加的标签名称：');
-  if (!tag || tag.trim() === '') {
-    return;
-  }
-
-  const trimmedTag = tag.trim();
-  if (!confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`)) {
-    return;
-  }
-
   try {
+    const { value: tag } = await ElMessageBox.prompt('请输入要添加的标签名称：', '添加标签', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputValidator: (value) => {
+        if (!value || value.trim() === '') {
+          return '标签名称不能为空';
+        }
+        return true;
+      }
+    });
+
+    if (!tag || tag.trim() === '') {
+      return;
+    }
+
+    const trimmedTag = tag.trim();
+
+    await ElMessageBox.confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`, '确认添加', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
-      alert('项目ID不存在，无法添加标签');
+      ElMessage.error('项目ID不存在，无法添加标签');
       return;
     }
 
@@ -1743,7 +1787,7 @@ async function handleAddTag(item: Information) {
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        alert(`添加标签成功，已添加标签"${trimmedTag}"`);
+        ElMessage.success(`添加标签成功，已添加标签"${trimmedTag}"`);
         // 更新本地数据
         item.labels = newLabels;
         // 重新获取数据以确保数据同步
@@ -1751,10 +1795,10 @@ async function handleAddTag(item: Information) {
       } else {
         const errorMsg = response.message || response.msg || response.error || '未知错误';
         console.error('API返回错误:', response);
-        alert(`添加标签失败：${errorMsg}`);
+        ElMessage.error(`添加标签失败：${errorMsg}`);
       }
     } else {
-      alert('添加标签失败：响应为空');
+      ElMessage.error('添加标签失败：响应为空');
     }
   } catch (error: any) {
     console.error('添加标签失败:', error);
@@ -1767,7 +1811,7 @@ async function handleAddTag(item: Information) {
     } else if (error.message) {
       errorMessage = `请求错误: ${error.message}`;
     }
-    alert(errorMessage);
+    ElMessage.error(errorMessage);
   }
 }
 
@@ -1801,52 +1845,73 @@ async function handleToggleCapture(item: Information) {
 async function handleDelete(item: Information) {
   console.log('删除项目:', item);
 
-  if (confirm('确定要删除这个信息项吗？')) {
-    try {
-      const currentProjectId = projectStore.currentProjectId;
-      if (!currentProjectId) {
-        alert('项目ID不存在，无法删除');
-        return;
-      }
-
-      console.log('开始删除链接:', item.id);
-      const response = await deleteProjectLink(currentProjectId, [item.id]);
-
-      if (response) {
-        alert('删除成功');
-        // 重新获取数据
-        fetchInformationData();
-      } else {
-        alert('删除失败，请稍后重试');
-      }
-    } catch (error) {
-      console.error('删除失败:', error);
-      alert('删除失败，请稍后重试');
-    }
-  }
-}
-
-// 批量添加标签
-async function handleBatchAddTag() {
-  if (selectedItems.value.length === 0) {
-    alert('请先选择要添加标签的项目');
-    return;
-  }
-
-  const tag = prompt('请输入要添加的标签名称：');
-  if (!tag || tag.trim() === '') {
-    return;
-  }
-
-  const trimmedTag = tag.trim();
-  if (!confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`)) {
+  try {
+    await ElMessageBox.confirm('确定要删除这个信息项吗？', '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+  } catch {
     return;
   }
 
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
-      alert('项目ID不存在，无法添加标签');
+      ElMessage.error('项目ID不存在，无法删除');
+      return;
+    }
+
+    console.log('开始删除链接:', item.id);
+    const response = await deleteProjectLink(currentProjectId, [item.id]);
+
+    if (response) {
+      ElMessage.success('删除成功');
+      // 重新获取数据
+      fetchInformationData();
+    } else {
+      ElMessage.error('删除失败，请稍后重试');
+    }
+  } catch (error) {
+    console.error('删除失败:', error);
+    ElMessage.error('删除失败，请稍后重试');
+  }
+}
+
+// 批量添加标签
+async function handleBatchAddTag() {
+  if (selectedItems.value.length === 0) {
+    ElMessage.warning('请先选择要添加标签的项目');
+    return;
+  }
+
+  try {
+    const { value: tag } = await ElMessageBox.prompt('请输入要添加的标签名称：', '批量添加标签', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputValidator: (value) => {
+        if (!value || value.trim() === '') {
+          return '标签名称不能为空';
+        }
+        return true;
+      }
+    });
+
+    if (!tag || tag.trim() === '') {
+      return;
+    }
+
+    const trimmedTag = tag.trim();
+
+    await ElMessageBox.confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`, '确认批量添加', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    const currentProjectId = projectStore.currentProjectId;
+    if (!currentProjectId) {
+      ElMessage.error('项目ID不存在，无法添加标签');
       return;
     }
 
@@ -1877,7 +1942,7 @@ async function handleBatchAddTag() {
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        alert(`批量添加标签成功，已添加标签"${trimmedTag}"`);
+        ElMessage.success(`批量添加标签成功，已添加标签"${trimmedTag}"`);
         // 清空已选项目
         selectedItems.value = [];
         // 重新获取数据
@@ -1885,10 +1950,10 @@ async function handleBatchAddTag() {
       } else {
         const errorMsg = response.message || response.msg || response.error || '未知错误';
         console.error('API返回错误:', response);
-        alert(`批量添加标签失败：${errorMsg}`);
+        ElMessage.error(`批量添加标签失败：${errorMsg}`);
       }
     } else {
-      alert('批量添加标签失败：响应为空');
+      ElMessage.error('批量添加标签失败：响应为空');
     }
   } catch (error: any) {
     console.error('批量添加标签失败:', error);
@@ -1901,26 +1966,33 @@ async function handleBatchAddTag() {
     } else if (error.message) {
       errorMessage = `请求错误: ${error.message}`;
     }
-    alert(errorMessage);
+    ElMessage.error(errorMessage);
   }
 }
 
 // 批量设置抓取状态
 async function handleBatchSetCapture(isActive: boolean) {
   if (selectedItems.value.length === 0) {
-    alert('请先选择要设置抓取状态的项目');
+    ElMessage.warning('请先选择要设置抓取状态的项目');
     return;
   }
 
   const actionText = isActive ? '抓取' : '不抓取';
-  if (!confirm(`确定要将选中的 ${selectedItems.value.length} 项设置为${actionText}状态吗？`)) {
+
+  try {
+    await ElMessageBox.confirm(`确定要将选中的 ${selectedItems.value.length} 项设置为${actionText}状态吗？`, '确认设置', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+  } catch {
     return;
   }
 
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
-      alert('项目ID不存在，无法设置抓取状态');
+      ElMessage.error('项目ID不存在，无法设置抓取状态');
       return;
     }
 
@@ -1936,7 +2008,7 @@ async function handleBatchSetCapture(isActive: boolean) {
     // 处理不同的响应格式
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        alert(`批量设置抓取状态成功，已设置为${actionText}`);
+        ElMessage.success(`批量设置抓取状态成功，已设置为${actionText}`);
         // 清空已选项目
         selectedItems.value = [];
         // 重新获取数据
@@ -1944,10 +2016,10 @@ async function handleBatchSetCapture(isActive: boolean) {
       } else {
         const errorMsg = response.message || response.msg || response.error || '未知错误';
         console.error('API返回错误:', response);
-        alert(`批量设置抓取状态失败：${errorMsg}`);
+        ElMessage.error(`批量设置抓取状态失败：${errorMsg}`);
       }
     } else {
-      alert('批量设置抓取状态失败：响应为空');
+      ElMessage.error('批量设置抓取状态失败：响应为空');
     }
   } catch (error: any) {
     console.error('批量设置抓取状态失败:', error);
@@ -1960,7 +2032,7 @@ async function handleBatchSetCapture(isActive: boolean) {
     } else if (error.message) {
       errorMessage = `请求错误: ${error.message}`;
     }
-    alert(errorMessage);
+    ElMessage.error(errorMessage);
   }
 }
 
@@ -1980,18 +2052,24 @@ function hasSentimentData(item: Information): boolean {
 // 批量删除
 async function handleBatchDelete() {
   if (selectedItems.value.length === 0) {
-    alert('请先选择要删除的项目');
+    ElMessage.warning('请先选择要删除的项目');
     return;
   }
 
-  if (!confirm(`确定要删除选中的 ${selectedItems.value.length} 项信息吗？此操作不可恢复！`)) {
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedItems.value.length} 项信息吗？此操作不可恢复！`, '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+  } catch {
     return;
   }
 
   try {
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
-      alert('项目ID不存在，无法删除');
+      ElMessage.error('项目ID不存在，无法删除');
       return;
     }
 
@@ -2006,7 +2084,7 @@ async function handleBatchDelete() {
     // 处理不同的响应格式
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        alert('批量删除成功');
+        ElMessage.success('批量删除成功');
         // 清空已选项目
         selectedItems.value = [];
         // 重新获取数据
@@ -2014,10 +2092,10 @@ async function handleBatchDelete() {
       } else {
         const errorMsg = response.message || response.msg || response.error || '未知错误';
         console.error('API返回错误:', response);
-        alert(`批量删除失败：${errorMsg}`);
+        ElMessage.error(`批量删除失败：${errorMsg}`);
       }
     } else {
-      alert('批量删除失败：响应为空');
+      ElMessage.error('批量删除失败：响应为空');
     }
   } catch (error: any) {
     console.error('批量删除失败:', error);
@@ -2030,7 +2108,7 @@ async function handleBatchDelete() {
     } else if (error.message) {
       errorMessage = `请求错误: ${error.message}`;
     }
-    alert(errorMessage);
+    ElMessage.error(errorMessage);
   }
 }
 
@@ -2045,24 +2123,26 @@ async function handleBatchDelete() {
   margin-bottom: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-.form-row {
-  display: flex;
-  gap: 24px;
+/* 筛选面板布局 */
+.filter-panel .el-row {
   margin-bottom: 16px;
-  flex-wrap: wrap;
 }
 
-/* GoogleNews项目布局 - 当隐藏视频时长时，保持其他三个筛选条件的合适宽度 */
-.form-row.google-news-layout .form-item {
-  flex: 0 0 calc(33.333% - 16px);
-  max-width: calc(33.333% - 16px);
+.filter-panel .el-row:last-child {
+  margin-bottom: 0;
+}
+
+/* 确保栅格列宽度正确 */
+.filter-panel .el-col {
+  box-sizing: border-box;
 }
 .form-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 200px;
-  flex: 1;
+  width: 100%;
+  margin-bottom: 8px;
+  box-sizing: border-box;
 }
 .form-item label {
   min-width: 80px;
@@ -2071,6 +2151,39 @@ async function handleBatchDelete() {
   white-space: nowrap;
   text-align: right;
   flex-shrink: 0;
+}
+
+/* 响应式标签样式 */
+@media (max-width: 768px) {
+  .form-item label {
+    min-width: 60px;
+    font-size: 13px;
+  }
+
+  .form-item {
+    margin-bottom: 12px;
+  }
+}
+
+/* 确保搜索输入框不会超出容器 */
+.search-form-item {
+  overflow: hidden;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .form-item label {
+    min-width: 50px;
+    font-size: 12px;
+  }
+
+  .form-item {
+    margin-bottom: 16px;
+  }
+
+  .filter-panel .el-row {
+    margin-bottom: 20px;
+  }
 }
 .custom-multiselect,
 .custom-select {
@@ -2260,7 +2373,12 @@ async function handleBatchDelete() {
   border-radius: 4px;
   font-size: 14px;
   transition: border-color 0.3s;
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  flex-shrink: 1;
+  max-width: 100%;
+  overflow: hidden;
 }
 .search-input:hover {
   border-color: #c0c4cc;

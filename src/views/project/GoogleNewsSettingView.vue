@@ -241,6 +241,7 @@
 
 <script lang="ts">
 import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask } from '@/api/project/project';
+import { ElMessage, ElMessageBox } from 'element-plus';
 export default {
   name: 'NewKeywordProjectView',
   data() {
@@ -496,13 +497,13 @@ export default {
           });
 
         } else {
-          alert(`加载项目数据失败：${response.msg}`);
+          ElMessage.error(`加载项目数据失败：${response.msg}`);
           this.$router.go(-1);
         }
 
       } catch (error) {
         console.error('加载项目数据失败:', error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
         this.$router.go(-1);
       } finally {
         this.isLoading = false;
@@ -577,7 +578,7 @@ export default {
       } else if (this.newsSearchCount > 10000) {
         this.newsSearchCount = 10000;
         this.$nextTick(() => {
-          alert('新闻搜索条数不能超过10000条');
+          ElMessage.warning('新闻搜索条数不能超过10000条');
         });
       }
     },
@@ -713,7 +714,7 @@ export default {
 
     async saveProject() {
       if (!this.isFormValid) {
-        alert('请填写完整的表单信息');
+        ElMessage.warning('请填写完整的表单信息');
         return;
       }
 
@@ -750,7 +751,7 @@ export default {
 
         if (response.code === 0) {
           console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
-          alert(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+          ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
 
           if (!this.isEditMode) {
             this.$router.push({
@@ -767,25 +768,30 @@ export default {
             this.hasChanges = false;
           }
         } else {
-          alert(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
         }
 
       } catch (error) {
         console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
       }
     },
 
     // 确认删除项目
-    confirmDelete() {
+    async confirmDelete() {
       if (!this.canClickDelete) {
         return;
       }
 
-      const confirmMessage = `确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`;
-
-      if (confirm(confirmMessage)) {
+      try {
+        await ElMessageBox.confirm(`确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`, '确认删除', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
         this.deleteProject();
+      } catch {
+        // 用户取消删除
       }
     },
 
@@ -794,7 +800,7 @@ export default {
       const projectId = this.$route.params.id || this.$route.query.projectId;
 
       if (!projectId) {
-        alert('项目ID不存在，无法删除');
+        ElMessage.error('项目ID不存在，无法删除');
         return;
       }
 
@@ -802,7 +808,7 @@ export default {
         const response = await deleteProject(projectId);
 
         if (response.code === 0) {
-          alert('项目删除成功！');
+          ElMessage.success('项目删除成功！');
           this.$router.push({
               name: 'settings',
               query: {
@@ -812,11 +818,11 @@ export default {
               }
             });
         } else {
-          alert(`删除项目失败：${response.msg}`);
+          ElMessage.error(`删除项目失败：${response.msg}`);
         }
       } catch (error) {
         console.error('删除项目失败:', error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
       }
     },
 
@@ -825,7 +831,7 @@ export default {
       const projectId = this.$route.params.id || this.$route.query.projectId;
 
       if (!projectId) {
-        alert('项目ID不存在，无法执行搜索测试');
+        ElMessage.error('项目ID不存在，无法执行搜索测试');
         return;
       }
 
@@ -833,13 +839,13 @@ export default {
         const response = await executeDataCrawlTask(projectId);
 
         if (response.code === 0) {
-          alert('搜索测试任务已启动，请稍后查看结果');
+          ElMessage.success('搜索测试任务已启动，请稍后查看结果');
         } else {
-          alert(`搜索测试失败：${response.msg}`);
+          ElMessage.error(`搜索测试失败：${response.msg}`);
         }
       } catch (error) {
         console.error('搜索测试失败:', error);
-        alert('网络错误，请检查网络连接后重试');
+        ElMessage.error('网络错误，请检查网络连接后重试');
       }
     },
   }
