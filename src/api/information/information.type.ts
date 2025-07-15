@@ -61,6 +61,7 @@ export interface InformationFilt {
   sentiments: string[];        // 情感过滤
   languages: string[];         // 语言列表
   regions: string[];           // 地区列表
+  keyword: string;             // 关键词搜索
   sortBy: string;              // 排序方式，默认 "publishedAt:desc"
   minDuration: number;         // 视频时长范围-最小值（秒）
   maxDuration: number;         // 视频时长范围-最大值（秒）

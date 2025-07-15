@@ -1410,6 +1410,7 @@ const fetchInformationData = async () => {
       sentiments: convertLabelsToValues(filterOptions.value.sentiments || [], filter.value.sentiments),
       languages: convertLabelsToValues(filterOptions.value.languages || [], filter.value.languages),
       regions: convertLabelsToValues(filterOptions.value.regions || [], filter.value.regions),
+      keyword: filter.value.searchKeyword || '',
       sortBy: getSortValue(filter.value.sort),
       minDuration: durationRange.minDuration,
       maxDuration: durationRange.maxDuration,
