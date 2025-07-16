@@ -48,7 +48,7 @@
           <el-icon><TrendCharts /></el-icon>
           <span>趋势分析</span>
         </el-menu-item>
-        <el-menu-item index="/sentiment">
+        <el-menu-item index="/sentimentTrend">
           <el-icon><ChatLineRound /></el-icon>
           <span>情感分析</span>
         </el-menu-item>

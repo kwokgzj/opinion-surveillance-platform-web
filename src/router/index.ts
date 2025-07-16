@@ -80,6 +80,11 @@ const router = createRouter({
           name: 'information',
           component: () => import('@/views/information/InformationView.vue')
         },
+        {
+          path: 'sentimentTrend',
+          name: 'sentimentTrend',
+          component: () => import('@/views/SentimentTrendView.vue')
+        },
         // {
         //   path: 'compare',
         //   name: 'compare',
