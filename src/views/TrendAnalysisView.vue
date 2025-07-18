@@ -1097,52 +1097,8 @@ const fetchTrendAnalysisData = async () => {
       // 处理后端返回的数据
       processTrendAnalysisData(data);
     } catch (apiError) {
-      console.warn('API调用失败，使用模拟数据:', apiError);
-
-      // 使用基于真实数据格式的模拟数据进行测试
-      const mockData: TrendAnalysisData = {
-        videoTrendAnalysis: [
-          { projectId: "test", label: "viewCount", stage: "2025-04-23", value: 11336465 },
-          { projectId: "test", label: "commentCount", stage: "2025-04-23", value: 21770 },
-          { projectId: "test", label: "likeCount", stage: "2025-04-23", value: 343072 },
-          { projectId: "test", label: "viewCount", stage: "2025-04-24", value: 11439437 },
-          { projectId: "test", label: "commentCount", stage: "2025-04-24", value: 21946 },
-          { projectId: "test", label: "likeCount", stage: "2025-04-24", value: 346126 },
-        ],
-        videoIncrementTrendAnalysis: [
-          { projectId: "test", label: "incrementViewCount", stage: "2025-04-23", value: 95788 },
-          { projectId: "test", label: "incrementCommentCount", stage: "2025-04-23", value: 163 },
-          { projectId: "test", label: "incrementLikeCount", stage: "2025-04-23", value: 2896 },
-        ],
-        postTrendAnalysis: [],
-        postIncrementTrendAnalysis: [],
-        mentimentTrendAnalysis: [
-          { projectId: "test", label: "total", stage: "2025-05-03", value: 1 },
-          { projectId: "test", label: "total", stage: "2025-05-02", value: 1 },
-          { projectId: "test", label: "total", stage: "2025-04-25", value: 1 },
-          { projectId: "test", label: "video", stage: "2025-04-25", value: 1 },
-          { projectId: "test", label: "video", stage: "2025-05-05", value: 2 },
-          { projectId: "test", label: "video", stage: "2025-05-04", value: 1 },
-        ],
-        mentionByMediaType: [
-          { projectId: "test", label: "", stage: "Youtube", value: 7 },
-        ],
-        mentionByLanguage: [
-          { projectId: "test", label: "", stage: "英语", value: 6 },
-          { projectId: "test", label: "", stage: "法语", value: 1 },
-        ],
-        mentionByRegion: [
-          { projectId: "test", label: "", stage: "比利时", value: 1 },
-          { projectId: "test", label: "", stage: "英国", value: 2 },
-          { projectId: "test", label: "", stage: "美国", value: 2 },
-          { projectId: "test", label: "", stage: "加拿大", value: 2 },
-        ]
-      };
-
-      console.log('使用模拟数据:', mockData);
-      processTrendAnalysisData(mockData);
-
-      // 重新抛出错误以便上层处理
+      console.error('API调用失败:', apiError);
+      // 直接抛出错误，不使用模拟数据
       throw apiError;
     }
 

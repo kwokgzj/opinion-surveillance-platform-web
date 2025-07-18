@@ -1439,40 +1439,8 @@ const fetchSentimentTrendData = async () => {
       // 处理后端返回的数据，转换为前端图表需要的格式
       processSentimentTrendData(data);
     } catch (apiError) {
-      console.warn('API调用失败，使用模拟数据:', apiError);
-
-      // 如果API调用失败，使用你提供的示例数据进行测试
-      const mockData: SentimentTrend = {
-        sentimentOverTime: [
-          { projectId: null, label: "positive", stage: "2023-11-20", value: 1 },
-          { projectId: null, label: "positive", stage: "2023-11-30", value: 1 },
-          { projectId: null, label: "positive", stage: "2024-01-19", value: 1 },
-          { projectId: null, label: "positive", stage: "2023-11-13", value: 1 },
-          { projectId: null, label: "positive", stage: "2025-01-08", value: 1 },
-          { projectId: null, label: "neutral", stage: "2023-11-20", value: 2 },
-          { projectId: null, label: "neutral", stage: "2023-11-30", value: 3 },
-          { projectId: null, label: "negative", stage: "2023-11-20", value: 1 },
-        ],
-        sentimentByType: [
-          { projectId: null, label: "positive", stage: null, value: 5 },
-          { projectId: null, label: "neutral", stage: null, value: 5 },
-          { projectId: null, label: "negative", stage: null, value: 2 }
-        ],
-        sentimentByMediaType: [
-          { projectId: null, label: "positive", stage: "Youtube", value: 5 }
-        ],
-        sentimentByLanguage: [
-          { projectId: null, label: "positive", stage: "俄语", value: 5 }
-        ],
-        sentimentByRegion: [
-          { projectId: null, label: "positive", stage: "俄罗斯", value: 5 }
-        ]
-      };
-
-      console.log('使用模拟数据:', mockData);
-      processSentimentTrendData(mockData);
-
-      // 重新抛出错误以便上层处理
+      console.error('API调用失败:', apiError);
+      // 直接抛出错误，不使用模拟数据
       throw apiError;
     }
 
