@@ -437,10 +437,10 @@
               rel="noopener noreferrer"
               class="info-title-link"
               :class="{ 'inactive': !item.isActive }"
-              :title="item.title"
+              :title="getDisplayTitle(item)"
               @click="isMultiSelectMode && $event.preventDefault()"
             >
-              {{ item.title }}
+              {{ getDisplayTitle(item) }}
             </a>
             <!-- 标签显示 -->
             <div v-if="item.labels && item.labels.length > 0" class="info-labels">
@@ -469,14 +469,15 @@
           </div>
           <div class="info-content-row">
             <img
-              :src="item.thumbnailUrl || '/src/components/icons/noPicture.svg'"
+              v-if="item.thumbnailUrl"
+              :src="item.thumbnailUrl"
               class="info-cover"
               :class="{ 'inactive': !item.isActive }"
               @error="handleImageError"
             />
-            <div class="info-content-main">
+            <div class="info-content-main" :class="{ 'no-thumbnail': !item.thumbnailUrl }">
               <div
-                v-if="item.description"
+                v-if="hasDescriptionToShow(item)"
                 class="info-desc"
                 :class="{ 'inactive': !item.isActive }"
                 :title="item.description"
@@ -1568,6 +1569,7 @@ function getPlatformIcon(platform: string): string {
   const iconMap: Record<string, string> = {
     'Youtube': '/src/components/icons/youtube.svg',
     'GoogleNews': '/src/components/icons/google.svg',
+    'Facebook': '/src/components/icons/facebook.svg',
     'X': '/src/components/icons/X.svg'
   };
   return iconMap[platform] || '/src/components/icons/noPicture.svg';
@@ -2048,6 +2050,27 @@ function handleImageError(event: Event) {
 // 检查是否有情感数据
 function hasSentimentData(item: Information): boolean {
   return item.contentMentionedBrands && item.contentMentionedBrands.length > 0;
+}
+
+// 获取显示标题（如果没有标题则使用描述）
+function getDisplayTitle(item: Information): string {
+  if (item.title && item.title.trim()) {
+    return item.title;
+  }
+  if (item.description && item.description.trim()) {
+    return item.description;
+  }
+  return '暂无标题';
+}
+
+// 检查是否需要显示描述（如果标题已经是描述，则不重复显示）
+function hasDescriptionToShow(item: Information): boolean {
+  // 如果有标题且不为空，则显示描述
+  if (item.title && item.title.trim()) {
+    return !!(item.description && item.description.trim() !== '');
+  }
+  // 如果没有标题，描述已经作为标题显示，不再重复显示
+  return false;
 }
 
 // 批量删除
@@ -2581,6 +2604,8 @@ async function handleBatchDelete() {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 6px;
   margin-right: 10px;
   padding-left: 0; /* 默认不添加左边距 */
   flex-shrink: 0; /* 防止被压缩 */
@@ -2914,6 +2939,10 @@ async function handleBatchDelete() {
   gap: 4px;
   min-width: 0; /* 允许收缩 */
   max-width: calc(100% - 136px); /* 为封面图预留空间 */
+}
+
+.info-content-main.no-thumbnail {
+  max-width: 100%; /* 没有缩略图时占满宽度 */
 }
 .info-desc {
   color: #444;

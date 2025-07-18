@@ -155,7 +155,7 @@
 </template>
 
 <script>
-import { createProject, getProjectById, updateProject, deleteProject } from '@/api/project/project';
+import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask } from '@/api/project/project';
 import { ElMessage, ElMessageBox } from 'element-plus';
 export default {
   name: 'VideoListSettingView',
@@ -689,9 +689,26 @@ export default {
     },
 
     // 搜索测试功能
-    testSearch() {
-      // TODO: 实现搜索测试功能
-      ElMessage.info('搜索测试功能开发中...');
+    async testSearch() {
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+
+      if (!projectId) {
+        ElMessage.error('项目ID不存在，无法执行搜索测试');
+        return;
+      }
+
+      try {
+        const response = await executeDataCrawlTask(projectId);
+
+        if (response.code === 0) {
+          ElMessage.success('搜索测试任务已启动，请稍后查看结果');
+        } else {
+          ElMessage.error(`搜索测试失败：${response.msg}`);
+        }
+      } catch (error) {
+        console.error('搜索测试失败:', error);
+        ElMessage.error('网络错误，请检查网络连接后重试');
+      }
     },
   }
 }
