@@ -44,7 +44,7 @@
           <el-icon><Document/></el-icon>
           <span>信息汇总</span>
         </el-menu-item>
-        <el-menu-item index="/trend">
+        <el-menu-item index="/trendAnalysis">
           <el-icon><TrendCharts /></el-icon>
           <span>趋势分析</span>
         </el-menu-item>

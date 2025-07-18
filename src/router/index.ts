@@ -85,6 +85,11 @@ const router = createRouter({
           name: 'sentimentTrend',
           component: () => import('@/views/SentimentTrendView.vue')
         },
+        {
+          path: 'trendAnalysis',
+          name: 'trendAnalysis',
+          component: () => import('@/views/TrendAnalysisView.vue')
+        },
         // {
         //   path: 'compare',
         //   name: 'compare',

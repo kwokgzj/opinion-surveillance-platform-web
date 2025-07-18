@@ -108,7 +108,7 @@
 
     <div v-show="!loading && !error" class="content-container">
       <!-- 情感趋势折线图 -->
-      <div class="chart-section">
+      <div v-show="showLineChart" class="chart-section">
         <div class="section-header">
           <h3>情感趋势分析</h3>
           <p class="section-desc">情感数据随时间的变化趋势</p>
@@ -119,21 +119,44 @@
       </div>
 
       <!-- 情感类型分布饼图 -->
-      <div class="chart-section">
+      <div v-show="showPieChart" class="chart-section">
         <div class="section-header">
           <h3>情感类型分布</h3>
           <p class="section-desc">不同情感类型的占比分析</p>
         </div>
-        <div class="chart-container">
-          <div id="sentimentPieChart" class="chart"></div>
+        <div class="pie-chart-with-table">
+          <div class="pie-chart-container">
+            <div id="sentimentPieChart" class="pie-chart"></div>
+          </div>
+          <div class="table-container">
+            <h4>情感分布</h4>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>情感类型</th>
+                  <th>数量</th>
+                  <th>占比</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in pieChartTableData" :key="index">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.value }}</td>
+                  <td>{{ item.percentage }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- 媒体类型情感分析堆叠柱状图 -->
-      <div class="chart-section">
+      <div v-show="showMediaChart" class="chart-section">
         <div class="section-header">
           <h3>各媒体类型情感分析</h3>
-          <p class="section-desc">不同媒体平台的情感分布</p>
+          <p class="section-desc">不同媒体平台的情感占比分布</p>
         </div>
         <div class="chart-container">
           <div id="sentimentMediaChart" class="chart"></div>
@@ -141,10 +164,10 @@
       </div>
 
       <!-- 语言情感分析堆叠柱状图 -->
-      <div class="chart-section">
+      <div v-show="showLanguageChart" class="chart-section">
         <div class="section-header">
           <h3>各语言情感分析</h3>
-          <p class="section-desc">不同语言的情感分布</p>
+          <p class="section-desc">不同语言的情感占比分布</p>
         </div>
         <div class="chart-container">
           <div id="sentimentLanguageChart" class="chart"></div>
@@ -152,10 +175,10 @@
       </div>
 
       <!-- 地区情感分析堆叠柱状图 -->
-      <div class="chart-section">
+      <div v-show="showRegionChart" class="chart-section">
         <div class="section-header">
           <h3>各地区情感分析</h3>
-          <p class="section-desc">不同地区的情感分布</p>
+          <p class="section-desc">不同地区的情感占比分布</p>
         </div>
         <div class="chart-container">
           <div id="sentimentRegionChart" class="chart"></div>
@@ -228,6 +251,16 @@ const statsData = ref<SentimentStats>({
   total: 0
 });
 
+// 控制图表显示的响应式变量
+const showLineChart = ref(false);
+const showPieChart = ref(false);
+const showMediaChart = ref(false);
+const showLanguageChart = ref(false);
+const showRegionChart = ref(false);
+
+// 表格数据
+const pieChartTableData = ref<Array<{ name: string; value: number; percentage: string }>>([]);
+
 
 
 // ECharts实例
@@ -283,19 +316,44 @@ const processSentimentTrendData = (data: SentimentTrend) => {
   }
 
   // 1. 处理sentimentOverTime数据用于折线图
-  processLineChartData(data.sentimentOverTime);
+  if (data.sentimentOverTime && data.sentimentOverTime.length > 0) {
+    processLineChartData(data.sentimentOverTime);
+    showLineChart.value = true;
+  } else {
+    showLineChart.value = false;
+  }
 
   // 2. 处理sentimentByType数据用于饼图
-  processPieChartData(data.sentimentByType);
+  if (data.sentimentByType && data.sentimentByType.length > 0) {
+    processPieChartData(data.sentimentByType);
+    showPieChart.value = true;
+  } else {
+    showPieChart.value = false;
+  }
 
   // 3. 处理sentimentByMediaType数据用于堆叠柱状图
-  processStackedBarChartData(data.sentimentByMediaType, 'media');
+  if (data.sentimentByMediaType && data.sentimentByMediaType.length > 0) {
+    processStackedBarChartDataWithTable(data.sentimentByMediaType, 'media');
+    showMediaChart.value = true;
+  } else {
+    showMediaChart.value = false;
+  }
 
   // 4. 处理sentimentByLanguage数据用于堆叠柱状图
-  processStackedBarChartData(data.sentimentByLanguage, 'language');
+  if (data.sentimentByLanguage && data.sentimentByLanguage.length > 0) {
+    processStackedBarChartDataWithTable(data.sentimentByLanguage, 'language');
+    showLanguageChart.value = true;
+  } else {
+    showLanguageChart.value = false;
+  }
 
   // 5. 处理sentimentByRegion数据用于堆叠柱状图
-  processStackedBarChartData(data.sentimentByRegion, 'region');
+  if (data.sentimentByRegion && data.sentimentByRegion.length > 0) {
+    processStackedBarChartDataWithTable(data.sentimentByRegion, 'region');
+    showRegionChart.value = true;
+  } else {
+    showRegionChart.value = false;
+  }
 
   // 6. 计算统计数据
   processStatsData(data);
@@ -367,12 +425,22 @@ const processPieChartData = (sentimentByType: any[]) => {
     value: item.value
   }));
 
+  // 计算总数和百分比
+  const total = pieData.reduce((sum, item) => sum + item.value, 0);
+  const tableData = pieData.map(item => ({
+    name: item.name,
+    value: item.value,
+    percentage: total > 0 ? ((item.value / total) * 100).toFixed(1) : '0.0'
+  })).sort((a, b) => b.value - a.value);
+
+  pieChartTableData.value = tableData;
+
   console.log(`饼图: ${pieData.length}个分类`);
   updatePieChart(pieData);
 };
 
-// 处理堆叠柱状图数据
-const processStackedBarChartData = (data: any[], chartType: 'media' | 'language' | 'region') => {
+// 处理带表格数据的堆叠柱状图数据
+const processStackedBarChartDataWithTable = (data: any[], chartType: 'media' | 'language' | 'region') => {
   if (!data || data.length === 0) {
     // 如果没有数据，创建空图表但保持图例完整
     const seriesData = [
@@ -381,24 +449,33 @@ const processStackedBarChartData = (data: any[], chartType: 'media' | 'language'
         type: 'bar',
         stack: 'total',
         data: [],
-        barMaxWidth: 60,
-        itemStyle: { color: getSentimentColor('正面') }
+        barWidth: '60%',
+        itemStyle: { color: getSentimentColor('正面') },
+        label: {
+          show: false // 不在柱子上显示标签
+        }
       },
       {
         name: '中性',
         type: 'bar',
         stack: 'total',
         data: [],
-        barMaxWidth: 60,
-        itemStyle: { color: getSentimentColor('中性') }
+        barWidth: '60%',
+        itemStyle: { color: getSentimentColor('中性') },
+        label: {
+          show: false // 不在柱子上显示标签
+        }
       },
       {
         name: '负面',
         type: 'bar',
         stack: 'total',
         data: [],
-        barMaxWidth: 60,
-        itemStyle: { color: getSentimentColor('负面') }
+        barWidth: '60%',
+        itemStyle: { color: getSentimentColor('负面') },
+        label: {
+          show: false // 不在柱子上显示标签
+        }
       }
     ];
 
@@ -432,6 +509,19 @@ const processStackedBarChartData = (data: any[], chartType: 'media' | 'language'
 
   const categories = Array.from(groupedData.keys());
 
+  // 计算每个类别的总数
+  const totalData: number[] = [];
+  for (let i = 0; i < categories.length; i++) {
+    let sum = 0;
+    const categoryData = groupedData.get(categories[i]);
+    if (categoryData) {
+      for (const value of categoryData.values()) {
+        sum += value;
+      }
+    }
+    totalData.push(sum);
+  }
+
   // 始终创建所有三种情感类型的系列，确保图例完整
   const seriesData: any[] = [];
 
@@ -442,22 +532,24 @@ const processStackedBarChartData = (data: any[], chartType: 'media' | 'language'
                        sentiment === 'negative' ? '负面' : sentiment;
 
     if (sentimentTypes.has(sentiment)) {
-      // 有数据的情感类型：只为有实际数据的类别创建数据点
-      const seriesValueData: (number | null)[] = categories.map(category => {
+      // 有数据的情感类型：直接使用原始数据
+      const seriesValueData: number[] = categories.map((category) => {
         const categoryData = groupedData.get(category);
         if (categoryData && categoryData.has(sentiment)) {
-          const value = categoryData.get(sentiment)!;
-          return value > 0 ? value : null; // 如果值为0，返回null表示没有数据
+          return categoryData.get(sentiment)!;
         }
-        return null; // 没有数据返回null
+        return 0;
       });
 
       seriesData.push({
         name: chineseName,
         type: 'bar',
         stack: 'total',
+        barWidth: '60%',
+        label: {
+          show: false // 不在柱子上显示标签
+        },
         data: seriesValueData,
-        barMaxWidth: 60,
         itemStyle: { color: getSentimentColor(chineseName) }
       });
     } else {
@@ -466,8 +558,11 @@ const processStackedBarChartData = (data: any[], chartType: 'media' | 'language'
         name: chineseName,
         type: 'bar',
         stack: 'total',
+        barWidth: '60%',
+        label: {
+          show: false // 不在柱子上显示标签
+        },
         data: [], // 完全空的数据数组
-        barMaxWidth: 60,
         itemStyle: { color: getSentimentColor(chineseName) }
       });
     }
@@ -951,15 +1046,57 @@ const updateStackedBarChart = (
 
   if (!chart) return;
 
-  const option = {
+      // 为媒体类型图表添加最大宽度限制
+  const processedSeriesData = seriesData.map(series => {
+    if (chartId === 'sentimentMediaChart') {
+      return {
+        ...series,
+        barMaxWidth: 80 // 为媒体类型图表设置最大宽度为80px
+      };
+    }
+    return series;
+  });
+
+    const option = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
         type: 'shadow'
+      },
+            formatter: function(params: any) {
+        let result = params[0].name + '<br/>';
+        let totalOriginalCount = 0;
+
+        // 从原始数据获取实际数值
+        const categoryIndex = params[0].dataIndex;
+        const originalValues: { [key: string]: number } = {};
+
+        // 获取该类别的原始数据
+        processedSeriesData.forEach(series => {
+          if (series.data[categoryIndex]) {
+            originalValues[series.name] = series.data[categoryIndex];
+            totalOriginalCount += series.data[categoryIndex];
+          }
+        });
+
+        // 显示各情感类型的数据和百分比
+        params.forEach((param: any) => {
+          if (typeof param.value === 'number' && param.value > 0) {
+            const originalValue = originalValues[param.seriesName] || 0;
+            const percentage = Math.round(param.value * 10) / 10; // param.value已经是百分比
+            result += param.marker + param.seriesName + ': ' + percentage + '% (' + originalValue + '条)<br/>';
+          }
+        });
+
+        if (totalOriginalCount > 0) {
+          result += '<br/>总计: ' + totalOriginalCount + '条';
+        }
+        return result;
       }
     },
     legend: {
       data: ['正面', '中性', '负面'], // 固定显示所有情感类型
+      selectedMode: true, // 启用图例选择，允许点击过滤
       top: '5%',
       textStyle: {
         fontSize: 12,
@@ -967,11 +1104,10 @@ const updateStackedBarChart = (
       }
     },
     grid: {
-      left: '8%',
-      right: '5%',
-      bottom: '8%',
-      top: '15%',
-      containLabel: true
+      left: 100,
+      right: 100,
+      top: 50,
+      bottom: 50
     },
     xAxis: {
       type: 'category',
@@ -987,13 +1123,15 @@ const updateStackedBarChart = (
     },
     yAxis: {
       type: 'value',
-      name: '数量',
+      name: '占比',
       nameTextStyle: {
         color: '#666'
       },
       axisLabel: {
-        color: '#666'
+        color: '#666',
+        formatter: '{value}%'
       },
+      max: 100,
       axisLine: {
         lineStyle: {
           color: '#e5e6eb'
@@ -1005,10 +1143,71 @@ const updateStackedBarChart = (
         }
       }
     },
-    series: seriesData
+    // 使用百分比堆叠模式
+    series: processedSeriesData.map(series => ({
+      ...series,
+      stack: 'total',
+      data: series.data.map((value: number, dataIndex: number) => {
+        // 计算该类别的总数
+        let categoryTotal = 0;
+        processedSeriesData.forEach(s => {
+          if (s.data[dataIndex]) {
+            categoryTotal += s.data[dataIndex];
+          }
+        });
+
+        // 返回百分比
+        return categoryTotal > 0 ? (value / categoryTotal) * 100 : 0;
+      })
+    }))
   };
 
   chart.setOption(option);
+
+    // 监听图例选择变化事件，重新计算百分比
+  chart.off('legendselectchanged'); // 移除之前的监听器
+  chart.on('legendselectchanged', function(params: any) {
+    const selectedLegends = params.selected;
+
+    // 重新计算百分比数据
+    const newSeries = processedSeriesData.map((series) => {
+      const seriesName = series.name;
+      const isSelected = selectedLegends[seriesName];
+
+      if (isSelected) {
+        // 计算每个类别的新百分比
+        const newData = series.data.map((value: number, dataIndex: number) => {
+          // 计算该类别中所有选中系列的总和
+          let categoryTotal = 0;
+          processedSeriesData.forEach(s => {
+            if (selectedLegends[s.name] && s.data[dataIndex]) {
+              categoryTotal += s.data[dataIndex];
+            }
+          });
+
+          // 返回百分比
+          return categoryTotal > 0 ? (value / categoryTotal) * 100 : 0;
+        });
+
+        return {
+          ...series,
+          data: newData,
+          stack: 'total'
+        };
+      } else {
+        return {
+          ...series,
+          data: series.data.map(() => 0), // 隐藏的系列数据设为0
+          stack: 'total'
+        };
+      }
+    });
+
+    // 更新图表
+    chart.setOption({
+      series: newSeries
+    });
+  });
 };
 
 // Element Plus 全选处理函数
@@ -1093,27 +1292,126 @@ const fetchSentimentTrendData = async () => {
       mediaChart.clear();
       // 创建空的系列数据但保持图例
       const emptySeriesData = [
-        { name: '正面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('正面') } },
-        { name: '中性', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('中性') } },
-        { name: '负面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('负面') } }
+        {
+          name: '正面',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('正面') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        },
+        {
+          name: '中性',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('中性') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        },
+        {
+          name: '负面',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('负面') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        }
       ];
       updateStackedBarChart([], emptySeriesData, 'sentimentMediaChart');
     }
     if (languageChart) {
       languageChart.clear();
       const emptySeriesData = [
-        { name: '正面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('正面') } },
-        { name: '中性', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('中性') } },
-        { name: '负面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('负面') } }
+        {
+          name: '正面',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('正面') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        },
+        {
+          name: '中性',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('中性') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        },
+        {
+          name: '负面',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('负面') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        }
       ];
       updateStackedBarChart([], emptySeriesData, 'sentimentLanguageChart');
     }
     if (regionChart) {
       regionChart.clear();
       const emptySeriesData = [
-        { name: '正面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('正面') } },
-        { name: '中性', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('中性') } },
-        { name: '负面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('负面') } }
+        {
+          name: '正面',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('正面') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        },
+        {
+          name: '中性',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('中性') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        },
+        {
+          name: '负面',
+          type: 'bar',
+          stack: 'total',
+          data: [],
+          barWidth: '60%',
+          itemStyle: { color: getSentimentColor('负面') },
+          label: {
+            show: true,
+            formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+          }
+        }
       ];
       updateStackedBarChart([], emptySeriesData, 'sentimentRegionChart');
     }
@@ -1281,27 +1579,126 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
       if (mediaChart) {
         mediaChart.clear();
         const emptySeriesData = [
-          { name: '正面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('正面') } },
-          { name: '中性', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('中性') } },
-          { name: '负面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('负面') } }
+          {
+            name: '正面',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('正面') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          },
+          {
+            name: '中性',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('中性') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          },
+          {
+            name: '负面',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('负面') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          }
         ];
         updateStackedBarChart([], emptySeriesData, 'sentimentMediaChart');
       }
       if (languageChart) {
         languageChart.clear();
         const emptySeriesData = [
-          { name: '正面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('正面') } },
-          { name: '中性', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('中性') } },
-          { name: '负面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('负面') } }
+          {
+            name: '正面',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('正面') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          },
+          {
+            name: '中性',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('中性') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          },
+          {
+            name: '负面',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('负面') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          }
         ];
         updateStackedBarChart([], emptySeriesData, 'sentimentLanguageChart');
       }
       if (regionChart) {
         regionChart.clear();
         const emptySeriesData = [
-          { name: '正面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('正面') } },
-          { name: '中性', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('中性') } },
-          { name: '负面', type: 'bar', stack: 'total', data: [], barMaxWidth: 60, itemStyle: { color: getSentimentColor('负面') } }
+          {
+            name: '正面',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('正面') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          },
+          {
+            name: '中性',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('中性') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          },
+          {
+            name: '负面',
+            type: 'bar',
+            stack: 'total',
+            data: [],
+            barWidth: '60%',
+            itemStyle: { color: getSentimentColor('负面') },
+            label: {
+              show: true,
+              formatter: (params: any) => Math.round(params.value * 1000) / 10 + '%'
+            }
+          }
         ];
         updateStackedBarChart([], emptySeriesData, 'sentimentRegionChart');
       }
@@ -1387,8 +1784,6 @@ onMounted(async () => {
 
 <style scoped>
 .sentiment-trend-page {
-  padding: 24px;
-  background: #f5f6fa;
   min-height: 100vh;
   width: 100%;
   max-width: none;
@@ -1541,6 +1936,92 @@ onMounted(async () => {
   height: 100% !important;
   min-height: 450px !important;
   min-width: 900px !important;
+}
+
+/* 饼图+表格布局 */
+.pie-chart-with-table {
+  display: flex;
+  gap: 24px;
+  min-height: 450px;
+}
+
+.pie-chart-container {
+  flex: 1.5;
+  min-width: 400px;
+}
+
+.pie-chart {
+  width: 100% !important;
+  height: 450px !important;
+  min-width: 400px !important;
+}
+
+/* 堆叠图表+表格布局 */
+.stacked-chart-with-table {
+  display: flex;
+  gap: 24px;
+  min-height: 450px;
+}
+
+.stacked-chart-container {
+  flex: 1.5;
+  min-width: 400px;
+}
+
+.stacked-chart {
+  width: 100% !important;
+  height: 450px !important;
+  min-width: 400px !important;
+}
+
+.table-container {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #e5e6eb;
+}
+
+.table-container h4 {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.data-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.data-table tr:hover {
+  background: #f8f9fa;
+}
+
+.data-table td:first-child {
+  font-weight: 600;
+  color: #409eff;
+}
+
+.data-table td:last-child {
+  font-weight: 600;
+  color: #333;
 }
 
 /* 删除不需要的占位符样式 */
