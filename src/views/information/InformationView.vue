@@ -397,7 +397,7 @@
           <!-- 新闻类型特殊布局 -->
           <template v-if="isNewsType(item)">
             <img
-              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'"
+              :src="item.channelThumbnailUrl || noPictureIcon"
               class="info-logo"
               :class="{ 'inactive': !item.isActive }"
               @error="handleImageError"
@@ -414,7 +414,7 @@
           <!-- 其他类型布局 -->
           <template v-else>
             <img
-              :src="item.channelThumbnailUrl || '/src/components/icons/noPicture.svg'"
+              :src="item.channelThumbnailUrl || noPictureIcon"
               class="info-logo"
               :class="{ 'inactive': !item.isActive }"
               @error="handleImageError"
@@ -451,7 +451,7 @@
                 :title="label"
               >
                 <img
-                  src="/src/components/icons/tag.svg"
+                  :src="tagIcon"
                   alt="标签"
                   class="label-icon"
                   @error="handleImageError"
@@ -462,7 +462,7 @@
                   @click.stop="handleDeleteLabel(item, label)"
                   title="删除标签"
                 >
-                  <img src="/src/components/icons/X.svg" alt="删除" class="delete-icon" />
+                  <img :src="XIcon" alt="删除" class="delete-icon" />
                 </button>
               </div>
             </div>
@@ -519,7 +519,7 @@
                 @click="handleAddTag(item)"
                 title="添加标签"
               >
-                <img src="/src/components/icons/tag.svg" alt="添加标签" />
+                <img :src="tagIcon" alt="添加标签" />
               </button>
               <button
                 class="action-btn capture-btn"
@@ -528,7 +528,7 @@
                 :title="item.isActive ? '停止抓取' : '开始抓取'"
               >
                 <img
-                  :src="item.isActive ? '/src/components/icons/capture-active.svg' : '/src/components/icons/capture-inactive.svg'"
+                  :src="item.isActive ? captureActiveIcon : captureInactiveIcon"
                   :alt="item.isActive ? '停止抓取' : '开始抓取'"
                 />
               </button>
@@ -537,7 +537,7 @@
                 @click="handleDelete(item)"
                 title="删除"
               >
-                <img src="/src/components/icons/delete.svg" alt="删除" />
+                <img :src="deleteIcon" alt="删除" />
               </button>
             </div>
           </div>
@@ -696,7 +696,7 @@
         :disabled="selectedItems.length === 0"
         title="加标签"
       >
-        <img src="/src/components/icons/tag.svg" alt="加标签" />
+        <img :src="tagIcon" alt="加标签" />
       </button>
       <button
         class="action-bar-btn capture-btn"
@@ -704,7 +704,7 @@
         :disabled="selectedItems.length === 0"
         title="设置为抓取状态"
       >
-        <img src="/src/components/icons/capture-active.svg" alt="设置为抓取状态" />
+        <img :src="captureActiveIcon" alt="设置为抓取状态" />
       </button>
       <button
         class="action-bar-btn no-capture-btn"
@@ -712,7 +712,7 @@
         :disabled="selectedItems.length === 0"
         title="设置为不抓取状态"
       >
-        <img src="/src/components/icons/capture-inactive.svg" alt="设置为不抓取状态" />
+        <img :src="captureInactiveIcon" alt="设置为不抓取状态" />
       </button>
       <button
         class="action-bar-btn delete-btn"
@@ -720,7 +720,7 @@
         :disabled="selectedItems.length === 0"
         title="删除"
       >
-        <img src="/src/components/icons/delete.svg" alt="删除" />
+        <img :src="deleteIcon" alt="删除" />
       </button>
     </div>
   </div>
@@ -732,6 +732,18 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink, updateLinksLabelsBatch } from '@/api/information/information';
 import type { Information, InformationFilt, FilterOptions, FilterOption } from '@/api/information/information.type';
 import { useProjectStore } from '@/stores/project';
+import youtubeIcon from '@/components/icons/youtube.svg';
+import googleIcon from '@/components/icons/google.svg';
+import facebookIcon from '@/components/icons/facebook.svg';
+import XIcon from '@/components/icons/X.svg';
+import noPictureIcon from '@/components/icons/noPicture.svg';
+import tagIcon from '@/components/icons/tag.svg';
+import captureActiveIcon from '@/components/icons/capture-active.svg';
+import captureInactiveIcon from '@/components/icons/capture-inactive.svg';
+import deleteIcon from '@/components/icons/delete.svg';
+import positiveIcon from '@/components/icons/positive.svg';
+import neutralIcon from '@/components/icons/neutral.svg';
+import negativeIcon from '@/components/icons/negative.svg';
 
 // 使用项目store
 const projectStore = useProjectStore();
@@ -1510,12 +1522,12 @@ function formatDateYMDOnly(timeStr: string): string {
 // 获取平台图标
 function getPlatformIcon(platform: string): string {
   const iconMap: Record<string, string> = {
-    'Youtube': '/src/components/icons/youtube.svg',
-    'GoogleNews': '/src/components/icons/google.svg',
-    'Facebook': '/src/components/icons/facebook.svg',
-    'X': '/src/components/icons/X.svg'
+    'Youtube': youtubeIcon,
+    'GoogleNews': googleIcon,
+    'Facebook': facebookIcon,
+    'X': XIcon
   };
-  return iconMap[platform] || '/src/components/icons/noPicture.svg';
+  return iconMap[platform] || noPictureIcon;
 }
 
 // 获取情感图标
@@ -1525,9 +1537,9 @@ function getSentimentIcon(sentiment: number): string {
   if (sentiment >= 71) str = 'Positive';
   if (sentiment >= 31 && sentiment <= 70) str = 'Neutral';
   const iconMap: Record<string, string> = {
-    'Positive': '/src/components/icons/positive.svg',
-    'Neutral': '/src/components/icons/neutral.svg',
-    'Negative': '/src/components/icons/negative.svg'
+    'Positive': positiveIcon,
+    'Neutral': neutralIcon,
+    'Negative': negativeIcon
   };
   return iconMap[str];
 }
@@ -1979,8 +1991,20 @@ async function handleBatchSetCapture(isActive: boolean) {
 // 处理图片加载错误
 function handleImageError(event: Event) {
   const target = event.target as HTMLImageElement;
-  if (target) {
-    target.src = '/src/components/icons/noPicture.svg';
+  if (target && !target.dataset.errorHandled) {
+    // 标记已处理过错误，避免无限循环
+    target.dataset.errorHandled = 'true';
+
+    // 使用一个简单的内联SVG作为占位符，避免再次网络请求
+    const placeholderSvg = `data:image/svg+xml;base64,${btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+        <rect width="48" height="48" fill="#f5f5f5" stroke="#ddd" stroke-width="1"/>
+        <text x="24" y="28" font-family="Arial" font-size="10" fill="#999" text-anchor="middle">图片</text>
+      </svg>
+    `)}`;
+
+    target.src = placeholderSvg;
+    target.onerror = null; // 清除错误处理，避免再次触发
   }
 }
 
