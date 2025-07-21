@@ -530,21 +530,27 @@ const COLORS = {
 };
 
 // 处理后端返回的趋势分析数据
-const processTrendAnalysisData = (data: TrendAnalysisData) => {
-  console.log('📊 处理趋势分析数据:', data);
+const processTrendAnalysisData = (data: TrendAnalysisData, retryCount = 0) => {
+  console.log('📊 处理趋势分析数据:', data, 'retryCount:', retryCount);
 
-  // 检查图表实例是否存在，如果不存在则重新初始化
-  if (!videoTotalChart || !videoIncrementalChart || !postTotalChart ||
+  // 检查图表实例是否存在，如果不存在则重新初始化（最多重试3次）
+  if ((!videoTotalChart || !videoIncrementalChart || !postTotalChart ||
       !postIncrementalChart || !mentionTimeChart || !mentionMediaChart ||
-      !mentionLanguageChart || !mentionRegionChart) {
-    console.log('⚠️ 检测到图表实例缺失，重新初始化...');
+      !mentionLanguageChart || !mentionRegionChart) && retryCount < 3) {
+    console.log('⚠️ 检测到图表实例缺失，重新初始化...', 'retryCount:', retryCount);
     setTimeout(() => {
       initAllCharts();
-      // 重新处理数据
+      // 重新处理数据，增加重试计数
       setTimeout(() => {
-        processTrendAnalysisData(data);
+        processTrendAnalysisData(data, retryCount + 1);
       }, 200);
     }, 100);
+    return;
+  }
+
+  // 如果重试次数超过限制，停止递归并记录错误
+  if (retryCount >= 3) {
+    console.error('❌ 图表初始化失败，已达到最大重试次数');
     return;
   }
 
@@ -1232,6 +1238,10 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
       await fetchFilterOptions();
       // 重置筛选条件
       resetFilter();
+
+      // 自动获取新项目的趋势分析数据
+      console.log('项目切换完成，自动加载趋势分析数据...');
+      await fetchTrendAnalysisData();
     } catch (err) {
       console.error('项目切换失败:', err);
       error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';

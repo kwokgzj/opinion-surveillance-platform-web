@@ -181,7 +181,8 @@ watch(() => route.query, async (newQuery) => {
 
   console.log('路由查询参数变化:', newQuery);
 
-  if(route.query.page !== 'settings'){
+  // 只有在设置页面且不是创建模式下才处理
+  if(route.path !== '/settings' && route.query.page !== 'settings'){
     return;
   }
 
@@ -211,7 +212,7 @@ watch(() => route.query, async (newQuery) => {
     const targetProject = projectOptions.value.find(p => p.value === projectId);
 
     if (targetProject) {
-      // 找到项目，设置选中状态并跳转到设置页面
+      // 找到项目，设置选中状态
       selectedProject.value = targetProject.value as string;
 
       // 更新store中的当前项目
@@ -220,53 +221,63 @@ watch(() => route.query, async (newQuery) => {
         projectName: targetProject.label,
         projectType: targetProject.type,
       });
-
-      router.push({
-        name: 'settings',
-        query: {
-          projectId: targetProject.value,
-          projectName: targetProject.label,
-          projectType: targetProject.type
-        }
-      });
       return;
     } else{
       // 未找到项目，提示用户
       // ElMessage.error('未找到对应的项目');
     }
-  }
-  // 没有 projectId，获取项目列表第一个
-  if (projectOptions.value.length === 0) {
-    // 如果项目列表为空，先获取项目列表
-    await fetchProjects();
-  }
+  } else {
+    // 没有 projectId，但有当前选中的项目，使用当前项目
+    if (projectStore.currentProjectId && projectOptions.value.length > 0) {
+      const currentProject = projectOptions.value.find(p => p.value === projectStore.currentProjectId);
+      if (currentProject) {
+        // 跳转到当前项目的设置页面
+        router.push({
+          name: 'settings',
+          query: {
+            projectId: currentProject.value,
+            projectName: currentProject.label,
+            projectType: currentProject.type,
+            page: 'settings'
+          }
+        });
+        return;
+      }
+    }
 
-  if (projectOptions.value.length > 0) {
-    // 有项目，选择第一个并跳转到设置页面
-    const firstProject = projectOptions.value[0];
-    selectedProject.value = firstProject.value;
+    // 没有当前项目或项目列表为空，获取项目列表
+    if (projectOptions.value.length === 0) {
+      await fetchProjects();
+    }
 
-    // 更新store中的当前项目
-    projectStore.setCurrentProject({
-      projectId: firstProject.value,
-      projectName: firstProject.label,
-      projectType: firstProject.type,
-    });
+    if (projectOptions.value.length > 0) {
+      // 有项目，选择第一个并跳转到设置页面
+      const firstProject = projectOptions.value[0];
+      selectedProject.value = firstProject.value;
 
-    router.push({
-      name: 'settings',
-      query: {
+      // 更新store中的当前项目
+      projectStore.setCurrentProject({
         projectId: firstProject.value,
         projectName: firstProject.label,
-        projectType: firstProject.type
-      }
-    });
-  } else {
-    // 项目列表为空，跳转到新建项目页面
-    ElMessage.error('项目列表为空，跳转到新建项目页面');
-    selectedProject.value = '';
-    projectStore.clearCurrentProject();
-    router.push({ name: 'newProject' });
+        projectType: firstProject.type,
+      });
+
+      router.push({
+        name: 'settings',
+        query: {
+          projectId: firstProject.value,
+          projectName: firstProject.label,
+          projectType: firstProject.type,
+          page: 'settings'
+        }
+      });
+    } else {
+      // 项目列表为空，跳转到新建项目页面
+      ElMessage.error('项目列表为空，跳转到新建项目页面');
+      selectedProject.value = '';
+      projectStore.clearCurrentProject();
+      router.push({ name: 'newProject' });
+    }
   }
 }, { immediate: true, deep: true });
 

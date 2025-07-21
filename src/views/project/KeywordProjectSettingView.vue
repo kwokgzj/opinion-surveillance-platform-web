@@ -343,7 +343,6 @@ export default {
   watch: {
     // 添加路由监听
     '$route'(to, from) {
-      console.log('路由变化:', { to, from });
       // 当路由参数变化时重新初始化页面
       if (to.path === from.path) {
         // 同一个路由但参数变化，重新初始化
@@ -414,8 +413,20 @@ export default {
     initializePageMode() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
       const isEdit = this.$route.query.isEdit === 'true';
+      const newlyCreated = this.$route.query.newlyCreated === 'true';
 
-      if (projectId && isEdit) {
+
+
+      if (projectId && newlyCreated) {
+        // 新创建的项目，设置为已创建状态，使用当前表单数据
+        this.isEditMode = false;
+        this.projectStatus = 'created';
+        // 重新保存表单数据为初始状态
+        this.$nextTick(() => {
+          this.saveInitialFormData();
+          this.hasChanges = false;
+        });
+      } else if (projectId && isEdit) {
         this.isEditMode = true;
         this.projectStatus = 'editing';
         this.loadProjectData(projectId);
@@ -823,7 +834,7 @@ export default {
         const lastSegment = pathname.split('/').pop();
         return lastSegment || 'unknown';
 
-      } catch (e) {
+      } catch {
         // URL 格式错误
         return 'unknown';
       }
@@ -868,7 +879,7 @@ export default {
         projectData.projectId = projectId;
       }
 
-      console.log('保存的项目数据:', projectData);
+
 
       try {
         let response;
@@ -881,39 +892,65 @@ export default {
           response = await createProject(projectData);
         }
 
-        // 判断响应是否成功
-        if (response.code === 0) {
-          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
+        // 判断响应是否成功 - 支持多种成功码
+        const isSuccess = response && (
+          response.code === 0 ||
+          response.code === '0' ||
+          response.code === 200 ||
+          response.code === '200'
+        );
+
+        if (isSuccess && response.data) {
+
           ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
 
           if (!this.isEditMode) {
             // 新建模式：跳转到设置页面并更新侧边栏
-            this.$router.push({
-              name: 'settings',
-              query: {
-                projectId: response.data.projectId,
-                projectName: response.data.name,
-                projectType: response.data.type,
-                refresh: 'true'
-              }
-            });
+            const projectId = response.data.projectId || response.data.id;
+            const projectName = response.data.name || response.data.projectName;
+            const projectType = response.data.type || response.data.projectType;
+
+            // 确保projectId是字符串
+            const projectIdStr = String(projectId);
+
+            if (projectIdStr && projectIdStr !== 'undefined') {
+              // 新建项目成功后，跳转到项目设置页面，但不立即进入编辑模式
+              // 而是显示为"已创建"状态，避免立即重新加载可能还未完全保存的数据
+                              this.$router.push({
+                  name: 'settings',
+                  query: {
+                    projectId: projectIdStr,
+                    projectName: projectName,
+                    projectType: projectType,
+                    refresh: 'true',
+                    page: 'settings',
+                    newlyCreated: 'true' // 标记为新创建的项目
+                  }
+                });
+            } else {
+              ElMessage.error('项目保存成功，但跳转失败，请手动刷新页面');
+            }
           } else {
             // 编辑模式：重新保存初始数据并重置变更状态
             this.saveInitialFormData();
             this.hasChanges = false;
 
             // 更新MainLayout中的项目选择（如果项目名称有变更）
-            this.$router.replace({
-              path: this.$route.path,
-              query: {
-                ...this.$route.query,
-                projectName: response.data.name // 更新项目名称
-              }
-            });
+            const projectName = response.data.name || response.data.projectName;
+            if (projectName) {
+              this.$router.replace({
+                path: this.$route.path,
+                query: {
+                  ...this.$route.query,
+                  projectName: projectName // 更新项目名称
+                }
+              });
+            }
           }
         } else {
           // 保存失败，显示后端返回的错误信息
-          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+          const errorMsg = response?.msg || response?.message || '保存失败，请重试';
+          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`);
         }
 
       } catch (error) {

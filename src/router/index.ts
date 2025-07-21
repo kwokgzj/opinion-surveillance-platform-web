@@ -71,7 +71,15 @@ const router = createRouter({
 
             return {
               name: targetRoute,
-              query: { projectId, projectName, isEdit: 'true', refresh, isCreate, page }
+              query: {
+                projectId,
+                projectName,
+                isEdit: to.query.newlyCreated !== 'true' ? 'true' : 'false',
+                refresh,
+                isCreate,
+                page,
+                newlyCreated: to.query.newlyCreated
+              }
             };
           }
         },
@@ -85,11 +93,11 @@ const router = createRouter({
           name: 'sentimentTrend',
           component: () => import('@/views/SentimentTrendView.vue')
         },
-        {
-          path: 'trendAnalysis',
-          name: 'trendAnalysis',
-          component: () => import('@/views/TrendAnalysisView.vue')
-        },
+        // {
+        //   path: 'trendAnalysis',
+        //   name: 'trendAnalysis',
+        //   component: () => import('@/views/TrendAnalysisView.vue')
+        // },
         // {
         //   path: 'compare',
         //   name: 'compare',

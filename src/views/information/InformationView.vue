@@ -774,9 +774,7 @@ const filter = ref({
 const fetchFilterOptions = async () => {
   try {
     const currentProjectId = projectStore.currentProjectId;
-    console.log('=== 开始获取筛选选项 ===');
-    console.log('当前项目ID:', currentProjectId);
-    console.log('当前项目名称:', projectStore.currentProjectName);
+
 
     if (!currentProjectId) {
       console.warn('没有项目ID，无法获取筛选选项');
@@ -784,11 +782,9 @@ const fetchFilterOptions = async () => {
     }
 
     const response = await getFilterOptions(currentProjectId);
-    console.log('筛选选项响应:', response);
 
     if (response) {
       filterOptions.value = response;
-      console.log('设置筛选选项:', filterOptions.value);
 
       // 设置第一个排序选项为默认值
       if (response.sortBy && response.sortBy.length > 0 && !filter.value.sort) {
@@ -800,13 +796,6 @@ const fetchFilterOptions = async () => {
         totalCount.value = response.count;
         totalPages.value = Math.ceil(response.count / pageSize.value);
       }
-
-      console.log('更新分页信息:', {
-        count: response.count,
-        totalPages: totalPages.value
-      });
-    } else {
-      console.warn('筛选选项响应为空:', response);
     }
   } catch (err) {
     console.error('获取筛选选项失败:', err);
@@ -816,9 +805,7 @@ const fetchFilterOptions = async () => {
 
 // 选项数据（从API获取，如果没有数据则为空）
 const brandOptions = computed(() => {
-  console.log('计算品牌选项，filterOptions:', filterOptions.value);
   const options = filterOptions.value.brands?.map(item => item.label) || [];
-  console.log('品牌选项:', options);
   return options;
 });
 const skuOptions = computed(() => {
@@ -1171,9 +1158,6 @@ function resetFilter() {
 }
 
 async function searchData() {
-  console.log('=== 用户点击搜索 ===');
-  console.log('搜索条件:', filter.value);
-  console.log('==================');
 
   // 检查排序是否已选择，如果没有选择则提醒用户
       if (!filter.value.sort) {
@@ -1312,12 +1296,7 @@ watch(() => filter.value.tags, (val) => {
 
 // 监听项目ID变化
 watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) => {
-  console.log('=== 项目ID变化 ===');
-  console.log('旧项目ID:', oldProjectId);
-  console.log('新项目ID:', newProjectId);
-
   if (newProjectId && newProjectId !== oldProjectId) {
-    console.log('项目ID变化，重新获取筛选选项');
     loading.value = true;
     error.value = '';
 
@@ -1336,10 +1315,6 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
 // 组件挂载时添加全局点击监听
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
-
-  console.log('=== 组件挂载 ===');
-  console.log('当前项目ID:', projectStore.currentProjectId);
-  console.log('当前项目名称:', projectStore.currentProjectName);
 
   // 显示初始loading状态
   loading.value = true;
@@ -1423,25 +1398,7 @@ const fetchInformationData = async () => {
       size: pageSize.value
     };
 
-    // 输出项目ID和过滤条件
-    console.log('=== 信息查询参数 ===');
-    console.log('项目ID:', currentProjectId);
-    console.log('当前项目名称:', projectStore.currentProjectName);
-    console.log('当前项目类型:', projectStore.currentProjectType);
-    console.log('过滤条件:', filterParams);
-    console.log('==================');
-
     const data = await getInformationList(filterParams);
-    console.log('API返回的原始数据:', data);
-    console.log('数据结构检查:', {
-      hasData: data && 'data' in data,
-      hasRecords: (data as any)?.data && 'records' in (data as any).data,
-      hasTotalCount: (data as any)?.data && 'totalCount' in (data as any).data,
-      recordsLength: (data as any)?.data?.records?.length,
-      totalCount: (data as any)?.data?.totalCount,
-      currentPage: (data as any)?.data?.currentPage,
-      totalPages: (data as any)?.data?.totalPages
-    });
 
     // 处理API响应格式：{ code: 0, data: { records: [...], totalCount: 239, ... }, msg: "成功" }
     if (data && typeof data === 'object' && 'data' in data && data.data) {
@@ -1454,21 +1411,7 @@ const fetchInformationData = async () => {
         currentPage.value = resultData.currentPage || 1;
         pageSize.value = resultData.pageSize || 30;
 
-        // 调试SU值
-        console.log('=== SU值调试信息 ===');
-        informationList.value.forEach((item, index) => {
-          if (isNewsType(item) || isPostType(item)) {
-            console.log(`项目 ${index + 1}:`, {
-              type: item.type,
-              su: item.su,
-              suType: typeof item.su,
-              hasSu: 'su' in item,
-              allKeys: Object.keys(item),
-              itemData: item
-            });
-          }
-        });
-        console.log('==================');
+
       } else {
         // 兼容性处理：如果不是新格式，使用默认值
         informationList.value = [];
@@ -1630,16 +1573,10 @@ function getSentimentFromContent(item: Information): number {
   if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
     // 将0-1的小数转换为0-100的整数
     const sentiment = Math.round(item.contentMentionedBrands[0].sentiment * 100);
-    console.log('情感倾向计算:', {
-      original: item.contentMentionedBrands[0].sentiment,
-      converted: sentiment,
-      type: item.type
-    });
     return sentiment;
   }
 
   // 如果没有品牌情感数据，返回默认中性值
-  console.log('使用默认情感倾向:', { type: item.type, defaultSentiment: 50 });
   return 50; // 默认中性
 }
 

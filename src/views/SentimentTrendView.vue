@@ -299,19 +299,25 @@ const trendData = ref({
 });
 
 // 处理后端返回的情感趋势数据
-const processSentimentTrendData = (data: SentimentTrend) => {
-  console.log('📊 处理情感趋势数据:', data);
+const processSentimentTrendData = (data: SentimentTrend, retryCount = 0) => {
+  console.log('📊 处理情感趋势数据:', data, 'retryCount:', retryCount);
 
-  // 检查图表实例是否存在，如果不存在则重新初始化
-  if (!lineChart || !pieChart || !mediaChart || !languageChart || !regionChart) {
-    console.log('⚠️ 检测到图表实例缺失，重新初始化...');
+  // 检查图表实例是否存在，如果不存在则重新初始化（最多重试3次）
+  if ((!lineChart || !pieChart || !mediaChart || !languageChart || !regionChart) && retryCount < 3) {
+    console.log('⚠️ 检测到图表实例缺失，重新初始化...', 'retryCount:', retryCount);
     setTimeout(() => {
       initAllCharts();
-      // 重新处理数据
+      // 重新处理数据，增加重试计数
       setTimeout(() => {
-        processSentimentTrendData(data);
+        processSentimentTrendData(data, retryCount + 1);
       }, 200);
     }, 100);
+    return;
+  }
+
+  // 如果重试次数超过限制，停止递归并记录错误
+  if (retryCount >= 3) {
+    console.error('❌ 图表初始化失败，已达到最大重试次数');
     return;
   }
 
@@ -507,20 +513,22 @@ const processStackedBarChartDataWithTable = (data: any[], chartType: 'media' | '
     sentimentTypes.add(sentiment);
   });
 
-  const categories = Array.from(groupedData.keys());
+  // 计算每个类别的总数并按总数排序
+  const categoryTotals: Array<{ category: string; total: number }> = [];
 
-  // 计算每个类别的总数
-  const totalData: number[] = [];
-  for (let i = 0; i < categories.length; i++) {
+  groupedData.forEach((categoryData, category) => {
     let sum = 0;
-    const categoryData = groupedData.get(categories[i]);
-    if (categoryData) {
-      for (const value of categoryData.values()) {
-        sum += value;
-      }
+    for (const value of categoryData.values()) {
+      sum += value;
     }
-    totalData.push(sum);
-  }
+    categoryTotals.push({ category, total: sum });
+  });
+
+  // 按总数从高到低排序
+  categoryTotals.sort((a, b) => b.total - a.total);
+
+  // 提取排序后的类别名称
+  const categories = categoryTotals.map(item => item.category);
 
   // 始终创建所有三种情感类型的系列，确保图例完整
   const seriesData: any[] = [];
@@ -549,6 +557,11 @@ const processStackedBarChartDataWithTable = (data: any[], chartType: 'media' | '
         label: {
           show: false // 不在柱子上显示标签
         },
+        emphasis: {
+          label: {
+            show: false // 鼠标悬停时也不显示标签
+          }
+        },
         data: seriesValueData,
         itemStyle: { color: getSentimentColor(chineseName) }
       });
@@ -561,6 +574,11 @@ const processStackedBarChartDataWithTable = (data: any[], chartType: 'media' | '
         barWidth: '60%',
         label: {
           show: false // 不在柱子上显示标签
+        },
+        emphasis: {
+          label: {
+            show: false // 鼠标悬停时也不显示标签
+          }
         },
         data: [], // 完全空的数据数组
         itemStyle: { color: getSentimentColor(chineseName) }
@@ -1046,15 +1064,12 @@ const updateStackedBarChart = (
 
   if (!chart) return;
 
-      // 为媒体类型图表添加最大宽度限制
+      // 为所有堆叠柱状图添加最大宽度限制
   const processedSeriesData = seriesData.map(series => {
-    if (chartId === 'sentimentMediaChart') {
-      return {
-        ...series,
-        barMaxWidth: 80 // 为媒体类型图表设置最大宽度为80px
-      };
-    }
-    return series;
+    return {
+      ...series,
+      barMaxWidth: 80 // 为所有图表设置最大宽度为80px
+    };
   });
 
     const option = {
@@ -1147,6 +1162,14 @@ const updateStackedBarChart = (
     series: processedSeriesData.map(series => ({
       ...series,
       stack: 'total',
+      label: {
+        show: false // 不显示柱子上的标签
+      },
+      emphasis: {
+        label: {
+          show: false // 鼠标悬停时也不显示标签
+        }
+      },
       data: series.data.map((value: number, dataIndex: number) => {
         // 计算该类别的总数
         let categoryTotal = 0;
@@ -1192,13 +1215,29 @@ const updateStackedBarChart = (
         return {
           ...series,
           data: newData,
-          stack: 'total'
+          stack: 'total',
+          label: {
+            show: false // 不显示柱子上的标签
+          },
+          emphasis: {
+            label: {
+              show: false // 鼠标悬停时也不显示标签
+            }
+          }
         };
       } else {
         return {
           ...series,
           data: series.data.map(() => 0), // 隐藏的系列数据设为0
-          stack: 'total'
+          stack: 'total',
+          label: {
+            show: false // 不显示柱子上的标签
+          },
+          emphasis: {
+            label: {
+              show: false // 鼠标悬停时也不显示标签
+            }
+          }
         };
       }
     });
@@ -1674,6 +1713,10 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
       await fetchFilterOptions();
       // 重置筛选条件
       resetFilter();
+
+      // 自动获取新项目的情感趋势数据
+      console.log('项目切换完成，自动加载情感趋势数据...');
+      await fetchSentimentTrendData();
     } catch (err) {
       console.error('项目切换失败:', err);
       error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';

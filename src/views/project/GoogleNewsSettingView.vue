@@ -441,8 +441,16 @@ export default {
     initializePageMode() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
       const isEdit = this.$route.query.isEdit === 'true';
+      const newlyCreated = this.$route.query.newlyCreated === 'true';
 
-      if (projectId && projectId !== 'new' && isEdit) {
+      if (projectId && newlyCreated) {
+        this.isEditMode = false;
+        this.projectStatus = 'created';
+        this.$nextTick(() => {
+          this.saveInitialFormData();
+          this.hasChanges = false;
+        });
+      } else if (projectId && projectId !== 'new' && isEdit) {
         this.isEditMode = true;
         this.projectStatus = 'editing';
         this.loadProjectData(projectId);
@@ -749,26 +757,51 @@ export default {
           response = await createProject(projectData);
         }
 
-        if (response.code === 0) {
+        console.log('API响应:', response);
+
+        // 判断响应是否成功 - 支持多种成功码
+        const isSuccess = response && (
+          response.code === 0 ||
+          response.code === '0' ||
+          response.code === 200 ||
+          response.code === '200'
+        );
+
+        if (isSuccess && response.data) {
           console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
           ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
 
           if (!this.isEditMode) {
-            this.$router.push({
-              name: 'settings',
-              query: {
-                projectId: response.data.projectId,
-                projectName: response.data.name,
-                projectType: response.data.type,
-                refresh: 'true'
-              }
-            });
+            const projectId = response.data.projectId || response.data.id;
+            const projectName = response.data.name || response.data.projectName;
+            const projectType = response.data.type || response.data.projectType;
+
+            const projectIdStr = String(projectId);
+
+            if (projectIdStr && projectIdStr !== 'undefined') {
+              this.$router.push({
+                name: 'settings',
+                query: {
+                  projectId: projectIdStr,
+                  projectName: projectName,
+                  projectType: projectType,
+                  refresh: 'true',
+                  page: 'settings',
+                  newlyCreated: 'true'
+                }
+              });
+            } else {
+              console.error('响应数据中缺少项目ID:', response.data);
+              ElMessage.error('项目保存成功，但跳转失败，请手动刷新页面');
+            }
           } else {
             this.saveInitialFormData();
             this.hasChanges = false;
           }
         } else {
-          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${response.msg}`);
+          const errorMsg = response?.msg || response?.message || '保存失败，请重试';
+          console.error('项目保存失败:', { response, errorMsg });
+          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`);
         }
 
       } catch (error) {
