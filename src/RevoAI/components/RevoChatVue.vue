@@ -96,7 +96,7 @@ const props = defineProps<{
 
 // 状态
 const theme = computed(() => props.theme || 'light')
-const models = ref<Model[]>([])
+const models = computed(() => props.models || [])
 
 console.log('RevoChatVue props', props)
 // Store
@@ -134,7 +134,7 @@ watch(
 const initData = async () => {
   try {
     // 使用MCPManagerService获取MCP服务器列表
-    mcpManagerServiceInstance.runMCPServers(props.mcpServers)
+    mcpManagerServiceInstance.runMCPServers(props.mcpServers || [])
   } catch (error) {
     console.error('初始化数据失败:', error)
   }
