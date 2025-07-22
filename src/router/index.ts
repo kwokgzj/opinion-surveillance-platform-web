@@ -98,6 +98,11 @@ const router = createRouter({
           name: 'trendAnalysis',
           component: () => import('@/views/TrendAnalysisView.vue')
         },
+        {
+          path: 'comparison',
+          name: 'comparison',
+          component: () => import('@/views/ComparisonView.vue')
+        },
         // {
         //   path: 'compare',
         //   name: 'compare',

@@ -57,7 +57,7 @@
           <span>项目设置</span>
         </el-menu-item>
         <el-divider style="border-color: #909399; margin: 10px 0;" />
-        <el-menu-item index="/compare">
+        <el-menu-item index="/comparison">
           <el-icon><DataAnalysis /></el-icon>
           <span>数据对比</span>
         </el-menu-item>

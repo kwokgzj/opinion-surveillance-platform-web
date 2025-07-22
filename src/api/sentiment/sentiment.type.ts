@@ -3,6 +3,7 @@ export interface SentimentTrendFilter {
   projectId: string;
   brands?: string[];
   skus?: string[];
+  platforms?: string[];
   dateRange?: string[]; // 前端日期范围选择
   publishedAtStart?: string;
   publishedAtEnd?: string;

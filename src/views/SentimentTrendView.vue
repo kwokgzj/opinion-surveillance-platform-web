@@ -3,8 +3,8 @@
     <!-- 筛选区域 -->
     <div class="filter-panel">
       <el-row :gutter="24">
-        <!-- 第一行：品牌、SKU、时间范围 -->
-        <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <!-- 第一行：品牌、SKU、平台、时间范围 -->
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <div class="form-item">
             <label>品牌：</label>
             <el-select
@@ -37,7 +37,7 @@
             </el-select>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <div class="form-item">
             <label>SKU：</label>
             <el-select
@@ -70,7 +70,39 @@
             </el-select>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <div class="form-item">
+            <label>平台：</label>
+            <el-select
+              v-model="filter.platforms"
+              multiple
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="请选择平台"
+              popper-class="custom-header"
+              :max-collapse-tags="1"
+              style="width: 100%"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="platformCheckAll"
+                  :indeterminate="platformIndeterminate"
+                  @change="handlePlatformCheckAll"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="platform in platformOptions"
+                :key="platform"
+                :label="platform"
+                :value="platform"
+              />
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <div class="form-item">
             <label>时间范围：</label>
             <el-date-picker
@@ -223,6 +255,7 @@ const filterOptions = ref<FilterOptions>({
 const filter = ref({
   brands: [] as string[],
   skus: [] as string[],
+  platforms: [] as string[],
   dateRange: [] as string[],
 });
 
@@ -231,6 +264,8 @@ const brandCheckAll = ref(false);
 const brandIndeterminate = ref(false);
 const skuCheckAll = ref(false);
 const skuIndeterminate = ref(false);
+const platformCheckAll = ref(false);
+const platformIndeterminate = ref(false);
 
 // 选项数据
 const brandOptions = computed(() => {
@@ -240,6 +275,11 @@ const brandOptions = computed(() => {
 
 const skuOptions = computed(() => {
   const options = filterOptions.value.skus?.map(item => item.label) || [];
+  return options;
+});
+
+const platformOptions = computed(() => {
+  const options = filterOptions.value.platforms?.map(item => item.label) || [];
   return options;
 });
 
@@ -1280,6 +1320,15 @@ function handleSkuCheckAll(val: boolean) {
   }
 }
 
+function handlePlatformCheckAll(val: boolean) {
+  platformIndeterminate.value = false;
+  if (val) {
+    filter.value.platforms = [...platformOptions.value];
+  } else {
+    filter.value.platforms = [];
+  }
+}
+
 // 获取筛选选项
 const fetchFilterOptions = async () => {
   try {
@@ -1312,6 +1361,7 @@ const fetchSentimentTrendData = async () => {
       projectId: currentProjectId,
       brands: filter.value.brands,
       skus: filter.value.skus,
+      platforms: filter.value.platforms,
       dateRange: filter.value.dateRange
     });
 
@@ -1473,6 +1523,7 @@ const fetchSentimentTrendData = async () => {
       projectId: currentProjectId,
       brands: filter.value.brands.length > 0 ? filter.value.brands : undefined,
       skus: filter.value.skus.length > 0 ? filter.value.skus : undefined,
+      platforms: filter.value.platforms.length > 0 ? filter.value.platforms : undefined,
     };
 
     // 处理日期范围
@@ -1517,6 +1568,7 @@ function resetFilter() {
   filter.value = {
     brands: [],
     skus: [],
+    platforms: [],
     dateRange: [],
   };
 }
@@ -1566,6 +1618,18 @@ watch(() => filter.value.skus, (val) => {
     skuIndeterminate.value = false;
   } else {
     skuIndeterminate.value = true;
+  }
+});
+
+watch(() => filter.value.platforms, (val) => {
+  if (val.length === 0) {
+    platformCheckAll.value = false;
+    platformIndeterminate.value = false;
+  } else if (val.length === platformOptions.value.length) {
+    platformCheckAll.value = true;
+    platformIndeterminate.value = false;
+  } else {
+    platformIndeterminate.value = true;
   }
 });
 
