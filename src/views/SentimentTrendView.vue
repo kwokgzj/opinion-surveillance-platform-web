@@ -295,7 +295,8 @@ const trendData = ref({
   dates: [] as string[],
   positiveData: [] as number[],
   neutralData: [] as number[],
-  negativeData: [] as number[]
+  negativeData: [] as number[],
+  originalDates: [] as string[]
 });
 
 // 处理后端返回的情感趋势数据
@@ -407,11 +408,15 @@ const processLineChartData = (sentimentOverTime: any[]) => {
     return `${d.getMonth() + 1}-${d.getDate()}`;
   });
 
+  // 保存原始日期用于tooltip显示
+  const originalDates = [...dates];
+
   trendData.value = {
     dates: formattedDates,
     positiveData,
     neutralData,
-    negativeData
+    negativeData,
+    originalDates // 添加原始日期
   };
 
   console.log(`折线图: ${dates.length}个日期点`);
@@ -813,7 +818,14 @@ const updateLineChart = () => {
     tooltip: {
       trigger: 'axis',
       formatter: function(params: any) {
-        let result = params[0].name + '<br/>';
+        // 如果有原始日期数据，使用原始日期格式化为年月日
+        let dateStr = params[0].name;
+        if (trendData.value.originalDates && params[0].dataIndex < trendData.value.originalDates.length) {
+          const originalDate = new Date(trendData.value.originalDates[params[0].dataIndex]);
+          dateStr = `${originalDate.getFullYear()}-${originalDate.getMonth() + 1}-${originalDate.getDate()}`;
+        }
+
+        let result = dateStr + '<br/>';
         params.forEach((param: any) => {
           result += param.marker + param.seriesName + ': ' + param.value + '<br/>';
         });
@@ -1309,7 +1321,8 @@ const fetchSentimentTrendData = async () => {
       dates: [],
       positiveData: [],
       neutralData: [],
-      negativeData: []
+      negativeData: [],
+      originalDates: []
     };
     statsData.value = {
       positive: 0,
@@ -1570,7 +1583,8 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
         dates: [],
         positiveData: [],
         neutralData: [],
-        negativeData: []
+        negativeData: [],
+        originalDates: []
       };
       statsData.value = { positive: 0, neutral: 0, negative: 0, total: 0 };
 

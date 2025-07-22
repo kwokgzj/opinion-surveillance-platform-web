@@ -642,10 +642,13 @@ const processLineChartData = (trendData: any[], chart: echarts.ECharts | null) =
 
   // 转换为图表数据格式
   const sortedDates = Array.from(dates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  // 显示用的简化日期格式（用于X轴）
   const formattedDates = sortedDates.map(date => {
     const d = new Date(date);
     return `${d.getMonth() + 1}-${d.getDate()}`;
   });
+  // 原始完整日期（用于tooltip）
+  const originalDates = [...sortedDates];
 
   // 创建系列数据
   const seriesData: Array<{ name: string; data: number[]; color: string }> = [];
@@ -687,7 +690,7 @@ const processLineChartData = (trendData: any[], chart: echarts.ECharts | null) =
     seriesData.push({ name, data, color });
   });
 
-  updateLineChart(chart, formattedDates, seriesData);
+  updateLineChart(chart, formattedDates, seriesData, originalDates);
 };
 
 
@@ -826,7 +829,8 @@ const forceResizeAllCharts = () => {
 const updateLineChart = (
   chart: echarts.ECharts,
   dates: string[],
-  series: Array<{ name: string; data: number[]; color: string }>
+  series: Array<{ name: string; data: number[]; color: string }>,
+  originalDates?: string[]
 ) => {
   if (!chart) return;
 
@@ -834,7 +838,14 @@ const updateLineChart = (
     tooltip: {
       trigger: 'axis',
       formatter: function(params: any) {
-        let result = params[0].name + '<br/>';
+        // 如果有原始日期数据，使用原始日期格式化为年月日
+        let dateStr = params[0].name;
+        if (originalDates && params[0].dataIndex < originalDates.length) {
+          const originalDate = new Date(originalDates[params[0].dataIndex]);
+          dateStr = `${originalDate.getFullYear()}-${originalDate.getMonth() + 1}-${originalDate.getDate()}`;
+        }
+
+        let result = dateStr + '<br/>';
         params.forEach((param: any) => {
           result += param.marker + param.seriesName + ': ' + param.value + '<br/>';
         });
