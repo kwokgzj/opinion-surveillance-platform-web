@@ -43,7 +43,7 @@ const webSearchFunction = async (
   },
 ): Promise<any> => {
   console.log('自定义搜索函数被调用', queryList, options)
-  // 调用服务端搜索接口，直接返回接口的data数据
+  // 调用服务端搜索接口，直接返回接口的data数组数据
   return []
 }
 </script>
