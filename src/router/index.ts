@@ -103,11 +103,11 @@ const router = createRouter({
         //   name: 'compare',
         //   component: () => import('@/views/CompareView.vue')
         // },
-        // {
-        //   path: 'ai-analysis',
-        //   name: 'ai-analysis',
-        //   component: () => import('@/views/AIAnalysisView.vue')
-        // }
+        {
+          path: 'ai-analysis',
+          name: 'ai-analysis',
+          component: () => import('@/views/AIAnalysisView.vue')
+        }
       ]
     }
   ]
