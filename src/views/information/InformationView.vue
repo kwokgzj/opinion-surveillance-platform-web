@@ -397,10 +397,17 @@
           <!-- 新闻类型特殊布局 -->
           <template v-if="isNewsType(item)">
             <img
-              :src="item.channelThumbnailUrl || noPictureIcon"
+              :src="getProxiedImageUrl(item.channelThumbnailUrl || noPictureIcon, item.platform)"
+              :data-original-url="item.channelThumbnailUrl"
+              :data-platform="item.platform"
               class="info-logo"
               :class="{ 'inactive': !item.isActive }"
+              @load="handleImageLoad"
               @error="handleImageError"
+              crossorigin="anonymous"
+              referrerpolicy="no-referrer"
+              loading="lazy"
+              :alt="item.channelName || '频道头像'"
             />
             <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
             <div class="info-platform" :class="{ 'inactive': !item.isActive }" v-if="item.newsPlatform">
@@ -414,10 +421,17 @@
           <!-- 其他类型布局 -->
           <template v-else>
             <img
-              :src="item.channelThumbnailUrl || noPictureIcon"
+              :src="getProxiedImageUrl(item.channelThumbnailUrl || noPictureIcon, item.platform)"
+              :data-original-url="item.channelThumbnailUrl"
+              :data-platform="item.platform"
               class="info-logo"
               :class="{ 'inactive': !item.isActive }"
+              @load="handleImageLoad"
               @error="handleImageError"
+              crossorigin="anonymous"
+              referrerpolicy="no-referrer"
+              loading="lazy"
+              :alt="item.channelName || '频道头像'"
             />
             <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
             <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(item.subscriberCount) }}</span></div>
@@ -470,10 +484,17 @@
           <div class="info-content-row">
             <img
               v-if="item.thumbnailUrl"
-              :src="item.thumbnailUrl"
+              :src="getProxiedImageUrl(item.thumbnailUrl, item.platform)"
+              :data-original-url="item.thumbnailUrl"
+              :data-platform="item.platform"
               class="info-cover"
               :class="{ 'inactive': !item.isActive }"
+              @load="handleImageLoad"
               @error="handleImageError"
+              crossorigin="anonymous"
+              referrerpolicy="no-referrer"
+              loading="lazy"
+              :alt="item.title || '缩略图'"
             />
             <div class="info-content-main" :class="{ 'no-thumbnail': !item.thumbnailUrl }">
               <div
@@ -736,6 +757,7 @@ import youtubeIcon from '@/components/icons/youtube.svg';
 import googleIcon from '@/components/icons/google.svg';
 import facebookIcon from '@/components/icons/facebook.svg';
 import XIcon from '@/components/icons/X.svg';
+import instagramIcon from '@/components/icons/instagram.svg';
 import noPictureIcon from '@/components/icons/noPicture.svg';
 import tagIcon from '@/components/icons/tag.svg';
 import captureActiveIcon from '@/components/icons/capture-active.svg';
@@ -1442,6 +1464,11 @@ const fetchInformationData = async () => {
       selectedItems.value = [];
     }
 
+    // 调试：显示当前加载的平台信息
+    const platforms = informationList.value.map(item => item.platform).filter((platform, index, self) => self.indexOf(platform) === index);
+    console.log('当前加载的平台:', platforms);
+    console.log('Instagram项目数量:', informationList.value.filter(item => item.platform?.toLowerCase().includes('instagram')).length);
+
 
   } catch (err) {
     console.error('获取信息数据失败:', err);
@@ -1525,7 +1552,8 @@ function getPlatformIcon(platform: string): string {
     'Youtube': youtubeIcon,
     'GoogleNews': googleIcon,
     'Facebook': facebookIcon,
-    'X': XIcon
+    'X': XIcon,
+    'Instagram': instagramIcon
   };
   return iconMap[platform] || noPictureIcon;
 }
@@ -1991,22 +2019,136 @@ async function handleBatchSetCapture(isActive: boolean) {
 // 处理图片加载错误
 function handleImageError(event: Event) {
   const target = event.target as HTMLImageElement;
-  if (target && !target.dataset.errorHandled) {
-    // 标记已处理过错误，避免无限循环
-    target.dataset.errorHandled = 'true';
+  const originalUrl = target.dataset.originalUrl;
+  const platform = target.dataset.platform;
 
-    // 使用一个简单的内联SVG作为占位符，避免再次网络请求
-    const placeholderSvg = `data:image/svg+xml;base64,${btoa(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-        <rect width="48" height="48" fill="#f5f5f5" stroke="#ddd" stroke-width="1"/>
-        <text x="24" y="28" font-family="Arial" font-size="10" fill="#999" text-anchor="middle">图片</text>
-      </svg>
-    `)}`;
+  if (!originalUrl) {
+    // 如果没有原始URL，直接显示占位符
+    showImagePlaceholder(target);
+    return;
+  }
 
-    target.src = placeholderSvg;
-    target.onerror = null; // 清除错误处理，避免再次触发
+  // 只有Instagram平台才使用代理重试机制
+  const isInstagramPlatform = platform?.toLowerCase().includes('instagram') || false;
+
+  if (!isInstagramPlatform) {
+    // 非Instagram平台直接显示占位符
+    console.log('非Instagram平台图片加载失败，显示占位符:', platform, originalUrl);
+    showImagePlaceholder(target);
+    return;
+  }
+
+  // 获取当前尝试次数
+  const retryCount = parseInt(target.dataset.retryCount || '0');
+  const maxRetries = imageProxyConfigs.length;
+
+  // 记录失败的代理
+  if (retryCount > 0) {
+    const failedProxyConfig = imageProxyConfigs[retryCount - 1];
+    const failedProxyKey = `${failedProxyConfig.name}:${originalUrl}`;
+    failedProxyCache.add(failedProxyKey);
+
+    // 更新代理统计
+    const stats = proxyStats.get(failedProxyConfig.name) || { success: 0, total: 0 };
+    stats.total += 1;
+    proxyStats.set(failedProxyConfig.name, stats);
+
+    console.warn(`Instagram代理${failedProxyConfig.name}加载失败:`, originalUrl);
+  }
+
+  if (retryCount >= maxRetries) {
+    // 所有代理都尝试过了，显示占位符
+    console.warn('Instagram所有图片代理都失败，显示占位符:', originalUrl);
+    showImagePlaceholder(target);
+    return;
+  }
+
+  // 尝试下一个代理
+  const nextProxyConfig = imageProxyConfigs[retryCount];
+  console.log(`Instagram图片加载失败，尝试第${retryCount + 1}个代理:`, nextProxyConfig.name, originalUrl);
+
+  try {
+    const nextProxiedUrl = nextProxyConfig.template(originalUrl);
+    target.dataset.retryCount = String(retryCount + 1);
+    target.src = nextProxiedUrl;
+
+    // 设置超时，如果这个代理也失败了会自动重试下一个
+    setTimeout(() => {
+      if (target.complete && target.naturalWidth === 0) {
+        // 图片还是没有加载成功，触发下一次重试
+        handleImageError(event);
+      }
+    }, nextProxyConfig.timeout);
+
+  } catch (error) {
+    console.warn(`Instagram代理${nextProxyConfig.name}配置失败:`, error);
+    // 直接尝试下一个代理
+    target.dataset.retryCount = String(retryCount + 1);
+    setTimeout(() => handleImageError(event), 100);
   }
 }
+
+// 显示图片占位符
+function showImagePlaceholder(target: HTMLImageElement) {
+  target.dataset.errorHandled = 'true';
+
+  // 根据图片类型生成不同的占位符
+  const isLogo = target.classList.contains('info-logo');
+  let placeholderSvg;
+
+  if (isLogo) {
+    // 圆形头像占位符
+    placeholderSvg = `data:image/svg+xml;base64,${btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="24" fill="#f5f5f5" stroke="#ddd" stroke-width="1"/>
+        <circle cx="24" cy="18" r="8" fill="#ddd"/>
+        <path d="M8 40c0-8.8 7.2-16 16-16s16 7.2 16 16" fill="#ddd"/>
+      </svg>
+    `)}`;
+  } else {
+    // 矩形封面占位符
+    placeholderSvg = `data:image/svg+xml;base64,${btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="120" height="68" viewBox="0 0 120 68">
+        <rect width="120" height="68" fill="#f5f5f5" stroke="#ddd" stroke-width="1"/>
+        <circle cx="45" cy="25" r="8" fill="#ddd"/>
+        <polygon points="35,45 35,35 55,25 65,35 75,30 85,40 85,45" fill="#ddd"/>
+        <text x="60" y="58" font-family="Arial, sans-serif" font-size="10" fill="#999" text-anchor="middle">图片无法加载</text>
+      </svg>
+    `)}`;
+  }
+
+  target.src = placeholderSvg;
+  target.onerror = null; // 清除错误处理，避免再次触发
+}
+
+// 处理图片加载成功
+function handleImageLoad(event: Event) {
+  const target = event.target as HTMLImageElement;
+  const originalUrl = target.dataset.originalUrl;
+  const platform = target.dataset.platform;
+  const retryCount = parseInt(target.dataset.retryCount || '0');
+
+  if (originalUrl) {
+    // 缓存成功的代理URL
+    workingProxyCache.set(originalUrl, target.src);
+
+    // 更新代理成功统计（只针对Instagram平台）
+    const isInstagramPlatform = platform?.toLowerCase().includes('instagram') || false;
+    if (isInstagramPlatform && retryCount > 0) {
+      const successProxyConfig = imageProxyConfigs[retryCount - 1];
+      const stats = proxyStats.get(successProxyConfig.name) || { success: 0, total: 0 };
+      stats.success += 1;
+      stats.total += 1;
+      proxyStats.set(successProxyConfig.name, stats);
+
+      console.log(`Instagram代理${successProxyConfig.name}加载成功:`, originalUrl, `成功率: ${(stats.success / stats.total * 100).toFixed(1)}%`);
+    } else if (!isInstagramPlatform) {
+      console.log('非Instagram平台图片加载成功:', platform, originalUrl);
+    }
+  }
+}
+
+
 
 // 检查是否有情感数据
 function hasSentimentData(item: Information): boolean {
@@ -2094,6 +2236,118 @@ async function handleBatchDelete() {
       errorMessage = `请求错误: ${error.message}`;
     }
     ElMessage.error(errorMessage);
+  }
+}
+
+// 图片代理配置
+const imageProxyConfigs = [
+  {
+    name: 'weserv',
+    template: (url: string) => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=300&h=200&fit=cover&we&output=webp`,
+    timeout: 3000,
+    priority: 1
+  },
+  {
+    name: 'imageproxy',
+    template: (url: string) => `https://imageproxy.pimg.tw/resize?url=${encodeURIComponent(url)}&width=300&height=200`,
+    timeout: 3000,
+    priority: 2
+  },
+  {
+    name: 'allorigins',
+    template: (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    timeout: 5000,
+    priority: 3
+  },
+  {
+    name: 'proxy-api',
+    template: (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    timeout: 5000,
+    priority: 4
+  }
+];
+
+// 缓存已测试成功的代理和失败的代理
+const workingProxyCache = new Map<string, string>();
+const failedProxyCache = new Set<string>();
+
+// 代理成功率统计
+const proxyStats = new Map<string, { success: number; total: number }>();
+
+// 获取代理后的图片URL，解决CORS问题（仅针对Instagram平台）
+function getProxiedImageUrl(originalUrl: string, platform?: string): string {
+  if (!originalUrl) {
+    return noPictureIcon;
+  }
+
+  // 只有 Instagram 平台才需要代理
+  const isInstagramPlatform = platform?.toLowerCase().includes('instagram') || false;
+
+  // 检查是否是需要代理的域名（Instagram相关域名）
+  const needsProxy = isInstagramPlatform && [
+    'instagram.fcxj17-1.fna.fbcdn.net',
+    'scontent.cdninstagram.com',
+    'scontent.instagram.com',
+    'fbcdn.net',
+    'cdninstagram.com',
+    'instagram.com'
+  ].some(domain => originalUrl.includes(domain));
+
+  if (!needsProxy) {
+    return originalUrl;
+  }
+
+  // 检查缓存中是否有可用的代理
+  const cachedProxy = workingProxyCache.get(originalUrl);
+  if (cachedProxy) {
+    return cachedProxy;
+  }
+
+  // 尝试第一个代理配置
+  try {
+    const firstProxy = imageProxyConfigs[0];
+    const proxiedUrl = firstProxy.template(originalUrl);
+
+    // 预加载测试这个代理是否可用
+    setTimeout(() => testProxyAndCache(originalUrl, proxiedUrl), 100);
+
+    return proxiedUrl;
+  } catch (error) {
+    console.warn('图片代理URL生成失败:', error);
+    return noPictureIcon;
+  }
+}
+
+// 测试代理是否可用并缓存结果
+async function testProxyAndCache(originalUrl: string, proxiedUrl: string) {
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    const loadPromise = new Promise<boolean>((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve(false);
+      }, 3000);
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        resolve(true);
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        resolve(false);
+      };
+    });
+
+    img.src = proxiedUrl;
+    const success = await loadPromise;
+
+    if (success) {
+      workingProxyCache.set(originalUrl, proxiedUrl);
+    }
+  } catch (error) {
+    console.warn('代理测试失败:', error);
   }
 }
 
@@ -2892,6 +3146,33 @@ async function handleBatchDelete() {
   border-radius: 6px;
   border: 1px solid #eee;
   flex-shrink: 0;
+  background: #f8f9fa;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  position: relative;
+}
+
+.info-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.info-cover[src=""], .info-cover:not([src]) {
+  opacity: 0.5;
+}
+
+.info-cover[src=""]:before, .info-cover:not([src]):before {
+  opacity: 0.3;
 }
 .info-content-main {
   flex: 1;

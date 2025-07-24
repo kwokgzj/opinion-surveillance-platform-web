@@ -34,7 +34,7 @@ const defaultConfig = ref<Partial<AssistantSettings>>({
 const mcpServers = ref<MCPServer[]>([])
 const models = ref<Model[]>([
   {
-    id: '1',
+    id: 'deepseek-r1',
     name: 'deepseek-r1',
     displayName: 'Deepseek-R1',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png',
