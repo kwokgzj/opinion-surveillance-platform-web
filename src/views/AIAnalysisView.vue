@@ -64,7 +64,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '1013',
+    id: 'claude-3-7-sonnet-thinking',
     name: 'claude-3-7-sonnet-thinking',
     displayName: 'claude-3-7-sonnet-thinking',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
@@ -73,7 +73,7 @@ const models = ref<Model[]>([
     abilityList: ['reasoning', 'vision'],
   },
   {
-    id: '1011',
+    id: 'claude-sonnet-4-20250514-thinking',
     name: 'claude-sonnet-4-20250514-thinking',
     displayName: 'Claude-Sonnet-4-Thinking',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
@@ -82,7 +82,7 @@ const models = ref<Model[]>([
     abilityList: ['reasoning', 'vision'],
   },
   {
-    id: '1010',
+    id: 'claude-opus-4-20250514-thinking',
     name: 'claude-opus-4-20250514-thinking',
     displayName: 'Claude-Opus-4-Thinking',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
@@ -91,7 +91,7 @@ const models = ref<Model[]>([
     abilityList: ['reasoning', 'vision'],
   },
   {
-    id: '1009',
+    id: 'claude-sonnet-4-20250514',
     name: 'claude-sonnet-4-20250514',
     displayName: 'Claude Sonnet 4',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
@@ -100,7 +100,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '1008',
+    id: 'claude-opus-4-20250514',
     name: 'claude-opus-4-20250514',
     displayName: 'Claude Opus 4',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
@@ -110,7 +110,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '4',
+    id: 'gpt-4.1',
     name: 'gpt-4.1',
     displayName: 'gpt-4.1',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/chatgpt.jpeg',
@@ -119,7 +119,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '1004',
+    id: 'gpt-4.1-mini',
     name: 'gpt-4.1-mini',
     displayName: 'GPT-4.1 mini',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/gpt_4.png',
@@ -128,7 +128,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '1007',
+    id: 'gpt-4o',
     name: 'gpt-4o',
     displayName: 'GPT-4o',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/gpt_4.png',
@@ -138,7 +138,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '1023',
+    id: 'doubao-seed-1.6-thinking',
     name: 'doubao-seed-1.6-thinking',
     displayName: 'Doubao Seed 1.6 Thinking',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png',
@@ -147,7 +147,7 @@ const models = ref<Model[]>([
     abilityList: ['reasoning', 'vision'],
   },
   {
-    id: '1022',
+    id: 'doubao-seed-1.6',
     name: 'doubao-seed-1.6',
     displayName: 'Doubao Seed 1.6',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png',
@@ -157,7 +157,7 @@ const models = ref<Model[]>([
     abilityList: ['functionCall', 'vision'],
   },
   {
-    id: '1018',
+    id: 'qwen3-235b-a22b',
     name: 'qwen3-235b-a22b',
     displayName: 'Qwen3 235B A22B',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
