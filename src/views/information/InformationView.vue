@@ -103,7 +103,7 @@
             </el-select>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6" v-if="projectStore.currentProjectType !== 'GoogleNews'">
           <div class="form-item">
             <label>平台：</label>
             <el-select
@@ -248,7 +248,7 @@
             </div>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6" v-if="projectStore.currentProjectType !== 'GoogleNews'">
           <div class="form-item">
             <label>频道：</label>
             <el-select
@@ -578,43 +578,42 @@
         <!-- 右栏 -->
         <div class="info-right">
           <div class="info-table-2col">
-            <!-- 新闻类型特殊布局 -->
-            <template v-if="isNewsType(item)">
-              <div class="info-row-2col">
-                <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
-                <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
-              </div>
-              <div class="info-row-2col">
-                <div class="info-cell" style="width:100%">
-                  <span class="info-label">关键信息：</span>
-                  <span class="info-value info-long-text" :title="item.keyInformation">{{ item.keyInformation || '-' }}</span>
+                          <!-- 新闻类型特殊布局 -->
+              <template v-if="isNewsType(item)">
+                <div class="info-row-2col">
+                  <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
+                  <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
                 </div>
-              </div>
-              <div class="info-row-2col">
-                <div class="info-cell" style="width:100%">
-                  <span class="info-label">中文翻译：</span>
-                  <span class="info-value info-long-text" :title="item.titleCN">{{ item.titleCN || '-' }}</span>
+                <div class="info-row-2col">
+                  <div class="info-cell" style="width:100%">
+                    <span class="info-label">关键信息：</span>
+                    <span class="info-value info-long-text" :title="item.keyInformation">{{ item.keyInformation || '-' }}</span>
+                  </div>
                 </div>
-              </div>
-              <div class="info-row-2col">
-                <div class="info-cell">
-                  <span class="info-label">情感倾向：</span>
-                  <span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))">
-                    <img
-                      v-if="hasSentimentData(item)"
-                      :src="getSentimentIcon(getSentimentFromContent(item))"
-                      class="sentiment-icon"
-                      @error="handleImageError"
-                    />
-                    <span v-else>-</span>
-                  </span>
+                <div class="info-row-2col">
+                  <div class="info-cell" style="width:100%">
+                    <span class="info-label">中文翻译：</span>
+                    <span class="info-value info-long-text" :title="item.titleCN">{{ item.titleCN || '-' }}</span>
+                  </div>
                 </div>
-                <!-- 为新闻类型添加一个占位单元格，保持布局一致 -->
-                <div class="info-cell" v-if="isNewsType(item)">
-                  <span class="info-label"></span>
-                  <span class="info-value"></span>
+                <div class="info-row-2col">
+                  <div class="info-cell" style="width:100%">
+                    <span class="info-label">情感倾向：</span>
+                    <span class="info-value sentiment-icons-container">
+                      <template v-if="item.contentMentionedBrands && item.contentMentionedBrands.length > 0">
+                        <img
+                          v-for="brand in item.contentMentionedBrands"
+                          :key="brand.brand"
+                          :src="getSentimentIcon(brand.sentiment)"
+                          :title="getBrandSentimentTooltip(brand)"
+                          class="sentiment-icon"
+                          @error="handleImageError"
+                        />
+                      </template>
+                      <span v-else>-</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
               <div class="info-row-2col last-row">
                 <div class="info-cell" style="width:100%">
                   <span class="info-label">抓取时间：</span>
@@ -642,15 +641,19 @@
                   <span class="info-label">分享数：</span>
                   <span class="info-value" :title="String(item.shareCount)">{{ item.shareCount }}</span>
                 </div>
-                <div class="info-cell">
+                <div class="info-cell" style="width:100%">
                   <span class="info-label">情感倾向：</span>
-                  <span class="info-value info-sentiment" :title="getSentimentText(getSentimentFromContent(item))">
-                    <img
-                      v-if="hasSentimentData(item)"
-                      :src="getSentimentIcon(getSentimentFromContent(item))"
-                      class="sentiment-icon"
-                      @error="handleImageError"
-                    />
+                  <span class="info-value sentiment-icons-container">
+                    <template v-if="item.contentMentionedBrands && item.contentMentionedBrands.length > 0">
+                      <img
+                        v-for="brand in item.contentMentionedBrands"
+                        :key="brand.brand"
+                        :src="getSentimentIcon(brand.sentiment)"
+                        :title="getBrandSentimentTooltip(brand)"
+                        class="sentiment-icon"
+                        @error="handleImageError"
+                      />
+                    </template>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -674,11 +677,11 @@
       </div>
 
       <!-- 分页组件 -->
-      <div v-if="totalPages > 1 && !isMultiSelectMode" class="pagination-container">
+      <div v-if="!isMultiSelectMode" class="pagination-container">
         <div class="pagination-info">
           <span>共 {{ totalCount }} 条记录，第 {{ currentPage }} / {{ totalPages }} 页</span>
         </div>
-        <div class="pagination-controls">
+        <div class="pagination-controls" v-if="totalPages > 1">
           <button
             class="pagination-btn"
             :disabled="currentPage === 1"
@@ -1499,6 +1502,8 @@ function formatDateYMD(timeStr: string): string {
   if (!timeStr) return '-';
 
   try {
+    console.log('formatDateYMD - 原始时间字符串:', timeStr);
+
     // 尝试解析时间字符串
     let date: Date;
 
@@ -1507,9 +1512,74 @@ function formatDateYMD(timeStr: string): string {
       // 如果是10位时间戳，转换为13位
       const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr);
       date = new Date(timestamp);
-    } else {
-      // 尝试直接解析时间字符串
-      date = new Date(timeStr);
+        } else {
+                  // 处理 ISO 8601 格式，如 "2025-07-25T09:20:05+08:00"
+      if (timeStr.includes('T') && (timeStr.includes('+') || timeStr.includes('Z'))) {
+        // 解析ISO 8601格式并转换为北京时间显示
+        date = new Date(timeStr);
+
+        // 转换为北京时间 (UTC+8)
+        const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+
+        console.log('formatDateYMD - ISO 8601转北京时间:', {
+          原始: timeStr,
+          解析后UTC: date.toISOString(),
+          北京时间: beijingTime.toString(),
+          时区偏移: date.getTimezoneOffset()
+        });
+
+        const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`;
+        console.log('formatDateYMD - 北京时间格式化结果:', result);
+        return result;
+      }
+      // 处理 CST 时间格式，如 "Thu Jul 24 19:20:05 CST 2025"
+      else if (timeStr.includes('CST')) {
+        // 解析 CST 时间格式: "Thu Jul 24 19:20:05 CST 2025"
+        const cstRegex = /(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+CST\s+(\d{4})/;
+        const match = timeStr.match(cstRegex);
+
+        if (match) {
+          const [, , monthStr, day, hour, minute, second, year] = match;
+
+          // 月份映射
+          const monthMap: { [key: string]: number } = {
+            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+          };
+
+          const month = monthMap[monthStr];
+
+          // CST已经是北京时间，直接创建本地时间对象
+          const beijingTime = new Date(
+            parseInt(year),
+            month,
+            parseInt(day),
+            parseInt(hour),
+            parseInt(minute),
+            parseInt(second)
+          );
+
+          console.log('formatDateYMD - CST时间手动解析:', {
+            原始: timeStr,
+            解析结果: match,
+            年: year, 月: monthStr, 日: day, 时: hour, 分: minute, 秒: second,
+            最终Date对象: beijingTime,
+            最终时间戳: beijingTime.getTime()
+          });
+
+          const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`;
+          console.log('formatDateYMD - CST北京时间格式化结果:', result);
+          return result;
+        } else {
+          // 如果正则匹配失败，尝试移除CST后解析
+          const cleanTimeStr = timeStr.replace(' CST', '');
+          date = new Date(cleanTimeStr);
+          console.log('formatDateYMD - CST正则匹配失败，使用简单方式解析');
+        }
+      } else {
+        // 尝试直接解析时间字符串
+        date = new Date(timeStr);
+      }
     }
 
     // 检查日期是否有效
@@ -1518,7 +1588,13 @@ function formatDateYMD(timeStr: string): string {
       return '-';
     }
 
-    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    // 转换为北京时间显示
+    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+
+    const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`;
+    console.log('formatDateYMD - 北京时间格式化结果:', result);
+
+    return result;
   } catch (error) {
     console.error('日期格式化错误:', error, '原始值:', timeStr);
     return '-';
@@ -1538,9 +1614,54 @@ function formatDateYMDOnly(timeStr: string): string {
       // 如果是10位时间戳，转换为13位
       const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr);
       date = new Date(timestamp);
-    } else {
-      // 尝试直接解析时间字符串
-      date = new Date(timeStr);
+        } else {
+                  // 处理 ISO 8601 格式，如 "2025-07-25T09:20:05+08:00"
+      if (timeStr.includes('T') && (timeStr.includes('+') || timeStr.includes('Z'))) {
+        // 解析ISO 8601格式并转换为北京时间显示
+        date = new Date(timeStr);
+
+        // 转换为北京时间 (UTC+8)
+        const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+
+        return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`;
+      }
+      // 处理 CST 时间格式，如 "Thu Jul 24 19:20:05 CST 2025"
+      else if (timeStr.includes('CST')) {
+        // 解析 CST 时间格式: "Thu Jul 24 19:20:05 CST 2025"
+        const cstRegex = /(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+CST\s+(\d{4})/;
+        const match = timeStr.match(cstRegex);
+
+        if (match) {
+          const [, , monthStr, day, hour, minute, second, year] = match;
+
+          // 月份映射
+          const monthMap: { [key: string]: number } = {
+            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+          };
+
+          const month = monthMap[monthStr];
+
+          // CST已经是北京时间，直接创建本地时间对象
+          const beijingTime = new Date(
+            parseInt(year),
+            month,
+            parseInt(day),
+            parseInt(hour),
+            parseInt(minute),
+            parseInt(second)
+          );
+
+          return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`;
+        } else {
+          // 如果正则匹配失败，尝试移除CST后解析
+          const cleanTimeStr = timeStr.replace(' CST', '');
+          date = new Date(cleanTimeStr);
+        }
+      } else {
+        // 尝试直接解析时间字符串
+        date = new Date(timeStr);
+      }
     }
 
     // 检查日期是否有效
@@ -1549,7 +1670,10 @@ function formatDateYMDOnly(timeStr: string): string {
       return '-';
     }
 
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    // 转换为北京时间显示
+    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+
+    return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`;
   } catch (error) {
     console.error('日期格式化错误:', error, '原始值:', timeStr);
     return '-';
@@ -1570,10 +1694,24 @@ function getPlatformIcon(platform: string): string {
 
 // 获取情感图标
 function getSentimentIcon(sentiment: number): string {
+  console.log('getSentimentIcon - 输入情感分数:', sentiment);
+
+  // 处理不同的数据格式
+  let normalizedSentiment = sentiment;
+  if (sentiment <= 1) {
+    // 如果是0-1之间的小数，转换为0-100
+    normalizedSentiment = Math.round(sentiment * 100);
+  }
+
+  console.log('getSentimentIcon - 标准化后的情感分数:', normalizedSentiment);
+
   let str = 'Neutral';
-  if (sentiment <= 30) str = 'Negative';
-  if (sentiment >= 71) str = 'Positive';
-  if (sentiment >= 31 && sentiment <= 70) str = 'Neutral';
+  if (normalizedSentiment <= 30) str = 'Negative';
+  if (normalizedSentiment >= 71) str = 'Positive';
+  if (normalizedSentiment >= 31 && normalizedSentiment <= 70) str = 'Neutral';
+
+  console.log('getSentimentIcon - 计算得到的情感类型:', str);
+
   const iconMap: Record<string, string> = {
     'Positive': positiveIcon,
     'Neutral': neutralIcon,
@@ -1604,7 +1742,7 @@ function convertLabelsToValues(options: FilterOption[], labels: string[]): strin
 // 从内容中获取品牌信息
 function getBrandFromContent(item: Information): string {
   if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
-    return item.contentMentionedBrands[0].brand;
+    return item.contentMentionedBrands.map(brand => brand.brand).join(', ');
   }
   return '-';
 }
@@ -1612,23 +1750,26 @@ function getBrandFromContent(item: Information): string {
 // 从内容中获取SKU信息
 function getSkuFromContent(item: Information): string {
   if (item.contentMentionedSkus && item.contentMentionedSkus.length > 0) {
-    return item.contentMentionedSkus[0].sku;
+    return item.contentMentionedSkus.map(sku => sku.sku).join(', ');
   }
   return '-';
 }
 
-// 从内容中获取情感倾向
-function getSentimentFromContent(item: Information): number {
-  // 检查是否有品牌情感数据
-  if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
-    // 将0-1的小数转换为0-100的整数
-    const sentiment = Math.round(item.contentMentionedBrands[0].sentiment * 100);
-    return sentiment;
+
+
+// 获取单个品牌的情感依据（用于单个图标tooltip）
+function getBrandSentimentTooltip(brand: any): string {
+  // 使用相同的标准化逻辑
+  let normalizedSentiment = brand.sentiment;
+  if (brand.sentiment <= 1) {
+    normalizedSentiment = Math.round(brand.sentiment * 100);
   }
 
-  // 如果没有品牌情感数据，返回默认中性值
-  return 50; // 默认中性
+  const sentimentText = getSentimentText(normalizedSentiment);
+  return `${brand.brand}（${sentimentText}）：${brand.evidence || '无具体依据'}`;
 }
+
+
 
 // 根据value获取语言的label
 function getLanguageLabel(value: string): string {
@@ -2182,10 +2323,7 @@ function handleImageLoad(event: Event) {
 
 
 
-// 检查是否有情感数据
-function hasSentimentData(item: Information): boolean {
-  return item.contentMentionedBrands && item.contentMentionedBrands.length > 0;
-}
+
 
 // 获取显示标题（如果没有标题则使用描述）
 function getDisplayTitle(item: Information): string {
@@ -3293,9 +3431,11 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 .info-table-2col {
   width: 100%;
+  max-width: 380px; /* 确保不超过info-right的宽度 */
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow: hidden; /* 防止内容溢出 */
 }
 .info-row-2col {
   display: flex;
@@ -3350,7 +3490,21 @@ function getProxiedImageUrl(originalUrl: string): string {
 .sentiment-icon {
   width: 20px;
   height: 20px;
-  margin-left: 4px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.sentiment-icons-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 260px !important; /* 为标签留空间，适配固定宽度 */
+  width: fit-content;
+  overflow: hidden;
+  white-space: normal !important; /* 允许换行 */
+  line-height: 1.2;
+  min-height: 20px;
 }
 .info-divider {
   width: 1px;
@@ -3360,14 +3514,16 @@ function getProxiedImageUrl(originalUrl: string): string {
   align-self: center;
 }
 .info-right {
-  min-width: 360px;
-  max-width: 400px;
+  width: 380px; /* 固定宽度 */
+  min-width: 380px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
   flex-shrink: 0; /* 防止被压缩 */
   margin-left: 16px; /* 添加左边距 */
+  overflow: hidden; /* 防止内容溢出撑宽 */
 }
 
 /* 加载状态样式 */
