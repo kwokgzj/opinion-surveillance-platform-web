@@ -32,6 +32,10 @@ export default defineConfig(({ mode }) => {
           // rewrite: (path) => path.replace(/^\/track-api/, '')
         }
       }
+    },
+    // 优化依赖预构建
+    optimizeDeps: {
+      exclude: ['@nzoth/toolkit']
     }
   }
 })
