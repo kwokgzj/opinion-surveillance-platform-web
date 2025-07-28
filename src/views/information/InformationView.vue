@@ -1706,9 +1706,9 @@ function getSentimentIcon(sentiment: number): string {
   console.log('getSentimentIcon - 标准化后的情感分数:', normalizedSentiment);
 
   let str = 'Neutral';
-  if (normalizedSentiment <= 30) str = 'Negative';
-  if (normalizedSentiment >= 71) str = 'Positive';
-  if (normalizedSentiment >= 31 && normalizedSentiment <= 70) str = 'Neutral';
+  if (normalizedSentiment <= 40) str = 'Negative';
+  if (normalizedSentiment >= 61) str = 'Positive';
+  if (normalizedSentiment >= 41 && normalizedSentiment <= 60) str = 'Neutral';
 
   console.log('getSentimentIcon - 计算得到的情感类型:', str);
 
