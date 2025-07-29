@@ -221,9 +221,16 @@
           <button
             v-if="shouldShowTestButton"
             class="btn-test"
+            :class="{ 'btn-testing': isSearchTesting, 'btn-disabled': searchTestButtonDisabled }"
+            :disabled="searchTestButtonDisabled || isSearchTesting"
             @click="testSearch"
           >
-            搜索测试
+            <span v-if="searchTestButtonDisabled">检查中...</span>
+            <span v-else-if="!isSearchTesting">搜索测试</span>
+            <span v-else-if="searchTestProgress">
+              {{ progressDisplayText }}
+            </span>
+            <span v-else>启动中...</span>
           </button>
           <button
             class="btn-save"
@@ -240,8 +247,17 @@
 </template>
 
 <script lang="ts">
-import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask } from '@/api/project/project';
+import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask, getDataCrawlProgress } from '@/api/project/project';
 import { ElMessage, ElMessageBox } from 'element-plus';
+
+interface CrawlProgress {
+  currentStage: string;
+  currentStageProgress: number;
+  totalProgress: number;
+  estimatedTimeRemaining: number;
+  startTime: string;
+  estimatedEndTime: string | null;
+}
 export default {
   name: 'NewKeywordProjectView',
   data() {
@@ -275,6 +291,12 @@ export default {
       // 用于检测页面变更
       hasChanges: false,
       initialFormData: null,
+
+      // 搜索测试进度相关
+      isSearchTesting: false,
+      searchTestProgress: null as CrawlProgress | null,
+      progressTimer: null as number | null,
+      searchTestButtonDisabled: true, // 初始化时按钮禁用
 
       // 选项数据
       timeRangeOptions: [
@@ -362,6 +384,15 @@ export default {
     // 是否显示搜索测试按钮
     shouldShowTestButton() {
       return !this.hasChanges && (this.projectStatus === 'created' || (this.isEditMode && !this.hasChanges));
+    },
+
+    // 进度显示文本
+    progressDisplayText() {
+      if (this.searchTestProgress) {
+        const progress = this.searchTestProgress;
+        return `${progress.currentStage} ${progress.totalProgress}%`;
+      }
+      return '测试中...';
     }
   },
   watch: {
@@ -432,9 +463,14 @@ export default {
     document.addEventListener('click', this.handleClickOutside);
     // 保存初始表单数据
     this.saveInitialFormData();
+    
+    // 检查是否有正在运行的搜索测试
+    this.checkRunningSearchTest();
   },
   beforeUnmount() {
     document.removeEventListener('click', this.handleClickOutside);
+    // 清理进度轮询定时器
+    this.stopProgressPolling();
   },
   methods: {
     // 初始化页面模式
@@ -860,7 +896,7 @@ export default {
     },
 
     // 搜索测试功能
-    async testSearch() {
+    testSearch() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
 
       if (!projectId) {
@@ -868,17 +904,138 @@ export default {
         return;
       }
 
+      // 立即设置为测试状态
+      this.isSearchTesting = true;
+      this.searchTestProgress = null;
+      ElMessage.success('搜索测试任务启动中...');
+
+      // 先异步启动搜索测试任务
+      this.startSearchTestAsync(projectId);
+
+      // 然后立即开始轮询进度
+      this.startProgressPolling(projectId);
+    },
+
+    // 异步启动搜索测试
+    async startSearchTestAsync(projectId) {
       try {
+        // 启动搜索测试任务
         const response = await executeDataCrawlTask(projectId);
 
         if (response.code === 0) {
-          ElMessage.success('搜索测试任务已启动，请稍后查看结果');
+          // 不需要再次启动轮询，因为已经在testSearch中启动了
         } else {
-          ElMessage.error(`搜索测试失败：${response.msg}`);
+          ElMessage.error(`搜索测试启动失败：${response.msg}`);
+          // 停止轮询并重置状态
+          this.stopProgressPolling();
         }
       } catch (error) {
-        console.error('搜索测试失败:', error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
+        ElMessage.error('搜索测试启动失败，请检查网络连接后重试');
+        // 停止轮询并重置状态
+        this.stopProgressPolling();
+      }
+    },
+
+    // 开始轮询进度
+    startProgressPolling(projectId) {
+      // 清除之前的定时器
+      if (this.progressTimer) {
+        clearInterval(this.progressTimer);
+      }
+
+      // 立即获取一次进度
+      this.fetchProgress(projectId);
+
+      // 每0.5秒轮询一次进度
+      this.progressTimer = setInterval(() => {
+        this.fetchProgress(projectId);
+      }, 500);
+    },
+
+    // 获取进度
+    async fetchProgress(projectId) {
+      try {
+        const response = await getDataCrawlProgress(projectId);
+        
+        if (response.code === 0) {
+          if (response.data) {
+            // 有数据，说明任务正在运行
+            this.searchTestProgress = response.data;
+            
+            // 检查是否完成（总进度达到100%）
+            if (response.data.totalProgress >= 100) {
+              this.stopProgressPolling();
+              ElMessage.success('搜索测试完成！');
+            }
+          } else {
+            // 返回null，说明没有任务在运行
+            this.stopProgressPolling();
+          }
+        } else {
+          // 接口调用失败
+          this.stopProgressPolling();
+        }
+      } catch (error) {
+        // 如果获取进度失败，可能任务已完成或出错，停止轮询
+        this.stopProgressPolling();
+      }
+    },
+
+    // 停止轮询进度
+    stopProgressPolling() {
+      if (this.progressTimer) {
+        clearInterval(this.progressTimer);
+        this.progressTimer = null;
+      }
+      this.isSearchTesting = false;
+      this.searchTestProgress = null;
+      this.searchTestButtonDisabled = false;
+    },
+
+    // 检查是否有正在运行的搜索测试
+    async checkRunningSearchTest() {
+      const projectId = this.$route.params.id || this.$route.query.projectId;
+      
+      // 只有在编辑模式或已创建项目时才检查
+      if (!projectId || (!this.isEditMode && this.projectStatus === 'creating')) {
+        this.searchTestButtonDisabled = false;
+        return;
+      }
+
+      try {
+        const response = await getDataCrawlProgress(projectId);
+        
+        if (response.code === 0) {
+          if (response.data) {
+            // 有数据，检查是否还在运行中
+            if (response.data.totalProgress < 100) {
+              this.isSearchTesting = true;
+              this.searchTestProgress = response.data;
+              
+              // 开始轮询进度
+              this.startProgressPolling(projectId);
+            } else {
+              // 任务已完成，重置状态
+              this.isSearchTesting = false;
+              this.searchTestProgress = null;
+            }
+          } else {
+            // 返回null，说明没有任务在运行
+            this.isSearchTesting = false;
+            this.searchTestProgress = null;
+          }
+        } else {
+          // 接口调用失败，重置状态
+          this.isSearchTesting = false;
+          this.searchTestProgress = null;
+        }
+      } catch {
+        // 如果获取进度失败，可能是没有正在运行的任务，忽略错误
+        this.isSearchTesting = false;
+        this.searchTestProgress = null;
+      } finally {
+        // 无论如何都启用按钮
+        this.searchTestButtonDisabled = false;
       }
     },
   }
@@ -1309,8 +1466,18 @@ button {
   color: #333;
 }
 
-.btn-test:hover {
+.btn-test:hover:not(:disabled) {
   background-color: #e0e0e0;
+}
+
+.btn-testing {
+  background-color: #1890ff !important;
+  color: white !important;
+  cursor: not-allowed !important;
+}
+
+.btn-testing:hover {
+  background-color: #1890ff !important;
 }
 
 .btn-save {

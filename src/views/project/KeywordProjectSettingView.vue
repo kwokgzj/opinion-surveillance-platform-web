@@ -1057,7 +1057,6 @@ export default {
     // 搜索测试功能
     testSearch() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
-      console.log('点击搜索测试按钮，项目ID:', projectId);
 
       if (!projectId) {
         ElMessage.error('项目ID不存在，无法执行搜索测试');
@@ -1065,17 +1064,14 @@ export default {
       }
 
       // 立即设置为测试状态
-      console.log('设置测试状态为true');
       this.isSearchTesting = true;
       this.searchTestProgress = null;
       ElMessage.success('搜索测试任务启动中...');
 
       // 先异步启动搜索测试任务
-      console.log('先启动搜索测试任务');
       this.startSearchTestAsync(projectId);
 
       // 然后立即开始轮询进度
-      console.log('然后立即开始轮询进度');
       this.startProgressPolling(projectId);
     },
 
@@ -1086,7 +1082,6 @@ export default {
         const response = await executeDataCrawlTask(projectId);
 
         if (response.code === 0) {
-          console.log('搜索测试任务已启动');
           // 不需要再次启动轮询，因为已经在testSearch中启动了
         } else {
           ElMessage.error(`搜索测试启动失败：${response.msg}`);
@@ -1094,7 +1089,6 @@ export default {
           this.stopProgressPolling();
         }
       } catch (error) {
-        console.error('搜索测试启动失败:', error);
         ElMessage.error('搜索测试启动失败，请检查网络连接后重试');
         // 停止轮询并重置状态
         this.stopProgressPolling();
@@ -1103,42 +1097,28 @@ export default {
 
     // 开始轮询进度
     startProgressPolling(projectId) {
-      console.log('开始轮询搜索测试进度，项目ID:', projectId);
       // 清除之前的定时器
       if (this.progressTimer) {
         clearInterval(this.progressTimer);
       }
 
       // 立即获取一次进度
-      console.log('立即执行第一次进度获取');
       this.fetchProgress(projectId);
 
       // 每0.5秒轮询一次进度
-      console.log('设置定时器，每0.5秒轮询一次');
       this.progressTimer = setInterval(() => {
-        console.log('定时器触发，获取进度');
         this.fetchProgress(projectId);
       }, 500);
     },
 
     // 获取进度
     async fetchProgress(projectId) {
-      console.log('正在获取搜索测试进度...', projectId);
       try {
         const response = await getDataCrawlProgress(projectId);
-        console.log('进度响应:', response);
         
         if (response.code === 0) {
           if (response.data) {
             // 有数据，说明任务正在运行
-            console.log('更新进度数据:', {
-              阶段: response.data.currentStage,
-              当前阶段进度: response.data.currentStageProgress + '%',
-              总进度: response.data.totalProgress + '%',
-              预计剩余时间: response.data.estimatedTimeRemaining + '秒',
-              开始时间: response.data.startTime,
-              预计结束时间: response.data.estimatedEndTime
-            });
             this.searchTestProgress = response.data;
             
             // 检查是否完成（总进度达到100%）
@@ -1148,16 +1128,13 @@ export default {
             }
           } else {
             // 返回null，说明没有任务在运行
-            console.log('没有任务在运行，停止轮询');
             this.stopProgressPolling();
           }
         } else {
           // 接口调用失败
-          console.error('获取搜索进度失败:', response.msg);
           this.stopProgressPolling();
         }
       } catch (error) {
-        console.error('获取搜索进度异常:', error);
         // 如果获取进度失败，可能任务已完成或出错，停止轮询
         this.stopProgressPolling();
       }
@@ -1213,7 +1190,6 @@ export default {
         }
       } catch {
         // 如果获取进度失败，可能是没有正在运行的任务，忽略错误
-        console.log('没有正在运行的搜索测试任务');
         this.isSearchTesting = false;
         this.searchTestProgress = null;
       } finally {
