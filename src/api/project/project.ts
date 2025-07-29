@@ -8,6 +8,7 @@ import type {
   Project,
   ProjectSummary,
   ApiResponse,
+  CrawlProgress,
 } from './project.type';
 
 /**
@@ -97,6 +98,21 @@ export async function executeDataCrawlTask(projectId: string) {
     return response;
   } catch (error) {
     console.error('执行数据抓取任务出错:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取数据抓取进度
+ * @param {string} projectId 项目ID
+ * @returns {Promise<ApiResponse<CrawlProgress>>} API响应
+ */
+export async function getDataCrawlProgress(projectId: string) {
+  try {
+    const response = await get<ApiResponse<CrawlProgress>>(`/dataCrawl/progress/${projectId}`);
+    return response;
+  } catch (error) {
+    console.error('获取数据抓取进度出错:', error);
     throw error;
   }
 }

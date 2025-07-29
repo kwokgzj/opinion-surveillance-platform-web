@@ -70,3 +70,15 @@ export interface Project {
   searchLanguages: string[];           // 搜索语言设置，如["zh-CN", "en-US"]
   searchRegions: string[];             // 搜索地区设置，如["CN", "US"]
 }
+
+/**
+ * 数据抓取进度接口
+ */
+export interface CrawlProgress {
+  currentStage: string;               // 当前阶段，如"平台链接搜索"
+  currentStageProgress: number;       // 当前阶段进度百分比 (0-100)
+  totalProgress: number;              // 总体进度百分比 (0-100)
+  estimatedTimeRemaining: number;     // 预计剩余时间（秒）
+  startTime: string;                  // 开始时间
+  estimatedEndTime: string | null;    // 预计结束时间
+}
