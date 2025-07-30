@@ -269,11 +269,11 @@ export default {
 
       projectName: '',
       projectType: 'GoogleNews',
-      newsSearchCount: null,
+      newsSearchCount: null as number | null,
       crawlTimeRange: '',
       crawlFrequency: '',
-      selectedLanguages: [],
-      selectedRegions: [],
+      selectedLanguages: [] as string[],
+      selectedRegions: [] as string[],
       keywords: [
         { word: '', include: '', exclude: '' }
       ],
@@ -290,7 +290,7 @@ export default {
 
       // 用于检测页面变更
       hasChanges: false,
-      initialFormData: null,
+      initialFormData: null as any,
 
       // 搜索测试进度相关
       isSearchTesting: false,
@@ -400,7 +400,16 @@ export default {
     '$route'(to, from) {
       console.log('路由变化:', { to, from });
       if (to.path === from.path) {
+        // 停止之前的进度轮询
+        this.stopProgressPolling();
+        // 重置按钮状态
+        this.searchTestButtonDisabled = true;
+        // 同一个路由但参数变化，重新初始化
         this.initializePageMode();
+        // 检查新项目的搜索测试状态
+        this.$nextTick(() => {
+          this.checkRunningSearchTest();
+        });
       }
     },
     // 监听所有可能变更的字段
@@ -480,8 +489,10 @@ export default {
       const newlyCreated = this.$route.query.newlyCreated === 'true';
 
       if (projectId && newlyCreated) {
+        // 新创建的项目，设置为已创建状态，使用当前表单数据
         this.isEditMode = false;
         this.projectStatus = 'created';
+        // 重新保存表单数据为初始状态
         this.$nextTick(() => {
           this.saveInitialFormData();
           this.hasChanges = false;
@@ -511,7 +522,6 @@ export default {
 
     // 加载项目数据（编辑模式）
     async loadProjectData(projectId) {
-      this.isLoading = true;
       try {
         const response = await getProjectById(projectId);
 
@@ -535,9 +545,12 @@ export default {
               }))
             : [{ word: '', include: '', exclude: '' }];
 
+          // 重新保存初始数据
           this.$nextTick(() => {
             this.saveInitialFormData();
             this.hasChanges = false;
+            // 检查是否有正在运行的搜索测试
+            this.checkRunningSearchTest();
           });
 
         } else {
@@ -550,7 +563,7 @@ export default {
         ElMessage.error('网络错误，请检查网络连接后重试');
         this.$router.go(-1);
       } finally {
-        this.isLoading = false;
+        // 数据加载完成
       }
     },
 
@@ -590,7 +603,7 @@ export default {
     },
 
     // 深度比较两个对象是否相等
-    isDataEqual(obj1, obj2) {
+    isDataEqual(obj1: any, obj2: any) {
       return JSON.stringify(obj1) === JSON.stringify(obj2);
     },
 
@@ -617,9 +630,9 @@ export default {
     },
 
     validateNewsSearchCount() {
-      if (this.newsSearchCount < 1) {
+      if (this.newsSearchCount !== null && this.newsSearchCount < 1) {
         this.newsSearchCount = 1;
-      } else if (this.newsSearchCount > 10000) {
+      } else if (this.newsSearchCount !== null && this.newsSearchCount > 10000) {
         this.newsSearchCount = 10000;
         this.$nextTick(() => {
           ElMessage.warning('新闻搜索条数不能超过10000条');
@@ -898,6 +911,7 @@ export default {
     // 搜索测试功能
     testSearch() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
+      console.log('点击搜索测试按钮，项目ID:', projectId);
 
       if (!projectId) {
         ElMessage.error('项目ID不存在，无法执行搜索测试');
@@ -905,14 +919,17 @@ export default {
       }
 
       // 立即设置为测试状态
+      console.log('设置测试状态为true');
       this.isSearchTesting = true;
       this.searchTestProgress = null;
       ElMessage.success('搜索测试任务启动中...');
 
       // 先异步启动搜索测试任务
+      console.log('先启动搜索测试任务');
       this.startSearchTestAsync(projectId);
 
       // 然后立即开始轮询进度
+      console.log('然后立即开始轮询进度');
       this.startProgressPolling(projectId);
     },
 
@@ -923,6 +940,7 @@ export default {
         const response = await executeDataCrawlTask(projectId);
 
         if (response.code === 0) {
+          console.log('搜索测试任务已启动');
           // 不需要再次启动轮询，因为已经在testSearch中启动了
         } else {
           ElMessage.error(`搜索测试启动失败：${response.msg}`);
@@ -930,6 +948,7 @@ export default {
           this.stopProgressPolling();
         }
       } catch (error) {
+        console.error('搜索测试启动失败:', error);
         ElMessage.error('搜索测试启动失败，请检查网络连接后重试');
         // 停止轮询并重置状态
         this.stopProgressPolling();
@@ -938,28 +957,42 @@ export default {
 
     // 开始轮询进度
     startProgressPolling(projectId) {
+      console.log('开始轮询搜索测试进度，项目ID:', projectId);
       // 清除之前的定时器
       if (this.progressTimer) {
         clearInterval(this.progressTimer);
       }
 
       // 立即获取一次进度
+      console.log('立即执行第一次进度获取');
       this.fetchProgress(projectId);
 
       // 每0.5秒轮询一次进度
+      console.log('设置定时器，每0.5秒轮询一次');
       this.progressTimer = setInterval(() => {
+        console.log('定时器触发，获取进度');
         this.fetchProgress(projectId);
       }, 500);
     },
 
     // 获取进度
     async fetchProgress(projectId) {
+      console.log('正在获取搜索测试进度...', projectId);
       try {
         const response = await getDataCrawlProgress(projectId);
+        console.log('进度响应:', response);
         
         if (response.code === 0) {
           if (response.data) {
             // 有数据，说明任务正在运行
+            console.log('更新进度数据:', {
+              阶段: response.data.currentStage,
+              当前阶段进度: response.data.currentStageProgress + '%',
+              总进度: response.data.totalProgress + '%',
+              预计剩余时间: response.data.estimatedTimeRemaining + '秒',
+              开始时间: response.data.startTime,
+              预计结束时间: response.data.estimatedEndTime
+            });
             this.searchTestProgress = response.data;
             
             // 检查是否完成（总进度达到100%）
@@ -969,13 +1002,16 @@ export default {
             }
           } else {
             // 返回null，说明没有任务在运行
+            console.log('没有任务在运行，停止轮询');
             this.stopProgressPolling();
           }
         } else {
           // 接口调用失败
+          console.error('获取搜索进度失败:', response.msg);
           this.stopProgressPolling();
         }
       } catch (error) {
+        console.error('获取搜索进度异常:', error);
         // 如果获取进度失败，可能任务已完成或出错，停止轮询
         this.stopProgressPolling();
       }
@@ -1031,6 +1067,7 @@ export default {
         }
       } catch {
         // 如果获取进度失败，可能是没有正在运行的任务，忽略错误
+        console.log('没有正在运行的搜索测试任务');
         this.isSearchTesting = false;
         this.searchTestProgress = null;
       } finally {
