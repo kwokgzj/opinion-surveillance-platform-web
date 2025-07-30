@@ -308,7 +308,7 @@ export default {
         { value: '720', label: '每月抓取' }
       ],
       platformOptions: [
-        { value: 'Youtube', label: 'Youtube' },
+        { value: 'YouTube', label: 'YouTube' },
         { value: 'X', label: 'X(Twitter)' },
         { value: 'Instagram', label: 'Instagram' },
         { value: 'Facebook', label: 'Facebook' },
@@ -491,7 +491,7 @@ export default {
       this.videoSearchCount = 100; // 默认100
       this.crawlTimeRange = '720'; // 默认近30天
       this.crawlFrequency = '24'; // 默认每天抓取
-      this.searchPlatforms = ['Youtube', 'X', 'Instagram', 'Facebook']; // 全选平台
+      this.searchPlatforms = ['YouTube', 'X', 'Instagram', 'Facebook']; // 全选平台
       this.keywords = [{ word: '', include: '', exclude: '' }];
       this.excludeLinks = []; // 空的 ExcludedVideoLink 数组
     },
@@ -816,7 +816,7 @@ export default {
       const lowerUrl = url.toLowerCase();
 
       if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-        return 'Youtube';
+        return 'YouTube';
       } else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
         return 'X';
       } else if (lowerUrl.includes('instagram.com')) {

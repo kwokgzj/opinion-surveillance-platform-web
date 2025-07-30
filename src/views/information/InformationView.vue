@@ -1683,7 +1683,7 @@ function formatDateYMDOnly(timeStr: string): string {
 // 获取平台图标
 function getPlatformIcon(platform: string): string {
   const iconMap: Record<string, string> = {
-    'Youtube': youtubeIcon,
+    'YouTube': youtubeIcon,
     'GoogleNews': googleIcon,
     'Facebook': facebookIcon,
     'X': XIcon,

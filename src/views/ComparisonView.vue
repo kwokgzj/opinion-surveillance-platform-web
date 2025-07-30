@@ -424,7 +424,7 @@ const hasData = ref(false);
 const projectOptions = ref<ProjectSummary[]>([]);
 
 // 平台选项（可以从API获取，这里先硬编码）
-const platformOptions = ref(['Youtube', 'Facebook', 'X', 'Instagram']);
+const platformOptions = ref(['YouTube', 'Facebook', 'X', 'Instagram']);
 
 const filter = ref({
   project1: '',
