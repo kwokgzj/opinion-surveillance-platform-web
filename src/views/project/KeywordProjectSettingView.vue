@@ -291,9 +291,11 @@ export default {
       searchTestProgress: null as CrawlProgress | null,
       progressTimer: null as number | null,
       searchTestButtonDisabled: true, // 初始化时按钮禁用
+      lastSearchTestTime: 0, // 上次点击搜索测试的时间戳
 
       // 选项数据
       timeRangeOptions: [
+        { value: '168', label: '近7天' },
         { value: '720', label: '近30天' },
         { value: '2160', label: '近90天' },
         { value: '4320', label: '近180天' },
@@ -1056,6 +1058,17 @@ export default {
 
     // 搜索测试功能
     testSearch() {
+      const currentTime = Date.now();
+      const timeDiff = currentTime - this.lastSearchTestTime;
+      
+      // 防止双击，至少间隔5秒
+      if (timeDiff < 5000) {
+        ElMessage.warning('请勿频繁点击，请等待5秒后再试');
+        return;
+      }
+      
+      this.lastSearchTestTime = currentTime;
+      
       const projectId = this.$route.params.id || this.$route.query.projectId;
       console.log('点击搜索测试按钮，项目ID:', projectId);
 

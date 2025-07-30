@@ -183,6 +183,7 @@ export default {
 
       // 选项数据
       timeRangeOptions: [
+        { value: '168', label: '近7天' },
         { value: '720', label: '近30天' },
         { value: '2160', label: '近90天' },
         { value: '4320', label: '近180天' },

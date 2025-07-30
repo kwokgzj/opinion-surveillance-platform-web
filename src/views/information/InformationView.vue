@@ -539,9 +539,9 @@
                 <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
                               <!-- 视频类型特有的字段 -->
               <span v-if="isVideoType(item) && item.duration">| 时长：{{ formatDuration(item.duration) }}</span>
-              <span v-if="isVideoType(item) && item.engagementRate">| 转化率：{{ item.engagementRate }}%</span>
+              <span v-if="isVideoType(item) && item.engagementRate">| 互动率：{{ item.engagementRate }}%</span>
               <!-- 帖子类型特有的字段 -->
-              <span v-if="isPostType(item) && item.engagementRate">| 转化率：{{ item.engagementRate }}%</span>
+              <span v-if="isPostType(item) && item.engagementRate">| 互动率：{{ item.engagementRate }}%</span>
               </template>
             </div>
             <div class="info-meta-actions" v-if="!isMultiSelectMode">
