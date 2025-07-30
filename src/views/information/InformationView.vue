@@ -1200,6 +1200,11 @@ function resetFilter() {
     tags: [],
   };
 
+  // 设置排序为第一个选项
+  if (filterOptions.value.sortBy && filterOptions.value.sortBy.length > 0) {
+    filter.value.sort = filterOptions.value.sortBy[0].label;
+  }
+
   // 重置分页
   resetPagination();
 }

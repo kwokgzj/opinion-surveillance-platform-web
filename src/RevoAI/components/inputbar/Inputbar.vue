@@ -757,9 +757,11 @@ const sendMessage = async () => {
   // 过滤掉上传状态为 error 的文件
   const validFiles = files.value.filter((file) => file.status !== 'error')
 
+  currentSession.prompt = ''
+
   const baseUserMessage: MessageInputBaseParams = {
     session: currentSession,
-    content: text.value,
+    content: text.value + '',
   }
 
   if (validFiles.length > 0) {
