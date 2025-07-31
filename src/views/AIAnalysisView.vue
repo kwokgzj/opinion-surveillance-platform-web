@@ -211,7 +211,17 @@ const defaultConfig = ref<Partial<AssistantSettings>>({
   maxTokens: 2000,
 })
 
-const mcpServers = ref<MCPServer[]>([])
+const mcpServers = ref<MCPServer[]>([
+  {
+    id: 'mcp-server-1',
+    name: 'mcp-server-1',
+    displayName: '监控数据查询服务器',
+    baseUrl: 'http://localhost:9088/db-query/sse',
+    description: '监控数据查询服务器',
+    type: "sse",
+    version: '1.0.0'
+  }
+])
 const models = ref<Model[]>([
   {
     id: 'deepseek-r1',
