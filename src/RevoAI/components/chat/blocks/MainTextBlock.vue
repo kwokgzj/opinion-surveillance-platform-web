@@ -29,7 +29,8 @@
 </template>
 
 <script lang="ts">
-import type { computed, defineComponent, PropType } from 'vue'
+import { computed, defineComponent } from 'vue'
+import type { PropType } from 'vue'
 import { useMessageBlocksStore } from '@/RevoAI/store'
 import Markdown from '../Markdown/Markdown.vue'
 import { cleanMarkdownContent } from '@/RevoAI/utils/formats'

@@ -45,11 +45,11 @@
 
 <script setup lang="ts">
 import { CheckOutlined } from '@ant-design/icons-vue'
-import type { computed, defineComponent, PropType, ref, watch, onMounted, onUnmounted, h } from 'vue'
+import { computed, defineComponent, ref, watch, onMounted, onUnmounted, h } from 'vue'
+import type { PropType } from 'vue'
 import { Collapse, CollapsePanel, message as antdMessage, Tooltip } from 'ant-design-vue'
 import { Copy, Lightbulb } from 'lucide-vue-next'
 import Markdown from '../Markdown/Markdown.vue'
-import { lightbulbVariants } from '@/RevoAI/utils/motionVariants'
 import { MessageBlockStatus } from '@/RevoAI/types/newMessage'
 
 // 定义props
