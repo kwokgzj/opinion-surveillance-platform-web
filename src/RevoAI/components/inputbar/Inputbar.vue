@@ -190,8 +190,8 @@ import {
 } from '@ant-design/icons-vue'
 import { message, theme, Flex, Divider, Button, Popconfirm } from 'ant-design-vue'
 import { useSessions, useDefaultSession } from '@/RevoAI/hooks/useSession'
-import { Session, Model, FileType, AssistantSettings } from '@/RevoAI/types'
-import { MessageInputBaseParams } from '@/RevoAI/types/newMessage'
+import type { Session, Model, FileType, AssistantSettings } from '@/RevoAI/types'
+import type { MessageInputBaseParams } from '@/RevoAI/types/newMessage'
 import { uuid } from '@/RevoAI/utils'
 import {
   sendMessage as _sendMessage,
@@ -204,6 +204,7 @@ import { useSessionsStore, useMessagesStore } from '@/RevoAI/store'
 import ModelSettings from './ModelSettings.vue'
 import { useModel } from '@/RevoAI/hooks/useModel'
 import { imageExts, documentExts, textExts } from '@/RevoAI/config/constant'
+import { prepareSessionForMessage } from '@/RevoAI/utils/sessionUtils'
 // 导入文档解析库
 import * as mammoth from 'mammoth'
 import * as XLSX from 'xlsx'
@@ -757,7 +758,10 @@ const sendMessage = async () => {
   // 过滤掉上传状态为 error 的文件
   const validFiles = files.value.filter((file) => file.status !== 'error')
 
-  currentSession.prompt = ''
+  // 准备会话发送消息前的处理
+  if (currentSession) {
+    prepareSessionForMessage(currentSession)
+  }
 
   const baseUserMessage: MessageInputBaseParams = {
     session: currentSession,
