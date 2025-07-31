@@ -1,26 +1,186 @@
 <template>
-  <div class="chat-container">
-    <RevoChatVue
-      :base-url="baseUrl"
-      :api-key="apiKey"
-      :is-mul-session="false"
-      :show-mcp-servers="false"
-      :models="models"
-      :mcp-servers="mcpServers"
-      :default-config="defaultConfig"
-      :web-search-function="webSearchFunction"
-      theme="light"
-    />
+    <div class="ai-analysis-page">
+    <!-- 项目选择区域 - 悬浮透明 -->
+    <div class="project-selector-area">
+      <div class="project-selectors">
+        <div
+          v-for="(selector, index) in projectSelectors"
+          :key="selector.id"
+          class="project-selector-wrapper"
+        >
+          <div class="form-item">
+            <label>项目：</label>
+            <el-select
+              v-model="selector.selectedProjectIds"
+              placeholder="请选择项目"
+              class="project-select"
+              @change="(value: string[]) => handleProjectChange(index, value)"
+              :loading="projectsLoading"
+              filterable
+              clearable
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              :max-collapse-tags="3"
+              style="flex: 1; min-width: 200px;"
+            >
+              <template #header>
+                <el-checkbox
+                  v-model="selectorCheckAll[index]"
+                  :indeterminate="selectorIndeterminate[index]"
+                  @change="(val: boolean) => handleSelectorCheckAll(index, val)"
+                >
+                  全选
+                </el-checkbox>
+              </template>
+              <el-option
+                v-for="project in projects"
+                :key="project.projectId"
+                :label="project.projectName"
+                :value="project.projectId"
+              />
+            </el-select>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 聊天容器 -->
+    <div class="chat-container">
+      <RevoChatVue
+        :base-url="baseUrl"
+        :api-key="apiKey"
+        :is-mul-session="false"
+        :show-mcp-servers="false"
+        :models="models"
+        :mcp-servers="mcpServers"
+        :default-config="defaultConfig"
+        :web-search-function="webSearchFunction"
+        theme="light"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import RevoChatVue from '@/RevoAI/components/RevoChatVue.vue'
 import type { AssistantSettings, MCPServer, Model } from '@/RevoAI/types'
+import { getProjectList } from '@/api/project/project'
+import type { ProjectSummary } from '@/api/project/project.type'
+import { useProjectStore } from '@/stores/project'
+
+// 项目选择器项目类型
+interface ProjectSelector {
+  id: string
+  selectedProjectIds: string[]
+}
 
 const apiKey = ref('sk-mhmQr61vyBQO7CZw7cBeF4CdD693472bA12aA5A375D845B4')
 const baseUrl = ref('http://192.168.2.21:9300')
+
+// 项目相关状态
+const projects = ref<ProjectSummary[]>([])
+const projectsLoading = ref(false)
+const projectSelectors = ref<ProjectSelector[]>([
+  {
+    id: generateId(),
+    selectedProjectIds: []
+  }
+])
+
+// 全选状态管理
+const selectorCheckAll = ref<boolean[]>([false])
+const selectorIndeterminate = ref<boolean[]>([false])
+
+const projectStore = useProjectStore()
+
+// 生成唯一ID
+function generateId(): string {
+  return 'selector_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+}
+
+// 加载项目列表
+const loadProjects = async () => {
+  projectsLoading.value = true
+  try {
+    const response = await getProjectList()
+    projects.value = response || []
+
+    // 如果store中有当前项目，设置到第一个选择器
+    if (projectStore.currentProjectId && projectSelectors.value.length > 0) {
+      projectSelectors.value[0].selectedProjectIds = [projectStore.currentProjectId]
+    }
+  } catch (error) {
+    console.error('加载项目列表失败:', error)
+    ElMessage.error('加载项目列表失败')
+  } finally {
+    projectsLoading.value = false
+  }
+}
+
+// 处理项目选择变化
+const handleProjectChange = (index: number, projectIds: string[]) => {
+  // 更新全选状态
+  updateCheckAllState(index)
+
+  // 如果是第一个选择器且有选择项目，更新store
+  if (index === 0 && projectIds.length > 0) {
+    const firstProject = projects.value.find(p => p.projectId === projectIds[0])
+    if (firstProject) {
+      projectStore.setCurrentProject({
+        projectId: firstProject.projectId,
+        projectName: firstProject.projectName,
+        projectType: firstProject.projectType
+      })
+    }
+  }
+
+  console.log(`项目选择器 ${index + 1} 选择了项目:`, projectIds)
+}
+
+// 更新全选状态
+const updateCheckAllState = (index: number) => {
+  const selector = projectSelectors.value[index]
+  const selectedCount = selector.selectedProjectIds.length
+  const totalCount = projects.value.length
+
+  if (selectedCount === 0) {
+    selectorCheckAll.value[index] = false
+    selectorIndeterminate.value[index] = false
+  } else if (selectedCount === totalCount) {
+    selectorCheckAll.value[index] = true
+    selectorIndeterminate.value[index] = false
+  } else {
+    selectorCheckAll.value[index] = false
+    selectorIndeterminate.value[index] = true
+  }
+}
+
+// 处理全选
+const handleSelectorCheckAll = (index: number, val: boolean) => {
+  selectorIndeterminate.value[index] = false
+  if (val) {
+    projectSelectors.value[index].selectedProjectIds = projects.value.map(p => p.projectId)
+  } else {
+    projectSelectors.value[index].selectedProjectIds = []
+  }
+}
+
+
+
+
+
+// 获取当前选择的所有项目ID
+const getSelectedProjectIds = () => {
+  return projectSelectors.value
+    .flatMap(selector => selector.selectedProjectIds)
+    .filter((id, index, arr) => arr.indexOf(id) === index) // 去重
+}
+
 // 默认配置
 const defaultConfig = ref<Partial<AssistantSettings>>({
   temperature: 0.7,
@@ -66,46 +226,20 @@ const models = ref<Model[]>([
   {
     id: 'claude-3-7-sonnet-thinking',
     name: 'claude-3-7-sonnet-thinking',
-    displayName: 'claude-3-7-sonnet-thinking',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
-    description: 'Claude 3.7 Sonnet深度推理模式，适合高级推理与多模态场景。',
-    type: 'chat',
-    abilityList: ['reasoning', 'vision'],
-  },
-  {
-    id: 'claude-sonnet-4-20250514-thinking',
-    name: 'claude-sonnet-4-20250514-thinking',
-    displayName: 'Claude-Sonnet-4-Thinking',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
-    description: 'Claude Sonnet 4 Thinking模式，提升推理与多模态能力，适合复杂AI任务。',
-    type: 'chat',
-    abilityList: ['reasoning', 'vision'],
-  },
-  {
-    id: 'claude-opus-4-20250514-thinking',
-    name: 'claude-opus-4-20250514-thinking',
-    displayName: 'Claude-Opus-4-Thinking',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
-    description: 'Claude Opus 4 Thinking模式，进一步增强推理与多模态处理能力，适合复杂场景。',
-    type: 'chat',
-    abilityList: ['reasoning', 'vision'],
-  },
-  {
-    id: 'claude-sonnet-4-20250514',
-    name: 'claude-sonnet-4-20250514',
-    displayName: 'Claude Sonnet 4',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
-    description: 'Claude Sonnet 4为高效推理与多模态模型，兼具强大的NLP和视觉能力。',
-    type: 'chat',
-    abilityList: ['functionCall', 'vision'],
-  },
-  {
-    id: 'claude-opus-4-20250514',
-    name: 'claude-opus-4-20250514',
-    displayName: 'Claude Opus 4',
+    displayName: 'Claude-3.7-Sonnet(Thinking)',
     icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
     description:
-      'Claude Opus 4是Anthropic最新旗舰大模型，专注于高级推理和多模态任务，适用于复杂AI应用。',
+      'Claude 3.7 Sonnet(Thinking)模式，专注于深度推理和复杂问题解决，提供详细的思考过程。',
+    type: 'chat',
+    abilityList: ['reasoning', 'functionCall', 'vision'],
+  },
+  {
+    id: 'claude-3-5-sonnet-latest',
+    name: 'claude-3-5-sonnet-latest',
+    displayName: 'Claude-3.5-Sonnet',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
+    description:
+      'Claude 3.5 Sonnet为Anthropic Claude系列的核心模型，具备强大的推理和创作能力，适合复杂任务处理。',
     type: 'chat',
     abilityList: ['functionCall', 'vision'],
   },
@@ -199,11 +333,114 @@ const webSearchFunction = async (
   // 调用服务端搜索接口，直接返回接口的data数组数据
   return []
 }
+
+// 组件挂载时加载项目列表
+onMounted(() => {
+  loadProjects()
+})
+
+// 暴露方法供外部调用
+defineExpose({
+  getSelectedProjectIds
+})
 </script>
 
 <style lang="less" scoped>
-.chat-container {
+.ai-analysis-page {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.project-selector-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 6px;
+  padding: 12px 16px;
+  border: 1px solid rgba(220, 223, 230, 0.3);
+  max-width: calc(100vw - 40px);
+  min-width: 260px;
+  width: auto;
+}
+
+.project-selectors {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.project-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-item label {
+  min-width: 50px;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  text-align: right;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.project-select {
+  flex: 1;
+}
+
+
+
+.chat-container {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .project-selector-area {
+    top: 0;
+    left: 0;
+    right: 10px;
+    min-width: auto;
+    width: calc(100% - 20px);
+    padding: 12px 16px;
+  }
+
+  .form-item label {
+    min-width: 40px;
+    font-size: 13px;
+  }
+
+  .project-select {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-selector-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .form-item {
+    justify-content: space-between;
+  }
 }
 </style>
