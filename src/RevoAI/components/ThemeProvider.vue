@@ -120,19 +120,20 @@ const setCssVariables = (colorPalette: Record<string, string>, isDark: boolean) 
 }
 
 // 监听主题和颜色变化
-watch(
-  [themeColor, isDark],
-  ([newColor, newIsDark]) => {
-    const colorPalette = generateColorPalette(newColor, newIsDark)
-    setCssVariables(colorPalette, newIsDark)
-  },
-  { immediate: true },
-)
+// watch(
+//   [themeColor, isDark],
+//   ([newColor, newIsDark]) => {
+//     const colorPalette = generateColorPalette(newColor, newIsDark)
+//     setCssVariables(colorPalette, newIsDark)
+//   },
+//   { immediate: true },
+// )
 
 // 组件挂载时设置主题
 onMounted(() => {
-  const colorPalette = generateColorPalette(themeColor.value, isDark.value)
-  setCssVariables(colorPalette, isDark.value)
+  document.body.setAttribute('theme-mode', props.theme || 'light')
+  // const colorPalette = generateColorPalette(themeColor.value, isDark.value)
+  // setCssVariables(colorPalette, isDark.value)
 })
 </script>
 

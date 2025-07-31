@@ -70,6 +70,7 @@ import { useSessionsStore } from '@/RevoAI/store/sessions'
 import { useMessagesStore } from '@/RevoAI/store/newMessage'
 import { useSessions, useDefaultSession } from '@/RevoAI/hooks/useSession'
 import { useModel } from '@/RevoAI/hooks/useModel'
+import { useMcpStore } from '@/RevoAI/store/mcp'
 import mcpManagerServiceInstance from '@/RevoAI/services/MCPManagerServiceInstance'
 import WebSearchService, { type WebSearchFunction } from '@/RevoAI/services/WebSearchService'
 import { uuid } from '@/RevoAI/utils'
@@ -109,6 +110,7 @@ const { defaultModel } = useModel()
 const sessionStore = useSessionsStore()
 const messageStore = useMessagesStore()
 const { activeSession, setActiveSession } = useActiveSession()
+const mcpStore = useMcpStore()
 
 // 计算属性
 const sessions = computed(() => {
@@ -137,6 +139,7 @@ watch(
 const initData = async () => {
   try {
     // 使用MCPManagerService获取MCP服务器列表
+    mcpStore.setMCPServers(props.mcpServers || [])
     mcpManagerServiceInstance.runMCPServers(props.mcpServers || [])
   } catch (error) {
     console.error('初始化数据失败:', error)

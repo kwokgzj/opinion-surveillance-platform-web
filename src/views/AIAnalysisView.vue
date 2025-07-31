@@ -1,5 +1,5 @@
 <template>
-    <div class="ai-analysis-page">
+  <div class="ai-analysis-page">
     <!-- 项目选择区域 - 悬浮透明 -->
     <div class="project-selector-area">
       <div class="project-selectors">
@@ -22,7 +22,7 @@
               collapse-tags
               collapse-tags-tooltip
               :max-collapse-tags="3"
-              style="flex: 1; min-width: 200px;"
+              style="flex: 1; min-width: 200px"
             >
               <template #header>
                 <el-checkbox
@@ -41,8 +41,6 @@
               />
             </el-select>
           </div>
-
-
         </div>
       </div>
     </div>
@@ -90,8 +88,8 @@ const projectsLoading = ref(false)
 const projectSelectors = ref<ProjectSelector[]>([
   {
     id: generateId(),
-    selectedProjectIds: []
-  }
+    selectedProjectIds: [],
+  },
 ])
 
 // 全选状态管理
@@ -131,12 +129,12 @@ const handleProjectChange = (index: number, projectIds: string[]) => {
 
   // 如果是第一个选择器且有选择项目，更新store
   if (index === 0 && projectIds.length > 0) {
-    const firstProject = projects.value.find(p => p.projectId === projectIds[0])
+    const firstProject = projects.value.find((p) => p.projectId === projectIds[0])
     if (firstProject) {
       projectStore.setCurrentProject({
         projectId: firstProject.projectId,
         projectName: firstProject.projectName,
-        projectType: firstProject.projectType
+        projectType: firstProject.projectType,
       })
     }
   }
@@ -166,31 +164,27 @@ const updateCheckAllState = (index: number) => {
 const handleSelectorCheckAll = (index: number, val: boolean) => {
   selectorIndeterminate.value[index] = false
   if (val) {
-    projectSelectors.value[index].selectedProjectIds = projects.value.map(p => p.projectId)
+    projectSelectors.value[index].selectedProjectIds = projects.value.map((p) => p.projectId)
   } else {
     projectSelectors.value[index].selectedProjectIds = []
   }
 }
 
-
-
-
-
 // 获取当前选择的所有项目ID
 const getSelectedProjectIds = () => {
   return projectSelectors.value
-    .flatMap(selector => selector.selectedProjectIds)
+    .flatMap((selector) => selector.selectedProjectIds)
     .filter((id, index, arr) => arr.indexOf(id) === index) // 去重
 }
 
 // 获取当前选择的项目信息（包含ID和名称）
 const getSelectedProjectsWithNames = () => {
   const selectedIds = getSelectedProjectIds()
-  return selectedIds.map(id => {
-    const project = projects.value.find(p => p.projectId === id)
+  return selectedIds.map((id) => {
+    const project = projects.value.find((p) => p.projectId === id)
     return {
       projectId: id,
-      projectName: project?.projectName || '未知项目'
+      projectName: project?.projectName || '未知项目',
     }
   })
 }
@@ -216,11 +210,11 @@ const mcpServers = ref<MCPServer[]>([
     id: 'mcp-server-1',
     name: 'mcp-server-1',
     displayName: '监控数据查询服务器',
-    baseUrl: 'http://localhost:9088/db-query/sse',
+    baseUrl: 'http://192.168.10.3:9088/db-query/sse',
     description: '监控数据查询服务器',
-    type: "sse",
-    version: '1.0.0'
-  }
+    type: 'sse',
+    version: '1.0.0',
+  },
 ])
 const models = ref<Model[]>([
   {
@@ -372,7 +366,7 @@ onMounted(() => {
 // 暴露方法供外部调用
 defineExpose({
   getSelectedProjectIds,
-  getSelectedProjectsContextString
+  getSelectedProjectsContextString,
 })
 </script>
 
@@ -433,8 +427,6 @@ defineExpose({
 .project-select {
   flex: 1;
 }
-
-
 
 .chat-container {
   flex: 1;
