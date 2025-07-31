@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { PaperclipIcon } from 'lucide-vue-next'
-import { MessageBlock } from '@/RevoAI/types/newMessage'
+import type { MessageBlock } from '@/RevoAI/types/newMessage'
 
 const props = defineProps<{
   block: MessageBlock

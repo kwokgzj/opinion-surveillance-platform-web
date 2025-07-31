@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed, h } from 'vue'
-import { MessageBlock } from '@/RevoAI/types/newMessage'
+import type { MessageBlock } from '@/RevoAI/types/newMessage'
 import { Modal } from 'ant-design-vue'
 
 const props = defineProps<{

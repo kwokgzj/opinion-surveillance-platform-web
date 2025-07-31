@@ -83,7 +83,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { InboxOutlined, FileTextOutlined } from '@ant-design/icons-vue'
-import { Session, MCPServer } from '@/RevoAI/types'
+import type { Session, MCPServer } from '@/RevoAI/types'
 import mcpManagerServiceInstance from '@/RevoAI/services/MCPManagerServiceInstance'
 import { useSessionsStore } from '@/RevoAI/store/sessions'
 import { useMcpStore } from '@/RevoAI/store/mcp'

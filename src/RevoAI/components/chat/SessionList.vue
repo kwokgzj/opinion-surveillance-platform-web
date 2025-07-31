@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { PlusOutlined, MoreOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
-import { Session } from '@/RevoAI/types'
+import type { Session } from '@/RevoAI/types'
 import { useSessionsStore } from '@/RevoAI/store/sessions'
 
 const props = defineProps<{

@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { MessageBlock } from '@/RevoAI/types/newMessage'
+import type { MessageBlock } from '@/RevoAI/types/newMessage'
 
 const props = defineProps<{
   block: MessageBlock

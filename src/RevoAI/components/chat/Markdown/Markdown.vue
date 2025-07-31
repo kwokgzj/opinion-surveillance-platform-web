@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, onMounted, ref, watch, nextTick } from 'vue'
+import type { computed, defineComponent, PropType, onMounted, ref, watch, nextTick } from 'vue'
 import { isEmpty } from 'lodash'
 
 import { renderMarkdownText, renderMermaidProcess } from './plugins/markdown'

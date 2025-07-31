@@ -69,8 +69,8 @@ import {
   RightOutlined,
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { Session } from '@/RevoAI/types'
-import { Message } from '@/RevoAI/types/newMessage'
+import type { Session } from '@/RevoAI/types'
+import type { Message } from '@/RevoAI/types/newMessage'
 import { getMainTextContent } from '@/RevoAI/utils/messageUtils/find'
 import { removeTrailingDoubleSpaces } from '@/RevoAI/utils/markdown'
 import {

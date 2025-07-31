@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { CheckOutlined } from '@ant-design/icons-vue'
-import { computed, defineComponent, PropType, ref, watch, onMounted, onUnmounted, h } from 'vue'
+import type { computed, defineComponent, PropType, ref, watch, onMounted, onUnmounted, h } from 'vue'
 import { Collapse, CollapsePanel, message as antdMessage, Tooltip } from 'ant-design-vue'
 import { Copy, Lightbulb } from 'lucide-vue-next'
 import Markdown from '../Markdown/Markdown.vue'
