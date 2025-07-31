@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
     },
     // 配置开发服务器和代理
     server: {
+      host: '0.0.0.0',
       port: 5173, // 可以根据需要修改端口
       open: true, // 自动打开浏览器
       proxy: {

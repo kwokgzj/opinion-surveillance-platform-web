@@ -58,6 +58,7 @@
         :mcp-servers="mcpServers"
         :default-config="defaultConfig"
         :web-search-function="webSearchFunction"
+        :get-selected-projects="getSelectedProjectsWithNames"
         theme="light"
       />
     </div>
@@ -72,6 +73,7 @@ import type { AssistantSettings, MCPServer, Model } from '@/RevoAI/types'
 import { getProjectList } from '@/api/project/project'
 import type { ProjectSummary } from '@/api/project/project.type'
 import { useProjectStore } from '@/stores/project'
+import { getSelectedProjectsContext } from '@/RevoAI/utils/contextUtils'
 
 // 项目选择器项目类型
 interface ProjectSelector {
@@ -179,6 +181,24 @@ const getSelectedProjectIds = () => {
   return projectSelectors.value
     .flatMap(selector => selector.selectedProjectIds)
     .filter((id, index, arr) => arr.indexOf(id) === index) // 去重
+}
+
+// 获取当前选择的项目信息（包含ID和名称）
+const getSelectedProjectsWithNames = () => {
+  const selectedIds = getSelectedProjectIds()
+  return selectedIds.map(id => {
+    const project = projects.value.find(p => p.projectId === id)
+    return {
+      projectId: id,
+      projectName: project?.projectName || '未知项目'
+    }
+  })
+}
+
+// 获取当前选择项目的上下文字符串
+const getSelectedProjectsContextString = () => {
+  const selectedProjects = getSelectedProjectsWithNames()
+  return getSelectedProjectsContext(selectedProjects)
 }
 
 // 默认配置
@@ -341,7 +361,8 @@ onMounted(() => {
 
 // 暴露方法供外部调用
 defineExpose({
-  getSelectedProjectIds
+  getSelectedProjectIds,
+  getSelectedProjectsContextString
 })
 </script>
 

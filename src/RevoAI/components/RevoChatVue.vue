@@ -26,6 +26,7 @@
               :isMulSession="isMulSession"
               :models="models"
               :defaultConfig="defaultConfig"
+              :getSelectedProjects="getSelectedProjects"
             />
           </div>
         </div>
@@ -50,6 +51,7 @@
               :isMulSession="false"
               :models="models"
               :defaultConfig="defaultConfig"
+              :getSelectedProjects="getSelectedProjects"
             />
           </div>
         </div>
@@ -92,6 +94,7 @@ const props = defineProps<{
   mcpServers?: MCPServer[]
   models: Model[]
   webSearchFunction?: WebSearchFunction
+  getSelectedProjects?: () => { projectId: string; projectName: string }[]
 }>()
 
 // 状态

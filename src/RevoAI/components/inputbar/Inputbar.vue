@@ -204,7 +204,7 @@ import { useSessionsStore, useMessagesStore } from '@/RevoAI/store'
 import ModelSettings from './ModelSettings.vue'
 import { useModel } from '@/RevoAI/hooks/useModel'
 import { imageExts, documentExts, textExts } from '@/RevoAI/config/constant'
-import { prepareSessionForMessage } from '@/RevoAI/utils/sessionUtils'
+import { prepareSessionForMessage, type ProjectContext } from '@/RevoAI/utils/sessionUtils'
 // 导入文档解析库
 import * as mammoth from 'mammoth'
 import * as XLSX from 'xlsx'
@@ -221,6 +221,7 @@ const props = defineProps<{
   isMulSession?: boolean
   models?: Model[]
   defaultConfig?: Partial<AssistantSettings>
+  getSelectedProjects?: () => { projectId: string; projectName: string }[]
 }>()
 
 // 状态
@@ -760,7 +761,9 @@ const sendMessage = async () => {
 
   // 准备会话发送消息前的处理
   if (currentSession) {
-    prepareSessionForMessage(currentSession)
+    // 获取选择的项目信息
+    const selectedProjects = props.getSelectedProjects?.() || []
+    prepareSessionForMessage(currentSession, selectedProjects)
   }
 
   const baseUserMessage: MessageInputBaseParams = {

@@ -1,10 +1,33 @@
 import type { Session } from '@/RevoAI/types'
 
+// 项目信息接口
+export interface ProjectContext {
+  projectId: string
+  projectName: string
+}
+
 /**
  * 设置会话的系统提示词
  * @param session 要设置的会话对象
+ * @param selectedProjects 选择的项目列表（可选）
  */
-export const setSessionSystemPrompt = (session: Session): void => {
+export const setSessionSystemPrompt = (
+  session: Session,
+  selectedProjects?: ProjectContext[]
+): void => {
+  // 获取当前时间
+  const currentTime = new Date().toISOString()
+
+  // 构建项目信息文本
+  let projectsText = ''
+  if (selectedProjects && selectedProjects.length > 0) {
+    projectsText = selectedProjects
+      .map(project => `项目名称：${project.projectName} ，projectId：${project.projectId}`)
+      .join('；\n')
+  } else {
+    projectsText = '暂无选择项目'
+  }
+
   session.prompt = `# 舆情监控平台智能分析系统提示词
 
 你是一个专业的舆情监控和数据分析助手，专门帮助用户进行品牌监控、产品反馈分析、市场洞察和趋势预测。你拥有强大的数据检索和分析能力，能够为用户提供深入的商业洞察。
@@ -29,7 +52,7 @@ export const setSessionSystemPrompt = (session: Session): void => {
 - 地域情感差异分析
 - 时间粒度情感变化
 
-## 可用工具详解
+## 可用MCP工具详解
 
 ### 工具1: get_query_filt_option
 **功能**: 获取项目的筛选条件选项
@@ -197,7 +220,14 @@ sentiment_trend_analysis({...}) # 分别调用两次
 4. **建议措施**: 基于数据的actionable建议
 5. **后续监控**: 持续关注的重点指标
 
-始终基于实际数据进行分析，避免主观推测，为用户提供客观、专业的商业洞察。`
+始终基于实际数据进行分析，避免主观推测，为用户提供客观、专业的商业洞察。
+
+---------------------------
+# 用户上下文
+## 当前时间为
+${currentTime}（标准时间格式）
+## 当前选择的projectId
+${projectsText}`
 }
 
 /**
@@ -211,8 +241,12 @@ export const resetSessionPrompt = (session: Session): void => {
 /**
  * 准备会话发送消息前的处理
  * @param session 要处理的会话对象
+ * @param selectedProjects 选择的项目列表（可选）
  */
-export const prepareSessionForMessage = (session: Session): void => {
-  setSessionSystemPrompt(session)
+export const prepareSessionForMessage = (
+  session: Session,
+  selectedProjects?: ProjectContext[]
+): void => {
+  setSessionSystemPrompt(session, selectedProjects)
   // 可以在这里添加其他发送消息前的会话处理逻辑
 }
