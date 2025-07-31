@@ -233,16 +233,16 @@ const mcpServers = ref<MCPServer[]>([
   },
 ])
 const models = ref<Model[]>([
-  {
-    id: 'deepseek-r1',
-    name: 'deepseek-r1',
-    displayName: 'Deepseek-R1',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png',
-    description:
-      '专注于高级推理任务，强化在数学、代码生成和逻辑推理领域的性能。通过大规模强化学习（RL）和冷启动技术，R1在无需大量监督微调（SFT）的情况下，实现了与OpenAI o1系列相当的推理能力',
-    type: 'chat',
-    abilityList: ['reasoning'],
-  },
+  // {
+  //   id: 'deepseek-r1',
+  //   name: 'deepseek-r1',
+  //   displayName: 'Deepseek-R1',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png',
+  //   description:
+  //     '专注于高级推理任务，强化在数学、代码生成和逻辑推理领域的性能。通过大规模强化学习（RL）和冷启动技术，R1在无需大量监督微调（SFT）的情况下，实现了与OpenAI o1系列相当的推理能力',
+  //   type: 'chat',
+  //   abilityList: ['reasoning'],
+  // },
   {
     id: 'deepseek-v3',
     name: 'deepseek-v3',
@@ -311,15 +311,15 @@ const models = ref<Model[]>([
     type: 'chat',
     abilityList: ['functionCall', 'vision'],
   },
-  {
-    id: 'doubao-seed-1.6-thinking',
-    name: 'doubao-seed-1.6-thinking',
-    displayName: 'Doubao Seed 1.6 Thinking',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png',
-    description: 'Doubao Seed 1.6 Thinking模式，进一步提升推理和多模态能力，适合复杂AI任务。',
-    type: 'chat',
-    abilityList: ['reasoning', 'vision'],
-  },
+  // {
+  //   id: 'doubao-seed-1.6-thinking',
+  //   name: 'doubao-seed-1.6-thinking',
+  //   displayName: 'Doubao Seed 1.6 Thinking',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png',
+  //   description: 'Doubao Seed 1.6 Thinking模式，进一步提升推理和多模态能力，适合复杂AI任务。',
+  //   type: 'chat',
+  //   abilityList: ['reasoning', 'vision'],
+  // },
   {
     id: 'doubao-seed-1.6',
     name: 'doubao-seed-1.6',
@@ -330,15 +330,15 @@ const models = ref<Model[]>([
     type: 'chat',
     abilityList: ['functionCall', 'vision'],
   },
-  {
-    id: 'qwen3-235b-a22b',
-    name: 'qwen3-235b-a22b',
-    displayName: 'Qwen3 235B A22B',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
-    description: 'Qwen3 235B A22B是阿里云推出的旗舰大模型，专注于推理与方法调用，适合企业级场景。',
-    type: 'chat',
-    abilityList: ['reasoning'],
-  },
+  // {
+  //   id: 'qwen3-235b-a22b',
+  //   name: 'qwen3-235b-a22b',
+  //   displayName: 'Qwen3 235B A22B',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
+  //   description: 'Qwen3 235B A22B是阿里云推出的旗舰大模型，专注于推理与方法调用，适合企业级场景。',
+  //   type: 'chat',
+  //   abilityList: ['reasoning'],
+  // },
   {
     id: 'gemini-2.5-pro-preview-06-05',
     name: 'gemini-2.5-pro-preview-06-05',
@@ -348,16 +348,16 @@ const models = ref<Model[]>([
     type: 'chat',
     abilityList: ['functionCall', 'vision'],
   },
-  {
-    id: 'qwen2.5-vl-72b-instruct',
-    name: 'qwen2.5-vl-72b-instruct',
-    displayName: 'Qwen2.5 VL 72B Instruct',
-    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
-    description:
-      'Qwen2.5 VL 72B Instruct为多模态模型，支持文本、视觉等多种输入，适合多场景AI应用。',
-    type: 'chat',
-    abilityList: ['vision'],
-  },
+  // {
+  //   id: 'qwen2.5-vl-72b-instruct',
+  //   name: 'qwen2.5-vl-72b-instruct',
+  //   displayName: 'Qwen2.5 VL 72B Instruct',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
+  //   description:
+  //     'Qwen2.5 VL 72B Instruct为多模态模型，支持文本、视觉等多种输入，适合多场景AI应用。',
+  //   type: 'chat',
+  //   abilityList: ['vision'],
+  // },
 ])
 
 // 自定义搜索函数
