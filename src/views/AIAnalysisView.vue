@@ -226,7 +226,7 @@ const mcpServers = ref<MCPServer[]>([
     id: 'mcp-server-1',
     name: 'mcp-server-1',
     displayName: '监控数据查询服务器',
-    baseUrl: 'http://192.168.10.3:9088/db-query/sse',
+    baseUrl: import.meta.env.VITE_APP_MCP_URL + '/db-query/sse',
     description: '监控数据查询服务器',
     type: 'sse',
     version: '1.0.0',
