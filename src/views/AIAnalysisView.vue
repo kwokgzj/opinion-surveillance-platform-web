@@ -72,6 +72,8 @@ import { getProjectList } from '@/api/project/project'
 import type { ProjectSummary } from '@/api/project/project.type'
 import { useProjectStore } from '@/stores/project'
 import { getSelectedProjectsContext } from '@/RevoAI/utils/contextUtils'
+import { clearSessionMessages } from '@/RevoAI/store/thunk/messageThunk'
+import { useSessionsStore } from '@/RevoAI/store'
 
 // 项目选择器项目类型
 interface ProjectSelector {
@@ -97,10 +99,24 @@ const selectorCheckAll = ref<boolean[]>([false])
 const selectorIndeterminate = ref<boolean[]>([false])
 
 const projectStore = useProjectStore()
+const sessionsStore = useSessionsStore()
 
 // 生成唯一ID
 function generateId(): string {
   return 'selector_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+}
+
+// 清空所有会话的消息
+const clearAllSessionsMessages = async () => {
+  try {
+    const allSessions = sessionsStore.sessions
+    for (const session of allSessions) {
+      await clearSessionMessages(session.id)()
+    }
+    console.log('已清空所有会话消息')
+  } catch (error) {
+    console.error('清空会话消息失败:', error)
+  }
 }
 
 // 加载项目列表
@@ -361,6 +377,8 @@ const webSearchFunction = async (
 // 组件挂载时加载项目列表
 onMounted(() => {
   loadProjects()
+  // 清空会话消息
+  clearAllSessionsMessages()
 })
 
 // 暴露方法供外部调用
