@@ -18,6 +18,7 @@
           <MessageContent :message="message" />
         </template>
         <MessageFooter
+          v-if="currentSession"
           :message="message"
           :session="currentSession"
           :isLastMessage="message.id === messages[messages.length - 1].id"
@@ -35,7 +36,7 @@ import { useMessagesStore } from '@/RevoAI/store/newMessage'
 import {
   loadSessionMessages,
   sendMessage,
-  clearSessionMessages,
+  // clearSessionMessages, // 暂时不需要，避免误清空
   resendEditedUserMessage,
 } from '@/RevoAI/store/thunk/messageThunk'
 import MessageHeader from '@/RevoAI/components/chat/MessageHeader.vue'
@@ -234,16 +235,17 @@ watch(
 )
 
 // 监听当前会话的变化，确保消息同步
-watch(
-  () => currentSession.value,
-  async (newSession) => {
-    if (newSession && Array.isArray(newSession.messages) && newSession.messages.length === 0) {
-      // 如果会话存在但消息数组为空，清理消息存储
-      await clearSessionMessages(props.sessionId)()
-    }
-  },
-  { deep: true },
-)
+// 注释掉自动清空逻辑，避免在切换模型/设置时意外清空消息
+// watch(
+//   () => currentSession.value,
+//   async (newSession) => {
+//     if (newSession && Array.isArray(newSession.messages) && newSession.messages.length === 0) {
+//       // 如果会话存在但消息数组为空，清理消息存储
+//       await clearSessionMessages(props.sessionId)()
+//     }
+//   },
+//   { deep: true },
+// )
 
 // 监听消息变化，如果是当前会话的最新消息，滚动到底部
 watch(

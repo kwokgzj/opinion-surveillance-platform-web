@@ -106,7 +106,7 @@ function generateId(): string {
   return 'selector_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
 }
 
-// 清空所有会话的消息
+// 清空所有会话的消息（仅在进入页面时调用）
 const clearAllSessionsMessages = async () => {
   try {
     const allSessions = sessionsStore.sessions
@@ -212,13 +212,14 @@ const getSelectedProjectsContextString = () => {
 }
 
 // 默认配置
-const defaultConfig = ref<Partial<AssistantSettings>>({
+const defaultConfig = ref<Partial<AssistantSettings> & { enableWebSearch?: boolean }>({
   temperature: 0.7,
   streamOutput: true,
   topP: 1,
   frequencyPenalty: 0,
   presencePenalty: 0,
   maxTokens: 2000,
+  enableWebSearch: true, // 启用联网搜索功能
 })
 
 const mcpServers = ref<MCPServer[]>([
@@ -370,14 +371,62 @@ const webSearchFunction = async (
   },
 ): Promise<any> => {
   console.log('自定义搜索函数被调用', queryList, options)
-  // 调用服务端搜索接口，直接返回接口的data数组数据
-  return []
+
+  try {
+    // 构建请求参数
+    const requestBody = {
+      query: queryList,
+      maxResults: options?.maxResults || 10,
+      maxContentLength: options?.maxContentLength || '2000',
+      includeRawContent: options?.includeRawContent || 'text'
+    }
+
+    console.log('发送搜索请求:', requestBody)
+
+    // 调用联网搜索API
+    const response = await fetch('http://192.168.2.21/ai-agent-bmsys-api/open-api/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    console.log('搜索API响应:', result)
+
+    // 检查响应是否成功
+    if (result.code !== 200) {
+      throw new Error(result.msg || '搜索请求失败')
+    }
+
+    // 转换数据格式，适配WebSearchService期望的格式
+    // const searchResults = (result.data || []).map((item: any) => ({
+    //   title: item.title,
+    //   url: item.url,
+    //   snippet: item.snippet,
+    //   full_content: item.full_content,
+    //   sourceIcon: item.source_icon
+    // }))
+
+    // console.log('格式化后的搜索结果:', searchResults)
+    return result.data || []
+
+  } catch (error) {
+    console.error('搜索失败:', error)
+    ElMessage.error('联网搜索失败: ' + (error instanceof Error ? error.message : '未知错误'))
+    return []
+  }
 }
 
 // 组件挂载时加载项目列表
 onMounted(() => {
   loadProjects()
-  // 清空会话消息
+  // 进入AI分析页面时清空会话消息，提供干净的对话环境
   clearAllSessionsMessages()
 })
 

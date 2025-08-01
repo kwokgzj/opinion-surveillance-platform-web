@@ -132,8 +132,8 @@ const setCssVariables = (colorPalette: Record<string, string>, isDark: boolean) 
 // 组件挂载时设置主题
 onMounted(() => {
   document.body.setAttribute('theme-mode', props.theme || 'light')
-  // const colorPalette = generateColorPalette(themeColor.value, isDark.value)
-  // setCssVariables(colorPalette, isDark.value)
+  const colorPalette = generateColorPalette(themeColor.value, isDark.value)
+  setCssVariables(colorPalette, isDark.value)
 })
 </script>
 
