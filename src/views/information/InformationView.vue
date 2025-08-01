@@ -1353,8 +1353,26 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
     error.value = '';
 
     try {
-      await fetchFilterOptions();
-      await fetchInformationData();
+      // 并行执行获取筛选选项和获取数据
+      const [filterResult, dataResult] = await Promise.allSettled([
+        fetchFilterOptions(),
+        fetchInformationData()
+      ]);
+
+      // 检查是否有失败的请求
+      const failedRequests = [];
+      if (filterResult.status === 'rejected') {
+        console.error('获取筛选选项失败:', filterResult.reason);
+        failedRequests.push('筛选选项');
+      }
+      if (dataResult.status === 'rejected') {
+        console.error('获取数据失败:', dataResult.reason);
+        failedRequests.push('数据');
+      }
+
+      if (failedRequests.length > 0) {
+        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      }
     } catch (err) {
       console.error('项目切换失败:', err);
       error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
@@ -1375,12 +1393,29 @@ onMounted(async () => {
   await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
-    // 先获取筛选选项，再获取数据
-    await fetchFilterOptions();
-    await fetchInformationData();
+    // 并行执行获取筛选选项和获取数据
+    const [filterResult, dataResult] = await Promise.allSettled([
+      fetchFilterOptions(),
+      fetchInformationData()
+    ]);
+
+    // 检查是否有失败的请求
+    const failedRequests = [];
+    if (filterResult.status === 'rejected') {
+      console.error('获取筛选选项失败:', filterResult.reason);
+      failedRequests.push('筛选选项');
+    }
+    if (dataResult.status === 'rejected') {
+      console.error('获取数据失败:', dataResult.reason);
+      failedRequests.push('数据');
+    }
+
+    if (failedRequests.length > 0) {
+      error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+    }
   } catch (err) {
     console.error('组件初始化失败:', err);
-    error.value = '页面加载失败，请刷新重试';
+    error.value = '页面加载失败，请稍后重试';
   } finally {
     loading.value = false;
   }
@@ -1429,23 +1464,23 @@ const fetchInformationData = async () => {
     // 从选中的时长选项中提取时长范围
     const durationRange = getDurationRange(filter.value.duration);
 
-    // 构建过滤条件
+    // 构建过滤条件 - 安全地处理筛选选项可能尚未加载的情况
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
-      brands: convertLabelsToValues(filterOptions.value.brands || [], filter.value.brands),
-      skus: convertLabelsToValues(filterOptions.value.skus || [], filter.value.skus),
-      platforms: convertLabelsToValues(filterOptions.value.platforms || [], filter.value.platforms),
-      sentiments: convertLabelsToValues(filterOptions.value.sentiments || [], filter.value.sentiments),
-      languages: convertLabelsToValues(filterOptions.value.languages || [], filter.value.languages),
-      regions: convertLabelsToValues(filterOptions.value.regions || [], filter.value.regions),
+      brands: filterOptions.value.brands ? convertLabelsToValues(filterOptions.value.brands, filter.value.brands) : filter.value.brands,
+      skus: filterOptions.value.skus ? convertLabelsToValues(filterOptions.value.skus, filter.value.skus) : filter.value.skus,
+      platforms: filterOptions.value.platforms ? convertLabelsToValues(filterOptions.value.platforms, filter.value.platforms) : filter.value.platforms,
+      sentiments: filterOptions.value.sentiments ? convertLabelsToValues(filterOptions.value.sentiments, filter.value.sentiments) : filter.value.sentiments,
+      languages: filterOptions.value.languages ? convertLabelsToValues(filterOptions.value.languages, filter.value.languages) : filter.value.languages,
+      regions: filterOptions.value.regions ? convertLabelsToValues(filterOptions.value.regions, filter.value.regions) : filter.value.regions,
       keyword: filter.value.searchKeyword || '',
-      sortBy: getSortValue(filter.value.sort),
+      sortBy: filter.value.sort ? getSortValue(filter.value.sort) : firstSortValue.value,
       minDuration: durationRange.minDuration,
       maxDuration: durationRange.maxDuration,
-      channels: convertLabelsToValues(filterOptions.value.channels || [], filter.value.channels),
+      channels: filterOptions.value.channels ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels) : filter.value.channels,
       publishedAtStart: formatDateTime(filter.value.dateRange[0]),
       publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
-      labels: convertLabelsToValues(filterOptions.value.labels || [], filter.value.tags),
+      labels: filterOptions.value.labels ? convertLabelsToValues(filterOptions.value.labels, filter.value.tags) : filter.value.tags,
       page: currentPage.value,
       size: pageSize.value
     };
@@ -1927,11 +1962,16 @@ async function handleAddTag(item: Information) {
 
     const trimmedTag = tag.trim();
 
-    await ElMessageBox.confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`, '确认添加', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
+    try {
+      await ElMessageBox.confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`, '确认添加', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      });
+    } catch {
+      // 用户点击取消，直接返回，不显示错误
+      return;
+    }
 
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
@@ -1968,6 +2008,12 @@ async function handleAddTag(item: Information) {
       ElMessage.error('添加标签失败：响应为空');
     }
   } catch (error: any) {
+    // 检查是否是用户取消操作
+    if (error === 'cancel' || error.action === 'cancel') {
+      // 用户点击取消，直接返回，不显示错误
+      return;
+    }
+
     console.error('添加标签失败:', error);
     // 显示更详细的错误信息
     let errorMessage = '添加标签失败，请稍后重试';
@@ -2070,11 +2116,16 @@ async function handleBatchAddTag() {
 
     const trimmedTag = tag.trim();
 
-    await ElMessageBox.confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`, '确认批量添加', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
+    try {
+      await ElMessageBox.confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`, '确认批量添加', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      });
+    } catch {
+      // 用户点击取消，直接返回，不显示错误
+      return;
+    }
 
     const currentProjectId = projectStore.currentProjectId;
     if (!currentProjectId) {
@@ -2123,6 +2174,12 @@ async function handleBatchAddTag() {
       ElMessage.error('批量添加标签失败：响应为空');
     }
   } catch (error: any) {
+    // 检查是否是用户取消操作
+    if (error === 'cancel' || error.action === 'cancel') {
+      // 用户点击取消，直接返回，不显示错误
+      return;
+    }
+
     console.error('批量添加标签失败:', error);
     // 显示更详细的错误信息
     let errorMessage = '批量添加标签失败，请稍后重试';

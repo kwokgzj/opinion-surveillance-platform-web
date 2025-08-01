@@ -1788,13 +1788,30 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
         updateStackedBarChart([], emptySeriesData, 'sentimentRegionChart');
       }
 
-      await fetchFilterOptions();
       // 重置筛选条件
       resetFilter();
 
-      // 自动获取新项目的情感趋势数据
-      console.log('项目切换完成，自动加载情感趋势数据...');
-      await fetchSentimentTrendData();
+      // 并行获取筛选选项和情感趋势数据
+      console.log('项目切换，并行加载筛选选项和情感趋势数据...');
+      const [filterResult, dataResult] = await Promise.allSettled([
+        fetchFilterOptions(),
+        fetchSentimentTrendData()
+      ]);
+
+      // 检查是否有失败的请求
+      const failedRequests = [];
+      if (filterResult.status === 'rejected') {
+        console.error('获取筛选选项失败:', filterResult.reason);
+        failedRequests.push('筛选选项');
+      }
+      if (dataResult.status === 'rejected') {
+        console.error('获取情感数据失败:', dataResult.reason);
+        failedRequests.push('情感数据');
+      }
+
+      if (failedRequests.length > 0) {
+        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      }
     } catch (err) {
       console.error('项目切换失败:', err);
       error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
@@ -1811,23 +1828,40 @@ onMounted(async () => {
   loading.value = true;
 
   try {
-    await fetchFilterOptions();
     // 延迟初始化图表，确保DOM完全加载
     setTimeout(() => {
       initAllCharts();
     }, 100);
 
-    // 如果有项目ID，自动加载默认数据
+    // 如果有项目ID，并行获取筛选选项和数据
     if (projectStore.currentProjectId) {
-      console.log('自动加载情感趋势数据...');
-      await fetchSentimentTrendData();
+      console.log('并行加载筛选选项和情感趋势数据...');
+      const [filterResult, dataResult] = await Promise.allSettled([
+        fetchFilterOptions(),
+        fetchSentimentTrendData()
+      ]);
+
+      // 检查是否有失败的请求
+      const failedRequests = [];
+      if (filterResult.status === 'rejected') {
+        console.error('获取筛选选项失败:', filterResult.reason);
+        failedRequests.push('筛选选项');
+      }
+      if (dataResult.status === 'rejected') {
+        console.error('获取情感数据失败:', dataResult.reason);
+        failedRequests.push('情感数据');
+      }
+
+      if (failedRequests.length > 0) {
+        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      }
     } else {
       console.warn('没有项目ID，请先选择项目');
       error.value = '请先选择一个项目';
     }
   } catch (err) {
     console.error('页面初始化失败:', err);
-    error.value = '页面加载失败，请刷新重试';
+    error.value = '页面加载失败，请稍后重试';
   } finally {
     loading.value = false;
   }

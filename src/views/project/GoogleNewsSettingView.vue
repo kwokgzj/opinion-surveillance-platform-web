@@ -322,6 +322,7 @@ export default {
         { value: 'fr', label: '法语' },
         { value: 'de', label: '德语' },
         { value: 'es', label: '西班牙语' },
+        { value: 'it', label: '意大利语' },
         { value: 'ru', label: '俄语' },
         { value: 'ar', label: '阿拉伯语' }
       ],
@@ -335,6 +336,8 @@ export default {
         { value: 'DE', label: '德国' },
         { value: 'CA', label: '加拿大' },
         { value: 'AU', label: '澳大利亚' },
+        { value: 'ES', label: '西班牙' },
+        { value: 'IT', label: '意大利' },
         { value: 'IN', label: '印度' }
       ]
     }
@@ -474,7 +477,7 @@ export default {
     document.addEventListener('click', this.handleClickOutside);
     // 保存初始表单数据
     this.saveInitialFormData();
-    
+
     // 检查是否有正在运行的搜索测试
     this.checkRunningSearchTest();
   },
@@ -914,15 +917,15 @@ export default {
     testSearch() {
       const currentTime = Date.now();
       const timeDiff = currentTime - this.lastSearchTestTime;
-      
+
       // 防止双击，至少间隔5秒
       if (timeDiff < 5000) {
         ElMessage.warning('请勿频繁点击，请等待5秒后再试');
         return;
       }
-      
+
       this.lastSearchTestTime = currentTime;
-      
+
       const projectId = this.$route.params.id || this.$route.query.projectId;
       console.log('点击搜索测试按钮，项目ID:', projectId);
 
@@ -994,7 +997,7 @@ export default {
       try {
         const response = await getDataCrawlProgress(projectId);
         console.log('进度响应:', response);
-        
+
         if (response.code === 0) {
           if (response.data) {
             // 有数据，说明任务正在运行
@@ -1007,7 +1010,7 @@ export default {
               预计结束时间: response.data.estimatedEndTime
             });
             this.searchTestProgress = response.data;
-            
+
             // 检查是否完成（总进度达到100%）
             if (response.data.totalProgress >= 100) {
               this.stopProgressPolling();
@@ -1044,7 +1047,7 @@ export default {
     // 检查是否有正在运行的搜索测试
     async checkRunningSearchTest() {
       const projectId = this.$route.params.id || this.$route.query.projectId;
-      
+
       // 只有在编辑模式或已创建项目时才检查
       if (!projectId || (!this.isEditMode && this.projectStatus === 'creating')) {
         this.searchTestButtonDisabled = false;
@@ -1053,14 +1056,14 @@ export default {
 
       try {
         const response = await getDataCrawlProgress(projectId);
-        
+
         if (response.code === 0) {
           if (response.data) {
             // 有数据，检查是否还在运行中
             if (response.data.totalProgress < 100) {
               this.isSearchTesting = true;
               this.searchTestProgress = response.data;
-              
+
               // 开始轮询进度
               this.startProgressPolling(projectId);
             } else {

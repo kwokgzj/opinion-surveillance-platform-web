@@ -1241,18 +1241,35 @@ watch(() => filter.value.regions, (val) => {
 // 监听项目ID变化
 watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) => {
   if (newProjectId && newProjectId !== oldProjectId) {
-    console.log('项目ID变化，重新获取筛选选项');
+    console.log('项目ID变化，并行获取筛选选项和数据');
     loading.value = true;
     error.value = '';
 
     try {
-      await fetchFilterOptions();
       // 重置筛选条件
       resetFilter();
 
-      // 自动获取新项目的趋势分析数据
-      console.log('项目切换完成，自动加载趋势分析数据...');
-      await fetchTrendAnalysisData();
+      // 并行获取筛选选项和趋势分析数据
+      console.log('项目切换，并行加载筛选选项和趋势分析数据...');
+      const [filterResult, dataResult] = await Promise.allSettled([
+        fetchFilterOptions(),
+        fetchTrendAnalysisData()
+      ]);
+
+      // 检查是否有失败的请求
+      const failedRequests = [];
+      if (filterResult.status === 'rejected') {
+        console.error('获取筛选选项失败:', filterResult.reason);
+        failedRequests.push('筛选选项');
+      }
+      if (dataResult.status === 'rejected') {
+        console.error('获取趋势数据失败:', dataResult.reason);
+        failedRequests.push('趋势数据');
+      }
+
+      if (failedRequests.length > 0) {
+        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      }
     } catch (err) {
       console.error('项目切换失败:', err);
       error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
@@ -1269,23 +1286,40 @@ onMounted(async () => {
   loading.value = true;
 
   try {
-    await fetchFilterOptions();
     // 延迟初始化图表，确保DOM完全加载
     setTimeout(() => {
       initAllCharts();
     }, 100);
 
-    // 如果有项目ID，自动加载默认数据
+    // 如果有项目ID，并行获取筛选选项和数据
     if (projectStore.currentProjectId) {
-      console.log('自动加载趋势分析数据...');
-      await fetchTrendAnalysisData();
+      console.log('并行加载筛选选项和趋势分析数据...');
+      const [filterResult, dataResult] = await Promise.allSettled([
+        fetchFilterOptions(),
+        fetchTrendAnalysisData()
+      ]);
+
+      // 检查是否有失败的请求
+      const failedRequests = [];
+      if (filterResult.status === 'rejected') {
+        console.error('获取筛选选项失败:', filterResult.reason);
+        failedRequests.push('筛选选项');
+      }
+      if (dataResult.status === 'rejected') {
+        console.error('获取趋势数据失败:', dataResult.reason);
+        failedRequests.push('趋势数据');
+      }
+
+      if (failedRequests.length > 0) {
+        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      }
     } else {
       console.warn('没有项目ID，请先选择项目');
       error.value = '请先选择一个项目';
     }
   } catch (err) {
     console.error('页面初始化失败:', err);
-    error.value = '页面加载失败，请刷新重试';
+    error.value = '页面加载失败，请稍后重试';
   } finally {
     loading.value = false;
   }
