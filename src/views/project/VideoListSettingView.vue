@@ -65,7 +65,13 @@
 
       <!-- 监控视频表格 -->
       <div class="form-section">
-        <label class="section-label required">监控以下视频（至少一条）：</label>
+        <div class="section-header">
+          <label class="section-label required">监控以下视频（至少一条）：</label>
+          <div class="header-actions">
+            <span class="video-count">当前共 {{ validVideosCount }} 条有效视频</span>
+            <button class="btn-batch-import" @click="showBatchImport">批量导入</button>
+          </div>
+        </div>
         <div class="videos-table-container">
           <table>
             <thead>
@@ -151,6 +157,78 @@
         </div>
       </div>
     </div>
+
+    <!-- 批量导入模态框 -->
+    <div v-if="batchImportVisible" class="batch-import-modal" @click="closeBatchImport">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>批量导入视频</h3>
+          <button class="btn-close" @click="closeBatchImport">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="import-instructions">
+            <p>请上传Excel表格进行批量导入：</p>
+            <p class="format-example">表格格式要求：</p>
+            <ul class="format-list">
+              <li>第一列：视频链接（URL）</li>
+              <li>第二列：品牌（brands）</li>
+              <li>第三列：SKU编码（skus）</li>
+            </ul>
+            <p class="format-note">支持 .xlsx 和 .xls 格式，会自动跳过标题行</p>
+          </div>
+
+          <div class="upload-area">
+            <input
+              type="file"
+              ref="fileInput"
+              @change="handleFileUpload"
+              accept=".xlsx,.xls"
+              style="display: none"
+            />
+            <div
+              class="upload-zone"
+              :class="{ 'drag-over': isDragOver }"
+              @click="triggerFileSelect"
+              @drop="handleFileDrop"
+              @dragover.prevent="isDragOver = true"
+              @dragleave="isDragOver = false"
+            >
+              <div class="upload-icon">📁</div>
+              <p v-if="!selectedFile">点击选择或拖拽Excel文件到此处</p>
+              <p v-else class="selected-file">已选择文件：{{ selectedFile.name }}</p>
+            </div>
+          </div>
+
+          <!-- 预览表格 -->
+          <div v-if="previewData.length > 0" class="preview-section">
+            <h4>数据预览（前5行）：</h4>
+            <div class="preview-table-container">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>视频链接</th>
+                    <th>品牌</th>
+                    <th>SKU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, index) in previewData.slice(0, 5)" :key="index">
+                    <td>{{ row.url || '-' }}</td>
+                    <td>{{ row.brand || '-' }}</td>
+                    <td>{{ row.sku || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="preview-info">总共 {{ previewData.length }} 行数据</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closeBatchImport">取消</button>
+          <button class="btn-import" @click="processBatchImport" :disabled="previewData.length === 0">确认导入</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -195,6 +273,12 @@ export default {
         { value: '168', label: '每周抓取' },
         { value: '720', label: '每月抓取' }
       ],
+
+      // 批量导入相关
+      batchImportVisible: false,
+      selectedFile: null,
+      previewData: [],
+      isDragOver: false,
     }
   },
   computed: {
@@ -238,6 +322,13 @@ export default {
       }
       // 编辑模式或已创建，只有有变更时显示
       return this.hasChanges;
+    },
+
+    // 有效视频数量
+    validVideosCount() {
+      return this.monitoredVideos.filter(video =>
+        video.url.trim() && video.brand.trim() && video.sku.trim()
+      ).length;
     },
   },
   watch: {
@@ -421,6 +512,40 @@ export default {
       }
     },
 
+    // 规范化YouTube URL
+    normalizeYouTubeUrl(url) {
+      if (!url || typeof url !== 'string') {
+        return url;
+      }
+
+      try {
+        const urlObj = new URL(url);
+
+        // 处理 youtube.com/watch 格式
+        if (url.includes('youtube.com/watch')) {
+          const videoId = urlObj.searchParams.get('v');
+          if (videoId) {
+            // 只保留视频ID，去掉所有其他参数
+            return `https://www.youtube.com/watch?v=${videoId}`;
+          }
+        }
+        // 处理 youtu.be 格式
+        else if (url.includes('youtu.be')) {
+          const parts = urlObj.pathname.split('/');
+          const videoId = parts[1];
+          if (videoId) {
+            // 转换为标准格式，去掉查询参数
+            const cleanVideoId = videoId.split('?')[0];
+            return `https://www.youtube.com/watch?v=${cleanVideoId}`;
+          }
+        }
+      } catch (error) {
+        console.warn('URL格式错误:', url, error);
+      }
+
+      return url;
+    },
+
     // 验证视频URL
     validateVideoUrl(index) {
       const video = this.monitoredVideos[index];
@@ -428,6 +553,11 @@ export default {
         video.platform = '';
         video.platformID = '';
         return;
+      }
+
+      // 如果是YouTube链接，先规范化URL格式
+      if (video.url.includes('youtube.com') || video.url.includes('youtu.be')) {
+        video.url = this.normalizeYouTubeUrl(video.url);
       }
 
       const platform = this.detectPlatformFromUrl(video.url);
@@ -485,7 +615,8 @@ export default {
         } else if (url.includes('youtu.be')) {
           const parts = pathname.split('/');
           const videoId = parts[1];
-          return videoId || 'unknown';
+          // 去掉youtu.be链接中可能存在的查询参数
+          return videoId ? videoId.split('?')[0] : 'unknown';
         }
         // Twitter/X 处理
         else if (url.includes('twitter.com') || url.includes('x.com')) {
@@ -744,6 +875,211 @@ export default {
         ElMessage.error('网络错误，请检查网络连接后重试');
       }
     },
+
+    // 显示批量导入模态框
+    showBatchImport() {
+      this.batchImportVisible = true;
+      this.selectedFile = null;
+      this.previewData = [];
+      this.isDragOver = false;
+    },
+
+    // 关闭批量导入模态框
+    closeBatchImport() {
+      this.batchImportVisible = false;
+      this.selectedFile = null;
+      this.previewData = [];
+      this.isDragOver = false;
+    },
+
+    // 触发文件选择
+    triggerFileSelect() {
+      this.$refs.fileInput.click();
+    },
+
+    // 处理文件上传
+    async handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        await this.processExcelFile(file);
+      }
+    },
+
+    // 处理文件拖拽
+    async handleFileDrop(event) {
+      event.preventDefault();
+      this.isDragOver = false;
+
+      const files = event.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          await this.processExcelFile(file);
+        } else {
+          ElMessage.error('请选择Excel文件（.xlsx或.xls格式）');
+        }
+      }
+    },
+
+    // 处理Excel文件
+    async processExcelFile(file) {
+      this.selectedFile = file;
+
+      try {
+        // 动态导入xlsx库
+        const XLSX = await import('xlsx');
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // 读取第一个工作表
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // 转换为JSON格式
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            // 处理数据
+            this.parseExcelData(jsonData);
+
+          } catch (error) {
+            console.error('解析Excel文件失败:', error);
+            ElMessage.error('解析Excel文件失败，请检查文件格式');
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+
+      } catch (error) {
+        console.error('加载Excel解析库失败:', error);
+        ElMessage.error('加载Excel解析库失败，请刷新页面重试');
+      }
+    },
+
+    // 解析Excel数据
+    parseExcelData(jsonData) {
+      if (!jsonData || jsonData.length === 0) {
+        ElMessage.warning('Excel文件为空');
+        return;
+      }
+
+      // 跳过第一行（标题行），从第二行开始处理数据
+      const dataRows = jsonData.slice(1);
+      const parsedData = [];
+
+      dataRows.forEach((row, index) => {
+        // 确保行有数据
+        if (!row || row.length === 0) return;
+
+        const url = row[0] ? String(row[0]).trim() : '';
+        const brand = row[1] ? String(row[1]).trim() : '';
+        const sku = row[2] ? String(row[2]).trim() : '';
+
+        // 至少要有URL
+        if (url) {
+          parsedData.push({
+            url,
+            brand,
+            sku,
+            rowIndex: index + 2 // 实际行号（考虑标题行）
+          });
+        }
+      });
+
+      this.previewData = parsedData;
+
+      if (parsedData.length === 0) {
+        ElMessage.warning('Excel文件中没有找到有效数据');
+      } else {
+        ElMessage.success(`成功解析 ${parsedData.length} 行数据`);
+      }
+    },
+
+        // 处理批量导入
+    processBatchImport() {
+      if (this.previewData.length === 0) {
+        ElMessage.warning('请先选择并解析Excel文件');
+        return;
+      }
+
+      const newVideos = [];
+      const errors = [];
+
+      this.previewData.forEach((row) => {
+        let { url } = row;
+        const { brand, sku, rowIndex } = row;
+
+        // 检查必填字段
+        if (!url) {
+          errors.push(`第 ${rowIndex} 行缺少视频链接`);
+          return;
+        }
+
+        if (!brand) {
+          errors.push(`第 ${rowIndex} 行缺少品牌信息`);
+          return;
+        }
+
+        if (!sku) {
+          errors.push(`第 ${rowIndex} 行缺少SKU信息`);
+          return;
+        }
+
+        // 如果是YouTube链接，先规范化URL格式
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+          url = this.normalizeYouTubeUrl(url);
+        }
+
+        // 检测平台和生成平台ID
+        const platform = this.detectPlatformFromUrl(url);
+        const platformID = this.generatePlatformID(url);
+
+        if (platform === 'Unknown' || !platform) {
+          errors.push(`第 ${rowIndex} 行的视频链接无法识别平台：${url}`);
+          return;
+        }
+
+        if (platformID === 'unknown' || !platformID) {
+          errors.push(`第 ${rowIndex} 行的视频链接无法提取ID：${url}`);
+          return;
+        }
+
+        newVideos.push({
+          url,
+          brand,
+          sku,
+          platform,
+          platformID
+        });
+      });
+
+      if (errors.length > 0) {
+        ElMessage.error(`导入失败：\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n...' : ''}`);
+        return;
+      }
+
+      if (newVideos.length === 0) {
+        ElMessage.warning('没有有效的视频数据可以导入');
+        return;
+      }
+
+      // 移除现有的空行（如果只有一行且为空）
+      if (this.monitoredVideos.length === 1 &&
+          !this.monitoredVideos[0].url &&
+          !this.monitoredVideos[0].brand &&
+          !this.monitoredVideos[0].sku) {
+        this.monitoredVideos = [];
+      }
+
+      // 添加新视频
+      this.monitoredVideos.push(...newVideos);
+
+      ElMessage.success(`成功导入 ${newVideos.length} 条视频`);
+      this.closeBatchImport();
+    },
   }
 }
 </script>
@@ -804,16 +1140,54 @@ label {
 }
 
 .form-section {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .section-label {
   display: block;
-  margin-bottom: 10px;
   font-weight: 500;
   color: #333;
   text-align: left;
   width: auto;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-count {
+  font-size: 14px;
+  color: #666;
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.btn-batch-import {
+  background-color: #52c41a;
+  color: white;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-batch-import:hover {
+  background-color: #73d13d;
 }
 
 input[type="text"],
@@ -910,13 +1284,36 @@ input[type="number"]:focus {
 
 .videos-table-container {
   width: 100%;
-  overflow-x: auto;
+  max-height: 400px;
+  overflow: auto;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+}
+
+/* 自定义滚动条样式 */
+.videos-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.videos-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.videos-table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.videos-table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   table-layout: fixed;
 }
 
@@ -925,6 +1322,9 @@ th {
   padding: 10px;
   background-color: #f5f5f5;
   border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 td {
@@ -1078,5 +1478,295 @@ button {
     margin-bottom: 5px;
     width: auto;
   }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .video-count {
+    align-self: flex-start;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .modal-content {
+    width: 98%;
+    max-width: none;
+    margin: 10px;
+  }
+
+  .upload-zone {
+    padding: 20px;
+  }
+
+  .upload-icon {
+    font-size: 36px;
+  }
+
+  .preview-table th,
+  .preview-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .preview-table th:nth-child(1),
+  .preview-table td:nth-child(1) {
+    width: 45%;
+  }
+
+  .preview-table th:nth-child(2),
+  .preview-table td:nth-child(2) {
+    width: 27.5%;
+  }
+
+  .preview-table th:nth-child(3),
+  .preview-table td:nth-child(3) {
+    width: 27.5%;
+  }
+}
+
+/* 批量导入模态框样式 */
+.batch-import-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 95%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.import-instructions {
+  margin-bottom: 16px;
+}
+
+.import-instructions p {
+  margin: 8px 0;
+  color: #333;
+}
+
+.format-example {
+  font-weight: 500;
+  color: #1890ff;
+}
+
+.format-list {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #333;
+}
+
+.format-list li {
+  margin: 4px 0;
+}
+
+.format-note {
+  font-size: 14px;
+  color: #666;
+  background-color: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #1890ff;
+}
+
+.upload-area {
+  margin: 16px 0;
+}
+
+.upload-zone {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: #fafafa;
+}
+
+.upload-zone:hover {
+  border-color: #1890ff;
+  background-color: #f0f8ff;
+}
+
+.upload-zone.drag-over {
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.upload-zone p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.selected-file {
+  color: #1890ff !important;
+  font-weight: 500;
+}
+
+.preview-section {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.preview-section h4 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.preview-table-container {
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  table-layout: fixed;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 14px;
+}
+
+.preview-table th {
+  background-color: #f5f5f5;
+  font-weight: 500;
+  color: #333;
+}
+
+.preview-table th:nth-child(1),
+.preview-table td:nth-child(1) {
+  width: 50%;
+}
+
+.preview-table th:nth-child(2),
+.preview-table td:nth-child(2) {
+  width: 25%;
+}
+
+.preview-table th:nth-child(3),
+.preview-table td:nth-child(3) {
+  width: 25%;
+}
+
+.preview-table td {
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-info {
+  margin: 0;
+  font-size: 14px;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e8e8e8;
+  background-color: #fafafa;
+}
+
+.btn-import {
+  background-color: #1890ff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.btn-import:hover:not(:disabled) {
+  background-color: #40a9ff;
+}
+
+.btn-import:disabled {
+  background-color: #d9d9d9;
+  cursor: not-allowed;
 }
 </style>
