@@ -620,7 +620,9 @@ export default {
         } else {
           // 检查是否与表格中已处理的视频重复
           const isDuplicateInTable = processedVideos.some(processed =>
-            processed.platform === result.platform && processed.platformID === result.platformID
+            processed.platform && processed.platformID &&
+            processed.platform.toLowerCase() === result.platform.toLowerCase() && 
+            processed.platformID === result.platformID
           );
 
           if (isDuplicateInTable) {
@@ -654,9 +656,23 @@ export default {
 
     // 检查视频是否重复
     checkVideoDuplicate(platform, platformID) {
-      return this.monitoredVideos.some(video =>
-        video.platform === platform && video.platformID === platformID
-      );
+      if (!platform || !platformID) {
+        return false;
+      }
+
+      return this.monitoredVideos.some(video => {
+        // 确保比较的字段都存在
+        if (!video.platform || !video.platformID) {
+          return false;
+        }
+
+        // 统一平台名称格式进行比较（防止大小写不一致）
+        const normalizedPlatform = platform.toLowerCase();
+        const normalizedVideoPlatform = video.platform.toLowerCase();
+
+        return normalizedVideoPlatform === normalizedPlatform &&
+               video.platformID === platformID;
+      });
     },
 
             // 验证视频URL（用于单行验证）
@@ -675,11 +691,12 @@ export default {
         return;
       }
 
-      // 检查是否与表格中其他视频重复（排除当前行）
+            // 检查是否与表格中其他视频重复（排除当前行）
       const duplicateIndexes = [];
       this.monitoredVideos.forEach((v, i) => {
-        if (i !== index &&
-            v.platform === result.platform &&
+        if (i !== index && 
+            v.platform && v.platformID &&
+            v.platform.toLowerCase() === result.platform.toLowerCase() && 
             v.platformID === result.platformID) {
           duplicateIndexes.push(i + 1);
         }
@@ -1128,8 +1145,10 @@ export default {
             // 检查是否与已解析的数据重复
             if (!isDuplicate) {
               isDuplicate = parsedData.some(existing => {
-                if (!existing.validationResult) return false;
-                return existing.validationResult.platform === validationResult.platform &&
+                if (!existing.validationResult || !existing.validationResult.platform || !existing.validationResult.platformID) {
+                  return false;
+                }
+                return existing.validationResult.platform.toLowerCase() === validationResult.platform.toLowerCase() &&
                        existing.validationResult.platformID === validationResult.platformID;
               });
             }
@@ -1203,13 +1222,16 @@ export default {
         // 检查是否与现有视频重复
         const isDuplicate = this.checkVideoDuplicate(platform, platformID);
         if (isDuplicate) {
+          console.log(`发现重复视频: ${platform} - ${platformID}`);
           duplicates.push(`第 ${rowIndex} 行：${platform} 平台的视频 ${platformID} 已存在`);
           return;
         }
 
         // 检查是否与即将添加的视频重复
         const isDuplicateInNew = newVideos.some(video =>
-          video.platform === platform && video.platformID === platformID
+          video.platform && video.platformID &&
+          video.platform.toLowerCase() === platform.toLowerCase() && 
+          video.platformID === platformID
         );
         if (isDuplicateInNew) {
           skipped.push(`第 ${rowIndex} 行：与导入列表中的其他视频重复`);
