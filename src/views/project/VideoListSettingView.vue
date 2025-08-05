@@ -76,14 +76,16 @@
           <table>
             <thead>
               <tr>
-                <th width="45%">视频链接</th>
-                <th width="25%">品牌</th>
-                <th width="25%">SKU</th>
-                <th width="5%">操作</th>
+                <th width="5%">序号</th>
+                <th width="40%">视频链接</th>
+                <th width="22.5%">品牌</th>
+                <th width="22.5%">SKU</th>
+                <th width="10%">操作</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(video, index) in monitoredVideos" :key="index">
+                <td class="sequence-number">{{ index + 1 }}</td>
                 <td>
                   <input
                     v-model="video.url"
@@ -108,6 +110,7 @@
                 </td>
               </tr>
               <tr>
+                <td></td>
                 <td colspan="3">
                 </td>
                 <td>
@@ -148,11 +151,11 @@
           </button>
           <button
             class="btn-save"
-            :class="{ 'btn-save-disabled': !canSave }"
-            :disabled="!canSave"
+            :class="{ 'btn-save-disabled': !canSave || isSaving }"
+            :disabled="!canSave || isSaving"
             @click="saveProject"
           >
-            保存
+            {{ isSaving ? '保存中...' : '保存' }}
           </button>
         </div>
       </div>
@@ -209,13 +212,20 @@
                     <th>视频链接</th>
                     <th>品牌</th>
                     <th>SKU</th>
+                    <th>状态</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(row, index) in previewData.slice(0, 5)" :key="index">
+                  <tr v-for="(row, index) in previewData.slice(0, 5)" :key="index" :class="{ 'duplicate-row': row.isDuplicate, 'invalid-row': row.validationResult && !row.validationResult.isValid }">
                     <td>{{ row.url || '-' }}</td>
                     <td>{{ row.brand || '-' }}</td>
                     <td>{{ row.sku || '-' }}</td>
+                    <td>
+                      <span v-if="row.isDuplicate" class="status-duplicate">重复</span>
+                      <span v-else-if="row.validationResult && !row.validationResult.isValid" class="status-invalid">无效</span>
+                      <span v-else-if="row.validationResult && row.validationResult.isValid" class="status-valid">有效</span>
+                      <span v-else class="status-unknown">-</span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -279,6 +289,9 @@ export default {
       selectedFile: null,
       previewData: [],
       isDragOver: false,
+
+      // 保存状态
+      isSaving: false,
     }
   },
   computed: {
@@ -324,12 +337,12 @@ export default {
       return this.hasChanges;
     },
 
-    // 有效视频数量
-    validVideosCount() {
-      return this.monitoredVideos.filter(video =>
-        video.url.trim() && video.brand.trim() && video.sku.trim()
-      ).length;
-    },
+                // 有效视频数量
+      validVideosCount() {
+        return this.monitoredVideos.filter(video =>
+          video.url.trim() && video.brand.trim() && video.sku.trim()
+        ).length;
+      },
   },
   watch: {
     // 添加路由监听
@@ -546,7 +559,107 @@ export default {
       return url;
     },
 
-    // 验证视频URL
+    // 验证单个视频URL
+    validateSingleVideoUrl(url) {
+      if (!url || !url.trim()) {
+        return { isValid: false, error: '视频链接为空' };
+      }
+
+      const trimmedUrl = url.trim();
+
+      // 基本URL格式检查
+      try {
+        new URL(trimmedUrl);
+      } catch {
+        return { isValid: false, error: 'URL格式无效' };
+      }
+
+      // 如果是YouTube链接，先规范化URL格式
+      let normalizedUrl = trimmedUrl;
+      if (trimmedUrl.includes('youtube.com') || trimmedUrl.includes('youtu.be')) {
+        normalizedUrl = this.normalizeYouTubeUrl(trimmedUrl);
+      }
+
+      const platform = this.detectPlatformFromUrl(normalizedUrl);
+      const platformID = this.generatePlatformID(normalizedUrl);
+
+      if (platform === 'Unknown' || !platform) {
+        return {
+          isValid: false,
+          error: '无法识别平台，支持的平台：YouTube、Instagram、Twitter/X、Facebook'
+        };
+      }
+
+      if (platformID === 'unknown' || !platformID) {
+        return {
+          isValid: false,
+          error: '无法提取视频ID，请检查链接格式是否正确'
+        };
+      }
+
+      return {
+        isValid: true,
+        platform,
+        platformID,
+        normalizedUrl
+      };
+    },
+
+                // 验证所有视频链接和重复性
+    validateAllVideoLinksAndDuplicates(videos) {
+      const errors = [];
+      const processedVideos = [];
+      const validVideos = [];
+
+      videos.forEach((video) => {
+        const result = this.validateSingleVideoUrl(video.url);
+        const displayIndex = this.monitoredVideos.findIndex(v => v === video) + 1;
+
+        if (!result.isValid) {
+          errors.push(`第 ${displayIndex} 行：${result.error} (${video.url})`);
+        } else {
+          // 检查是否与表格中已处理的视频重复
+          const isDuplicateInTable = processedVideos.some(processed =>
+            processed.platform === result.platform && processed.platformID === result.platformID
+          );
+
+          if (isDuplicateInTable) {
+            errors.push(`第 ${displayIndex} 行：与表格中其他视频重复 (${result.platform} - ${result.platformID})`);
+          } else {
+            // 更新视频信息
+            video.platform = result.platform;
+            video.platformID = result.platformID;
+            video.url = result.normalizedUrl;
+
+            // 添加到已处理列表
+            processedVideos.push({
+              platform: result.platform,
+              platformID: result.platformID,
+              index: displayIndex
+            });
+
+            validVideos.push(video);
+          }
+        }
+      });
+
+      return { errors, validVideos };
+    },
+
+    // 验证所有视频链接（保留原方法以兼容其他地方的调用）
+    validateAllVideoLinks(videos) {
+      const result = this.validateAllVideoLinksAndDuplicates(videos);
+      return result.errors;
+    },
+
+    // 检查视频是否重复
+    checkVideoDuplicate(platform, platformID) {
+      return this.monitoredVideos.some(video =>
+        video.platform === platform && video.platformID === platformID
+      );
+    },
+
+            // 验证视频URL（用于单行验证）
     validateVideoUrl(index) {
       const video = this.monitoredVideos[index];
       if (!video.url.trim()) {
@@ -555,26 +668,32 @@ export default {
         return;
       }
 
-      // 如果是YouTube链接，先规范化URL格式
-      if (video.url.includes('youtube.com') || video.url.includes('youtu.be')) {
-        video.url = this.normalizeYouTubeUrl(video.url);
-      }
+      const result = this.validateSingleVideoUrl(video.url);
 
-      const platform = this.detectPlatformFromUrl(video.url);
-      const platformID = this.generatePlatformID(video.url);
-
-      if (platform === 'Unknown' || !platform) {
-        ElMessage.warning(`第 ${index + 1} 行的视频链接无法识别平台，请检查链接格式：${video.url}`);
+      if (!result.isValid) {
+        ElMessage.warning(`第 ${index + 1} 行的视频链接${result.error}：${video.url}`);
         return;
       }
 
-      if (platformID === 'unknown' || !platformID) {
-        ElMessage.warning(`第 ${index + 1} 行的视频链接无法提取ID，请检查链接格式：${video.url}`);
+      // 检查是否与表格中其他视频重复（排除当前行）
+      const duplicateIndexes = [];
+      this.monitoredVideos.forEach((v, i) => {
+        if (i !== index &&
+            v.platform === result.platform &&
+            v.platformID === result.platformID) {
+          duplicateIndexes.push(i + 1);
+        }
+      });
+
+      if (duplicateIndexes.length > 0) {
+        ElMessage.warning(`第 ${index + 1} 行的视频与第 ${duplicateIndexes.join('、')} 行重复：${result.platform} 平台的 ${result.platformID}`);
         return;
       }
 
-      video.platform = platform;
-      video.platformID = platformID;
+      // 更新视频信息
+      video.platform = result.platform;
+      video.platformID = result.platformID;
+      video.url = result.normalizedUrl;
     },
 
     // 根据 URL 检测平台
@@ -586,7 +705,7 @@ export default {
       const lowerUrl = url.toLowerCase();
 
       if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-        return 'Youtube';
+        return 'YouTube';
       } else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
         return 'X';
       } else if (lowerUrl.includes('instagram.com')) {
@@ -707,10 +826,16 @@ export default {
     },
 
     async saveProject() {
+      if (this.isSaving) {
+        return;
+      }
+
       if (!this.isFormValid) {
         ElMessage.warning('请填写完整的表单信息');
         return;
       }
+
+      this.isSaving = true;
 
       const validVideos = this.monitoredVideos.filter(video =>
         video.url.trim() && video.brand.trim() && video.sku.trim()
@@ -718,6 +843,15 @@ export default {
 
       if (validVideos.length === 0) {
         ElMessage.warning('请至少添加一个有效的监控视频');
+        this.isSaving = false;
+        return;
+      }
+
+      // 检查所有链接的有效性和重复性
+      const validationResult = this.validateAllVideoLinksAndDuplicates(validVideos);
+      if (validationResult.errors.length > 0) {
+        ElMessage.error(`以下视频链接存在问题：\n${validationResult.errors.join('\n')}`);
+        this.isSaving = false;
         return;
       }
 
@@ -791,6 +925,7 @@ export default {
           } else {
             this.saveInitialFormData();
             this.hasChanges = false;
+            this.isSaving = false;
           }
         } else {
           const errorMsg = response?.msg || response?.message || '保存失败，请重试';
@@ -801,6 +936,8 @@ export default {
       } catch (error) {
         console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
         ElMessage.error('网络错误，请检查网络连接后重试');
+      } finally {
+        this.isSaving = false;
       }
     },
 
@@ -980,11 +1117,31 @@ export default {
 
         // 至少要有URL
         if (url) {
+          // 检查URL有效性和重复性
+          const validationResult = this.validateSingleVideoUrl(url);
+          let isDuplicate = false;
+
+          if (validationResult.isValid) {
+            // 检查是否与现有视频重复
+            isDuplicate = this.checkVideoDuplicate(validationResult.platform, validationResult.platformID);
+
+            // 检查是否与已解析的数据重复
+            if (!isDuplicate) {
+              isDuplicate = parsedData.some(existing => {
+                if (!existing.validationResult) return false;
+                return existing.validationResult.platform === validationResult.platform &&
+                       existing.validationResult.platformID === validationResult.platformID;
+              });
+            }
+          }
+
           parsedData.push({
             url,
             brand,
             sku,
-            rowIndex: index + 2 // 实际行号（考虑标题行）
+            rowIndex: index + 2, // 实际行号（考虑标题行）
+            validationResult,
+            isDuplicate
           });
         }
       });
@@ -998,7 +1155,7 @@ export default {
       }
     },
 
-        // 处理批量导入
+            // 处理批量导入
     processBatchImport() {
       if (this.previewData.length === 0) {
         ElMessage.warning('请先选择并解析Excel文件');
@@ -1007,6 +1164,8 @@ export default {
 
       const newVideos = [];
       const errors = [];
+      const duplicates = [];
+      const skipped = [];
 
       this.previewData.forEach((row) => {
         let { url } = row;
@@ -1028,22 +1187,32 @@ export default {
           return;
         }
 
-        // 如果是YouTube链接，先规范化URL格式
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-          url = this.normalizeYouTubeUrl(url);
-        }
+        // 验证URL有效性
+        const result = this.validateSingleVideoUrl(url);
 
-        // 检测平台和生成平台ID
-        const platform = this.detectPlatformFromUrl(url);
-        const platformID = this.generatePlatformID(url);
-
-        if (platform === 'Unknown' || !platform) {
-          errors.push(`第 ${rowIndex} 行的视频链接无法识别平台：${url}`);
+        if (!result.isValid) {
+          errors.push(`第 ${rowIndex} 行：${result.error} (${url})`);
           return;
         }
 
-        if (platformID === 'unknown' || !platformID) {
-          errors.push(`第 ${rowIndex} 行的视频链接无法提取ID：${url}`);
+        // 使用验证后的数据
+        url = result.normalizedUrl;
+        const platform = result.platform;
+        const platformID = result.platformID;
+
+        // 检查是否与现有视频重复
+        const isDuplicate = this.checkVideoDuplicate(platform, platformID);
+        if (isDuplicate) {
+          duplicates.push(`第 ${rowIndex} 行：${platform} 平台的视频 ${platformID} 已存在`);
+          return;
+        }
+
+        // 检查是否与即将添加的视频重复
+        const isDuplicateInNew = newVideos.some(video =>
+          video.platform === platform && video.platformID === platformID
+        );
+        if (isDuplicateInNew) {
+          skipped.push(`第 ${rowIndex} 行：与导入列表中的其他视频重复`);
           return;
         }
 
@@ -1056,13 +1225,19 @@ export default {
         });
       });
 
+      // 显示处理结果
       if (errors.length > 0) {
         ElMessage.error(`导入失败：\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n...' : ''}`);
         return;
       }
 
       if (newVideos.length === 0) {
-        ElMessage.warning('没有有效的视频数据可以导入');
+        if (duplicates.length > 0 || skipped.length > 0) {
+          const allMessages = [...duplicates, ...skipped];
+          ElMessage.warning(`没有新视频可以导入：\n${allMessages.slice(0, 5).join('\n')}${allMessages.length > 5 ? '\n...' : ''}`);
+        } else {
+          ElMessage.warning('没有有效的视频数据可以导入');
+        }
         return;
       }
 
@@ -1077,7 +1252,16 @@ export default {
       // 添加新视频
       this.monitoredVideos.push(...newVideos);
 
-      ElMessage.success(`成功导入 ${newVideos.length} 条视频`);
+      // 构建成功消息
+      let successMessage = `成功导入 ${newVideos.length} 条视频`;
+      if (duplicates.length > 0) {
+        successMessage += `，跳过 ${duplicates.length} 条重复视频`;
+      }
+      if (skipped.length > 0) {
+        successMessage += `，跳过 ${skipped.length} 条导入列表内重复`;
+      }
+
+      ElMessage.success(successMessage);
       this.closeBatchImport();
     },
   }
@@ -1173,6 +1357,16 @@ label {
   padding: 4px 8px;
   border-radius: 4px;
   border: 1px solid #e0e0e0;
+}
+
+.duplicate-count {
+  font-size: 14px;
+  color: #fa8c16;
+  background-color: #fff2e8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ffcb97;
+  font-weight: 500;
 }
 
 .btn-batch-import {
@@ -1348,6 +1542,13 @@ td input:focus {
   outline: none;
 }
 
+.sequence-number {
+  text-align: center;
+  font-weight: 500;
+  color: #666;
+  background-color: #fafafa;
+}
+
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -1517,17 +1718,22 @@ button {
 
   .preview-table th:nth-child(1),
   .preview-table td:nth-child(1) {
-    width: 45%;
+    width: 40%;
   }
 
   .preview-table th:nth-child(2),
   .preview-table td:nth-child(2) {
-    width: 27.5%;
+    width: 22%;
   }
 
   .preview-table th:nth-child(3),
   .preview-table td:nth-child(3) {
-    width: 27.5%;
+    width: 22%;
+  }
+
+  .preview-table th:nth-child(4),
+  .preview-table td:nth-child(4) {
+    width: 16%;
   }
 }
 
@@ -1712,17 +1918,23 @@ button {
 
 .preview-table th:nth-child(1),
 .preview-table td:nth-child(1) {
-  width: 50%;
+  width: 45%;
 }
 
 .preview-table th:nth-child(2),
 .preview-table td:nth-child(2) {
-  width: 25%;
+  width: 20%;
 }
 
 .preview-table th:nth-child(3),
 .preview-table td:nth-child(3) {
-  width: 25%;
+  width: 20%;
+}
+
+.preview-table th:nth-child(4),
+.preview-table td:nth-child(4) {
+  width: 15%;
+  text-align: center;
 }
 
 .preview-table td {
@@ -1737,6 +1949,34 @@ button {
   font-size: 14px;
   color: #1890ff;
   font-weight: 500;
+}
+
+/* 预览表格状态样式 */
+.duplicate-row {
+  background-color: #fff2e8;
+}
+
+.invalid-row {
+  background-color: #fff1f0;
+}
+
+.status-valid {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.status-duplicate {
+  color: #fa8c16;
+  font-weight: 500;
+}
+
+.status-invalid {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.status-unknown {
+  color: #999;
 }
 
 
