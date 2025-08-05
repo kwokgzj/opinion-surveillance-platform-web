@@ -1500,6 +1500,7 @@ input[type="number"]:focus {
 
 .videos-table-container {
   width: 100%;
+  min-height: 200px;
   max-height: 400px;
   overflow: auto;
   border: 1px solid #e8e8e8;

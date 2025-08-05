@@ -1907,10 +1907,45 @@ onMounted(async () => {
 
 <style scoped>
 .sentiment-trend-page {
-  min-height: 100vh;
-  width: 100%;
-  max-width: none;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
   box-sizing: border-box;
+}
+
+/* WebKit 浏览器原生滚动条样式 */
+.sentiment-trend-page::-webkit-scrollbar {
+  width: 14px;
+  background-color: transparent;
+}
+
+.sentiment-trend-page::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 7px;
+  margin: 4px 0;
+}
+
+.sentiment-trend-page::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 7px;
+  border: 2px solid #f5f5f5;
+  background-clip: content-box;
+  min-height: 30px;
+}
+
+.sentiment-trend-page::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.sentiment-trend-page::-webkit-scrollbar-thumb:active {
+  background: #909399;
+}
+
+/* 支持 Firefox 的滚动条样式 */
+.sentiment-trend-page {
+  scrollbar-width: thin;
+  scrollbar-color: #c0c4cc #f5f5f5;
 }
 
 /* 筛选面板样式 */

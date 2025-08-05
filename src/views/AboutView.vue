@@ -39,4 +39,46 @@ const hanleQuery = async () => {
 };
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.about {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* WebKit 浏览器原生滚动条样式 */
+.about::-webkit-scrollbar {
+  width: 14px;
+  background-color: transparent;
+}
+
+.about::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 7px;
+  margin: 4px 0;
+}
+
+.about::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 7px;
+  border: 2px solid #f5f5f5;
+  background-clip: content-box;
+  min-height: 30px;
+}
+
+.about::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.about::-webkit-scrollbar-thumb:active {
+  background: #909399;
+}
+
+/* 支持 Firefox 的滚动条样式 */
+.about {
+  scrollbar-width: thin;
+  scrollbar-color: #c0c4cc #f5f5f5;
+}
+</style>
