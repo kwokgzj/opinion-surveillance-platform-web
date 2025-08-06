@@ -1352,6 +1352,9 @@ watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) =>
     loading.value = true;
     error.value = '';
 
+    // 重置分页状态到第一页
+    resetPagination();
+
     try {
       // 并行执行获取筛选选项和获取数据
       const [filterResult, dataResult] = await Promise.allSettled([
