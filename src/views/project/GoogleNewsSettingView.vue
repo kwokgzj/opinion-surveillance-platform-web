@@ -517,9 +517,9 @@ export default {
     setDefaultValues() {
     const projectName = this.$route.query.projectName;
     this.projectName = projectName || '';
-    this.newsSearchCount = 500; // 默认500
+    this.newsSearchCount = 100; // 默认100
     this.crawlTimeRange = '720'; // 默认近30天
-    this.crawlFrequency = '24'; // 默认每天抓取
+    this.crawlFrequency = '168'; // 默认每周抓取
     this.selectedLanguages = ['zh-CN']; // 默认中文简体
     this.selectedRegions = ['CN']; // 默认中国
     this.keywords = [{ word: '', include: '', exclude: '' }];

@@ -411,7 +411,7 @@ export default {
       const projectName = this.$route.query.projectName;
       this.projectName = projectName || '';
       this.crawlTimeRange = '720'; // 默认近30天
-      this.crawlFrequency = '24'; // 默认每天抓取
+      this.crawlFrequency = '168'; // 默认每周抓取
       this.monitoredVideos = [{ url: '', brand: '', sku: '', platform: '', platformID: '' }];
     },
 
@@ -621,7 +621,7 @@ export default {
           // 检查是否与表格中已处理的视频重复
           const isDuplicateInTable = processedVideos.some(processed =>
             processed.platform && processed.platformID &&
-            processed.platform.toLowerCase() === result.platform.toLowerCase() && 
+            processed.platform.toLowerCase() === result.platform.toLowerCase() &&
             processed.platformID === result.platformID
           );
 
@@ -694,9 +694,9 @@ export default {
             // 检查是否与表格中其他视频重复（排除当前行）
       const duplicateIndexes = [];
       this.monitoredVideos.forEach((v, i) => {
-        if (i !== index && 
+        if (i !== index &&
             v.platform && v.platformID &&
-            v.platform.toLowerCase() === result.platform.toLowerCase() && 
+            v.platform.toLowerCase() === result.platform.toLowerCase() &&
             v.platformID === result.platformID) {
           duplicateIndexes.push(i + 1);
         }
@@ -1230,7 +1230,7 @@ export default {
         // 检查是否与即将添加的视频重复
         const isDuplicateInNew = newVideos.some(video =>
           video.platform && video.platformID &&
-          video.platform.toLowerCase() === platform.toLowerCase() && 
+          video.platform.toLowerCase() === platform.toLowerCase() &&
           video.platformID === platformID
         );
         if (isDuplicateInNew) {
