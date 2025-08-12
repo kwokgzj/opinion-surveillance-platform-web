@@ -57,7 +57,7 @@
         :default-config="defaultConfig"
         :web-search-function="webSearchFunction"
         :get-selected-projects="getSelectedProjectsWithNames"
-        theme="light"
+        :theme="currentTheme === 'system' ? (isDark ? 'dark' : 'light') : currentTheme"
       />
     </div>
   </div>
@@ -74,6 +74,7 @@ import { useProjectStore } from '@/stores/project'
 import { getSelectedProjectsContext } from '@/RevoAI/utils/contextUtils'
 import { clearSessionMessages } from '@/RevoAI/store/thunk/messageThunk'
 import { useSessionsStore } from '@/RevoAI/store'
+import { useTheme } from '@/utils/theme'
 
 // 项目选择器项目类型
 interface ProjectSelector {
@@ -100,6 +101,7 @@ const selectorIndeterminate = ref<boolean[]>([false])
 
 const projectStore = useProjectStore()
 const sessionsStore = useSessionsStore()
+const { currentTheme, isDark } = useTheme()
 
 // 生成唯一ID
 function generateId(): string {
@@ -378,7 +380,7 @@ const webSearchFunction = async (
       query: queryList,
       maxResults: options?.maxResults || 10,
       maxContentLength: options?.maxContentLength || '2000',
-      includeRawContent: options?.includeRawContent || 'text'
+      includeRawContent: options?.includeRawContent || 'text',
     }
 
     console.log('发送搜索请求:', requestBody)
@@ -389,7 +391,7 @@ const webSearchFunction = async (
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
@@ -415,7 +417,6 @@ const webSearchFunction = async (
 
     // console.log('格式化后的搜索结果:', searchResults)
     return result.data || []
-
   } catch (error) {
     console.error('搜索失败:', error)
     ElMessage.error('联网搜索失败: ' + (error instanceof Error ? error.message : '未知错误'))

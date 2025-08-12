@@ -407,460 +407,581 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
-import { ElMessage } from 'element-plus';
-import { getProjectList } from '@/api/project/project';
-import type { ProjectSummary } from '@/api/project/project.type';
-import { getComparisonData } from '@/api/comparison/comparison';
-import type { ComparisonFilter, ComparisonData, ComparisonDataItem, ComparisonGroupData } from '@/api/comparison/comparison.type';
-import * as echarts from 'echarts';
+import { ref, onMounted, nextTick } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getProjectList } from '@/api/project/project'
+import type { ProjectSummary } from '@/api/project/project.type'
+import { getComparisonData } from '@/api/comparison/comparison'
+import type {
+  ComparisonFilter,
+  ComparisonData,
+  ComparisonDataItem,
+  ComparisonGroupData,
+} from '@/api/comparison/comparison.type'
+import * as echarts from 'echarts'
 
 // 加载状态
-const loading = ref(false);
-const error = ref('');
-const hasData = ref(false);
+const loading = ref(false)
+const error = ref('')
+const hasData = ref(false)
 
 // 项目选项
-const projectOptions = ref<ProjectSummary[]>([]);
+const projectOptions = ref<ProjectSummary[]>([])
 
 // 平台选项（可以从API获取，这里先硬编码）
-const platformOptions = ref(['YouTube', 'Facebook', 'X', 'Instagram']);
+const platformOptions = ref(['YouTube', 'Facebook', 'X', 'Instagram'])
 
 const filter = ref({
   project1: '',
   project2: '',
   platforms: [] as string[],
   dateRange: [] as string[],
-});
+})
 
 // 控制图表显示的响应式变量
-const showMentionChart = ref(false);
-const showVideoViewChart = ref(false);
-const showVideoViewIncrementChart = ref(false);
-const showVideoCommentChart = ref(false);
-const showVideoCommentIncrementChart = ref(false);
-const showVideoLikeChart = ref(false);
-const showVideoLikeIncrementChart = ref(false);
-const showPostViewChart = ref(false);
-const showPostViewIncrementChart = ref(false);
-const showPostCommentChart = ref(false);
-const showPostCommentIncrementChart = ref(false);
-const showPostLikeChart = ref(false);
-const showPostLikeIncrementChart = ref(false);
-const showPositiveChart = ref(false);
-const showNeutralChart = ref(false);
-const showNegativeChart = ref(false);
-const showMentionMediaChart = ref(false);
-const showMentionLanguageChart = ref(false);
-const showMentionRegionChart = ref(false);
-const showSentimentTypeChart = ref(false);
-const showSentimentMediaChart = ref(false);
-const showSentimentLanguageChart = ref(false);
-const showSentimentRegionChart = ref(false);
+const showMentionChart = ref(false)
+const showVideoViewChart = ref(false)
+const showVideoViewIncrementChart = ref(false)
+const showVideoCommentChart = ref(false)
+const showVideoCommentIncrementChart = ref(false)
+const showVideoLikeChart = ref(false)
+const showVideoLikeIncrementChart = ref(false)
+const showPostViewChart = ref(false)
+const showPostViewIncrementChart = ref(false)
+const showPostCommentChart = ref(false)
+const showPostCommentIncrementChart = ref(false)
+const showPostLikeChart = ref(false)
+const showPostLikeIncrementChart = ref(false)
+const showPositiveChart = ref(false)
+const showNeutralChart = ref(false)
+const showNegativeChart = ref(false)
+const showMentionMediaChart = ref(false)
+const showMentionLanguageChart = ref(false)
+const showMentionRegionChart = ref(false)
+const showSentimentTypeChart = ref(false)
+const showSentimentMediaChart = ref(false)
+const showSentimentLanguageChart = ref(false)
+const showSentimentRegionChart = ref(false)
 
 // ECharts实例
-let mentionChart: echarts.ECharts | null = null;
-let videoViewChart: echarts.ECharts | null = null;
-let videoViewIncrementChart: echarts.ECharts | null = null;
-let videoCommentChart: echarts.ECharts | null = null;
-let videoCommentIncrementChart: echarts.ECharts | null = null;
-let videoLikeChart: echarts.ECharts | null = null;
-let videoLikeIncrementChart: echarts.ECharts | null = null;
-let postViewChart: echarts.ECharts | null = null;
-let postViewIncrementChart: echarts.ECharts | null = null;
-let postCommentChart: echarts.ECharts | null = null;
-let postCommentIncrementChart: echarts.ECharts | null = null;
-let postLikeChart: echarts.ECharts | null = null;
-let postLikeIncrementChart: echarts.ECharts | null = null;
-let positiveChart: echarts.ECharts | null = null;
-let neutralChart: echarts.ECharts | null = null;
-let negativeChart: echarts.ECharts | null = null;
+let mentionChart: echarts.ECharts | null = null
+let videoViewChart: echarts.ECharts | null = null
+let videoViewIncrementChart: echarts.ECharts | null = null
+let videoCommentChart: echarts.ECharts | null = null
+let videoCommentIncrementChart: echarts.ECharts | null = null
+let videoLikeChart: echarts.ECharts | null = null
+let videoLikeIncrementChart: echarts.ECharts | null = null
+let postViewChart: echarts.ECharts | null = null
+let postViewIncrementChart: echarts.ECharts | null = null
+let postCommentChart: echarts.ECharts | null = null
+let postCommentIncrementChart: echarts.ECharts | null = null
+let postLikeChart: echarts.ECharts | null = null
+let postLikeIncrementChart: echarts.ECharts | null = null
+let positiveChart: echarts.ECharts | null = null
+let neutralChart: echarts.ECharts | null = null
+let negativeChart: echarts.ECharts | null = null
 
 // 饼图实例
-let mentionMediaChart1: echarts.ECharts | null = null;
-let mentionMediaChart2: echarts.ECharts | null = null;
-let mentionLanguageChart1: echarts.ECharts | null = null;
-let mentionLanguageChart2: echarts.ECharts | null = null;
-let mentionRegionChart1: echarts.ECharts | null = null;
-let mentionRegionChart2: echarts.ECharts | null = null;
-let sentimentTypeChart1: echarts.ECharts | null = null;
-let sentimentTypeChart2: echarts.ECharts | null = null;
+let mentionMediaChart1: echarts.ECharts | null = null
+let mentionMediaChart2: echarts.ECharts | null = null
+let mentionLanguageChart1: echarts.ECharts | null = null
+let mentionLanguageChart2: echarts.ECharts | null = null
+let mentionRegionChart1: echarts.ECharts | null = null
+let mentionRegionChart2: echarts.ECharts | null = null
+let sentimentTypeChart1: echarts.ECharts | null = null
+let sentimentTypeChart2: echarts.ECharts | null = null
 
 // 堆叠柱状图实例
-let sentimentMediaChart1: echarts.ECharts | null = null;
-let sentimentMediaChart2: echarts.ECharts | null = null;
-let sentimentLanguageChart1: echarts.ECharts | null = null;
-let sentimentLanguageChart2: echarts.ECharts | null = null;
-let sentimentRegionChart1: echarts.ECharts | null = null;
-let sentimentRegionChart2: echarts.ECharts | null = null;
+let sentimentMediaChart1: echarts.ECharts | null = null
+let sentimentMediaChart2: echarts.ECharts | null = null
+let sentimentLanguageChart1: echarts.ECharts | null = null
+let sentimentLanguageChart2: echarts.ECharts | null = null
+let sentimentRegionChart1: echarts.ECharts | null = null
+let sentimentRegionChart2: echarts.ECharts | null = null
 
 // 统一的颜色配置
 const COLORS = {
-  project1: '#409eff',    // 项目1颜色
-  project2: '#67c23a',    // 项目2颜色
-  positive: 'rgb(92, 147, 235)',   // 正面情感：深蓝色（与情感分析页面一致）
-  neutral: '#8c8c8c',              // 中立情感：灰色（与情感分析页面一致）
-  negative: 'rgb(254, 111, 111)',  // 负面情感：浅红色（与情感分析页面一致）
-  pieColors: ['#409eff', '#67c23a', '#e6a23c', '#f56c6c', '#909399', '#26a69a', '#ab47bc', '#ff9800']
-};
+  project1: '#409eff', // 项目1颜色
+  project2: '#67c23a', // 项目2颜色
+  positive: 'rgb(92, 147, 235)', // 正面情感：深蓝色（与情感分析页面一致）
+  neutral: '#8c8c8c', // 中立情感：灰色（与情感分析页面一致）
+  negative: 'rgb(254, 111, 111)', // 负面情感：浅红色（与情感分析页面一致）
+  pieColors: [
+    '#409eff',
+    '#67c23a',
+    '#e6a23c',
+    '#f56c6c',
+    '#909399',
+    '#26a69a',
+    '#ab47bc',
+    '#ff9800',
+  ],
+}
 
 // 根据情感标签获取颜色（与情感分析页面保持一致）
 const getSentimentColor = (label: string): string => {
-  const normalizedLabel = label.toLowerCase();
+  const normalizedLabel = label.toLowerCase()
   if (normalizedLabel === 'positive' || label === '正面') {
-    return COLORS.positive;
+    return COLORS.positive
   } else if (normalizedLabel === 'neutral' || label === '中性') {
-    return COLORS.neutral;
+    return COLORS.neutral
   } else if (normalizedLabel === 'negative' || label === '负面') {
-    return COLORS.negative;
+    return COLORS.negative
   }
-  return COLORS.neutral; // 默认颜色
-};
+  return COLORS.neutral // 默认颜色
+}
 
 // 获取项目名称
 const getProjectName = (projectId: string): string => {
-  const project = projectOptions.value.find(p => p.projectId === projectId);
-  return project ? project.projectName : '';
-};
+  const project = projectOptions.value.find((p) => p.projectId === projectId)
+  return project ? project.projectName : ''
+}
 
 // 处理后端返回的对比分析数据
 const processComparisonData = (data: ComparisonData, retryCount = 0) => {
-  console.log('📊 处理对比分析数据:', data, 'retryCount:', retryCount);
+  console.log('📊 处理对比分析数据:', data, 'retryCount:', retryCount)
 
   // 检查是否有两个项目被选中
   if (!filter.value.project1 || !filter.value.project2) {
-    console.warn('需要选择两个项目进行对比');
-    return;
+    console.warn('需要选择两个项目进行对比')
+    return
   }
 
   // 处理折线图数据
-  processLineChartData(data.mentimentTrendAnalysis, mentionChart);
-  processLineChartData(data.videoViewTrendAnalysis, videoViewChart);
-  processLineChartData(data.videoViewIncrementTrendAnalysis, videoViewIncrementChart);
-  processLineChartData(data.videoCommentTrendAnalysis, videoCommentChart);
-  processLineChartData(data.videoCommentIncrementTrendAnalysis, videoCommentIncrementChart);
-  processLineChartData(data.videoLikeTrendAnalysis, videoLikeChart);
-  processLineChartData(data.videoLikeIncrementTrendAnalysis, videoLikeIncrementChart);
-  processLineChartData(data.postViewTrendAnalysis, postViewChart);
-  processLineChartData(data.postViewIncrementTrendAnalysis, postViewIncrementChart);
-  processLineChartData(data.postCommentTrendAnalysis, postCommentChart);
-  processLineChartData(data.postCommentIncrementTrendAnalysis, postCommentIncrementChart);
-  processLineChartData(data.postLikeTrendAnalysis, postLikeChart);
-  processLineChartData(data.postLikeIncrementTrendAnalysis, postLikeIncrementChart);
-  processLineChartData(data.positiveOverTime, positiveChart);
-  processLineChartData(data.neutralOverTime, neutralChart);
-  processLineChartData(data.negativeOverTime, negativeChart);
+  processLineChartData(data.mentimentTrendAnalysis, mentionChart)
+  processLineChartData(data.videoViewTrendAnalysis, videoViewChart)
+  processLineChartData(data.videoViewIncrementTrendAnalysis, videoViewIncrementChart)
+  processLineChartData(data.videoCommentTrendAnalysis, videoCommentChart)
+  processLineChartData(data.videoCommentIncrementTrendAnalysis, videoCommentIncrementChart)
+  processLineChartData(data.videoLikeTrendAnalysis, videoLikeChart)
+  processLineChartData(data.videoLikeIncrementTrendAnalysis, videoLikeIncrementChart)
+  processLineChartData(data.postViewTrendAnalysis, postViewChart)
+  processLineChartData(data.postViewIncrementTrendAnalysis, postViewIncrementChart)
+  processLineChartData(data.postCommentTrendAnalysis, postCommentChart)
+  processLineChartData(data.postCommentIncrementTrendAnalysis, postCommentIncrementChart)
+  processLineChartData(data.postLikeTrendAnalysis, postLikeChart)
+  processLineChartData(data.postLikeIncrementTrendAnalysis, postLikeIncrementChart)
+  processLineChartData(data.positiveOverTime, positiveChart)
+  processLineChartData(data.neutralOverTime, neutralChart)
+  processLineChartData(data.negativeOverTime, negativeChart)
 
   // 处理饼图对比数据
-  processDualPieChartData(data.mentionByMediaType, mentionMediaChart1, mentionMediaChart2);
-  processDualPieChartData(data.mentionByLanguage, mentionLanguageChart1, mentionLanguageChart2);
-  processDualPieChartData(data.mentionByRegion, mentionRegionChart1, mentionRegionChart2);
-  processDualPieChartData(data.sentimentByType, sentimentTypeChart1, sentimentTypeChart2);
+  processDualPieChartData(data.mentionByMediaType, mentionMediaChart1, mentionMediaChart2)
+  processDualPieChartData(data.mentionByLanguage, mentionLanguageChart1, mentionLanguageChart2)
+  processDualPieChartData(data.mentionByRegion, mentionRegionChart1, mentionRegionChart2)
+  processDualPieChartData(data.sentimentByType, sentimentTypeChart1, sentimentTypeChart2)
 
   // 处理堆叠柱状图对比数据
-  processDualStackedBarData(data.sentimentByMediaType, sentimentMediaChart1, sentimentMediaChart2);
-  processDualStackedBarData(data.sentimentByLanguage, sentimentLanguageChart1, sentimentLanguageChart2);
-  processDualStackedBarData(data.sentimentByRegion, sentimentRegionChart1, sentimentRegionChart2);
+  processDualStackedBarData(data.sentimentByMediaType, sentimentMediaChart1, sentimentMediaChart2)
+  processDualStackedBarData(
+    data.sentimentByLanguage,
+    sentimentLanguageChart1,
+    sentimentLanguageChart2,
+  )
+  processDualStackedBarData(data.sentimentByRegion, sentimentRegionChart1, sentimentRegionChart2)
 
   // 设置显示状态
-  setChartVisibility(data);
-  hasData.value = true;
-};
+  setChartVisibility(data)
+  hasData.value = true
+}
 
 // 通用折线图数据处理函数（对比两个项目）
-const processLineChartData = (trendData: ComparisonDataItem[] | ComparisonGroupData, chart: echarts.ECharts | null) => {
-  if (!chart) return;
+const processLineChartData = (
+  trendData: ComparisonDataItem[] | ComparisonGroupData,
+  chart: echarts.ECharts | null,
+) => {
+  if (!chart) return
 
-  let dataArray: ComparisonDataItem[] = [];
+  let dataArray: ComparisonDataItem[] = []
 
   // 处理分组数据
   if (trendData && typeof trendData === 'object' && !Array.isArray(trendData)) {
     // 合并两个项目的数据
-    Object.values(trendData).forEach(projectData => {
+    Object.values(trendData).forEach((projectData) => {
       if (Array.isArray(projectData)) {
-        dataArray = dataArray.concat(projectData);
+        dataArray = dataArray.concat(projectData)
       }
-    });
+    })
   } else if (Array.isArray(trendData)) {
-    dataArray = trendData;
+    dataArray = trendData
   }
 
-  if (!dataArray || dataArray.length === 0) return;
+  if (!dataArray || dataArray.length === 0) return
 
   // 按项目ID分组数据
-  const dataByProject = new Map<string, Map<string, number>>();
-  const dates = new Set<string>();
+  const dataByProject = new Map<string, Map<string, number>>()
+  const dates = new Set<string>()
 
-  dataArray.forEach(item => {
+  dataArray.forEach((item) => {
     if (item.stage && item.projectId) {
-      dates.add(item.stage);
+      dates.add(item.stage)
       if (!dataByProject.has(item.projectId)) {
-        dataByProject.set(item.projectId, new Map());
+        dataByProject.set(item.projectId, new Map())
       }
-      dataByProject.get(item.projectId)!.set(item.stage, item.value);
+      dataByProject.get(item.projectId)!.set(item.stage, item.value)
     }
-  });
+  })
 
   // 转换为图表数据格式
-  const sortedDates = Array.from(dates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-  const formattedDates = sortedDates.map(date => {
-    const d = new Date(date);
-    return `${d.getMonth() + 1}-${d.getDate()}`;
-  });
+  const sortedDates = Array.from(dates).sort(
+    (a, b) => new Date(a).getTime() - new Date(b).getTime(),
+  )
+  const formattedDates = sortedDates.map((date) => {
+    const d = new Date(date)
+    return `${d.getMonth() + 1}-${d.getDate()}`
+  })
 
   // 创建系列数据
-  const seriesData: Array<{ name: string; data: number[]; color: string }> = [];
+  const seriesData: Array<{ name: string; data: number[]; color: string }> = []
 
   dataByProject.forEach((timeData, projectId) => {
-    const data = sortedDates.map(date => timeData.get(date) || 0);
-    const projectName = getProjectName(projectId) || projectId;
-    const color = projectId === filter.value.project1 ? COLORS.project1 : COLORS.project2;
+    const data = sortedDates.map((date) => timeData.get(date) || 0)
+    const projectName = getProjectName(projectId) || projectId
+    const color = projectId === filter.value.project1 ? COLORS.project1 : COLORS.project2
 
-    seriesData.push({ name: projectName, data, color });
-  });
+    seriesData.push({ name: projectName, data, color })
+  })
 
-  updateLineChart(chart, formattedDates, seriesData, sortedDates);
-};
+  updateLineChart(chart, formattedDates, seriesData, sortedDates)
+}
 
 // 处理双饼图数据
-const processDualPieChartData = (groupData: ComparisonGroupData, chart1: echarts.ECharts | null, chart2: echarts.ECharts | null) => {
-  if (!groupData || !chart1 || !chart2) return;
+const processDualPieChartData = (
+  groupData: ComparisonGroupData,
+  chart1: echarts.ECharts | null,
+  chart2: echarts.ECharts | null,
+) => {
+  if (!groupData || !chart1 || !chart2) return
 
-  const project1Data = groupData[filter.value.project1] || [];
-  const project2Data = groupData[filter.value.project2] || [];
+  const project1Data = groupData[filter.value.project1] || []
+  const project2Data = groupData[filter.value.project2] || []
 
-  const pieData1 = project1Data.map(item => ({
-    name: item.stage || item.label || '未知',
-    value: item.value
-  })).sort((a, b) => b.value - a.value);
+  const pieData1 = project1Data
+    .map((item) => ({
+      name: item.stage || item.label || '未知',
+      value: item.value,
+    }))
+    .sort((a, b) => b.value - a.value)
 
-  const pieData2 = project2Data.map(item => ({
-    name: item.stage || item.label || '未知',
-    value: item.value
-  })).sort((a, b) => b.value - a.value);
+  const pieData2 = project2Data
+    .map((item) => ({
+      name: item.stage || item.label || '未知',
+      value: item.value,
+    }))
+    .sort((a, b) => b.value - a.value)
 
-  updatePieChart(chart1, pieData1);
-  updatePieChart(chart2, pieData2);
-};
+  updatePieChart(chart1, pieData1)
+  updatePieChart(chart2, pieData2)
+}
 
 // 处理双堆叠柱状图数据
-const processDualStackedBarData = (groupData: ComparisonGroupData, chart1: echarts.ECharts | null, chart2: echarts.ECharts | null) => {
-  if (!groupData || !chart1 || !chart2) return;
+const processDualStackedBarData = (
+  groupData: ComparisonGroupData,
+  chart1: echarts.ECharts | null,
+  chart2: echarts.ECharts | null,
+) => {
+  if (!groupData || !chart1 || !chart2) return
 
-  const project1Data = groupData[filter.value.project1] || [];
-  const project2Data = groupData[filter.value.project2] || [];
+  const project1Data = groupData[filter.value.project1] || []
+  const project2Data = groupData[filter.value.project2] || []
 
-  updateStackedBarChart(chart1, project1Data);
-  updateStackedBarChart(chart2, project2Data);
-};
+  updateStackedBarChart(chart1, project1Data)
+  updateStackedBarChart(chart2, project2Data)
+}
 
 // 设置图表显示状态
 const setChartVisibility = (data: ComparisonData) => {
-  showMentionChart.value = hasValidData(data.mentimentTrendAnalysis);
-  showVideoViewChart.value = hasValidData(data.videoViewTrendAnalysis);
-  showVideoViewIncrementChart.value = hasValidData(data.videoViewIncrementTrendAnalysis);
-  showVideoCommentChart.value = hasValidData(data.videoCommentTrendAnalysis);
-  showVideoCommentIncrementChart.value = hasValidData(data.videoCommentIncrementTrendAnalysis);
-  showVideoLikeChart.value = hasValidData(data.videoLikeTrendAnalysis);
-  showVideoLikeIncrementChart.value = hasValidData(data.videoLikeIncrementTrendAnalysis);
-  showPostViewChart.value = hasValidData(data.postViewTrendAnalysis);
-  showPostViewIncrementChart.value = hasValidData(data.postViewIncrementTrendAnalysis);
-  showPostCommentChart.value = hasValidData(data.postCommentTrendAnalysis);
-  showPostCommentIncrementChart.value = hasValidData(data.postCommentIncrementTrendAnalysis);
-  showPostLikeChart.value = hasValidData(data.postLikeTrendAnalysis);
-  showPostLikeIncrementChart.value = hasValidData(data.postLikeIncrementTrendAnalysis);
-  showPositiveChart.value = hasValidData(data.positiveOverTime);
-  showNeutralChart.value = hasValidData(data.neutralOverTime);
-  showNegativeChart.value = hasValidData(data.negativeOverTime);
-  showMentionMediaChart.value = hasValidData(data.mentionByMediaType);
-  showMentionLanguageChart.value = hasValidData(data.mentionByLanguage);
-  showMentionRegionChart.value = hasValidData(data.mentionByRegion);
-  showSentimentTypeChart.value = hasValidData(data.sentimentByType);
-  showSentimentMediaChart.value = hasValidData(data.sentimentByMediaType);
-  showSentimentLanguageChart.value = hasValidData(data.sentimentByLanguage);
-  showSentimentRegionChart.value = hasValidData(data.sentimentByRegion);
-};
+  showMentionChart.value = hasValidData(data.mentimentTrendAnalysis)
+  showVideoViewChart.value = hasValidData(data.videoViewTrendAnalysis)
+  showVideoViewIncrementChart.value = hasValidData(data.videoViewIncrementTrendAnalysis)
+  showVideoCommentChart.value = hasValidData(data.videoCommentTrendAnalysis)
+  showVideoCommentIncrementChart.value = hasValidData(data.videoCommentIncrementTrendAnalysis)
+  showVideoLikeChart.value = hasValidData(data.videoLikeTrendAnalysis)
+  showVideoLikeIncrementChart.value = hasValidData(data.videoLikeIncrementTrendAnalysis)
+  showPostViewChart.value = hasValidData(data.postViewTrendAnalysis)
+  showPostViewIncrementChart.value = hasValidData(data.postViewIncrementTrendAnalysis)
+  showPostCommentChart.value = hasValidData(data.postCommentTrendAnalysis)
+  showPostCommentIncrementChart.value = hasValidData(data.postCommentIncrementTrendAnalysis)
+  showPostLikeChart.value = hasValidData(data.postLikeTrendAnalysis)
+  showPostLikeIncrementChart.value = hasValidData(data.postLikeIncrementTrendAnalysis)
+  showPositiveChart.value = hasValidData(data.positiveOverTime)
+  showNeutralChart.value = hasValidData(data.neutralOverTime)
+  showNegativeChart.value = hasValidData(data.negativeOverTime)
+  showMentionMediaChart.value = hasValidData(data.mentionByMediaType)
+  showMentionLanguageChart.value = hasValidData(data.mentionByLanguage)
+  showMentionRegionChart.value = hasValidData(data.mentionByRegion)
+  showSentimentTypeChart.value = hasValidData(data.sentimentByType)
+  showSentimentMediaChart.value = hasValidData(data.sentimentByMediaType)
+  showSentimentLanguageChart.value = hasValidData(data.sentimentByLanguage)
+  showSentimentRegionChart.value = hasValidData(data.sentimentByRegion)
+}
 
 // 检查数据是否有效
 const hasValidData = (data: any): boolean => {
   if (Array.isArray(data)) {
-    return data.length > 0;
+    return data.length > 0
   }
   if (data && typeof data === 'object') {
-    return Object.keys(data).length > 0 && Object.values(data).some(val => Array.isArray(val) && val.length > 0);
+    return (
+      Object.keys(data).length > 0 &&
+      Object.values(data).some((val) => Array.isArray(val) && val.length > 0)
+    )
   }
-  return false;
-};
+  return false
+}
 
 // 初始化所有图表
 const initAllCharts = () => {
-  console.log('🎯 开始初始化所有图表');
+  console.log('🎯 开始初始化所有图表')
 
   nextTick(() => {
     setTimeout(() => {
       // 初始化折线图
-      initChart('mentionChart', (chart) => { mentionChart = chart; });
-      initChart('videoViewChart', (chart) => { videoViewChart = chart; });
-      initChart('videoViewIncrementChart', (chart) => { videoViewIncrementChart = chart; });
-      initChart('videoCommentChart', (chart) => { videoCommentChart = chart; });
-      initChart('videoCommentIncrementChart', (chart) => { videoCommentIncrementChart = chart; });
-      initChart('videoLikeChart', (chart) => { videoLikeChart = chart; });
-      initChart('videoLikeIncrementChart', (chart) => { videoLikeIncrementChart = chart; });
-      initChart('postViewChart', (chart) => { postViewChart = chart; });
-      initChart('postViewIncrementChart', (chart) => { postViewIncrementChart = chart; });
-      initChart('postCommentChart', (chart) => { postCommentChart = chart; });
-      initChart('postCommentIncrementChart', (chart) => { postCommentIncrementChart = chart; });
-      initChart('postLikeChart', (chart) => { postLikeChart = chart; });
-      initChart('postLikeIncrementChart', (chart) => { postLikeIncrementChart = chart; });
-      initChart('positiveChart', (chart) => { positiveChart = chart; });
-      initChart('neutralChart', (chart) => { neutralChart = chart; });
-      initChart('negativeChart', (chart) => { negativeChart = chart; });
+      initChart('mentionChart', (chart) => {
+        mentionChart = chart
+      })
+      initChart('videoViewChart', (chart) => {
+        videoViewChart = chart
+      })
+      initChart('videoViewIncrementChart', (chart) => {
+        videoViewIncrementChart = chart
+      })
+      initChart('videoCommentChart', (chart) => {
+        videoCommentChart = chart
+      })
+      initChart('videoCommentIncrementChart', (chart) => {
+        videoCommentIncrementChart = chart
+      })
+      initChart('videoLikeChart', (chart) => {
+        videoLikeChart = chart
+      })
+      initChart('videoLikeIncrementChart', (chart) => {
+        videoLikeIncrementChart = chart
+      })
+      initChart('postViewChart', (chart) => {
+        postViewChart = chart
+      })
+      initChart('postViewIncrementChart', (chart) => {
+        postViewIncrementChart = chart
+      })
+      initChart('postCommentChart', (chart) => {
+        postCommentChart = chart
+      })
+      initChart('postCommentIncrementChart', (chart) => {
+        postCommentIncrementChart = chart
+      })
+      initChart('postLikeChart', (chart) => {
+        postLikeChart = chart
+      })
+      initChart('postLikeIncrementChart', (chart) => {
+        postLikeIncrementChart = chart
+      })
+      initChart('positiveChart', (chart) => {
+        positiveChart = chart
+      })
+      initChart('neutralChart', (chart) => {
+        neutralChart = chart
+      })
+      initChart('negativeChart', (chart) => {
+        negativeChart = chart
+      })
 
       // 初始化饼图
-      initChart('mentionMediaChart1', (chart) => { mentionMediaChart1 = chart; });
-      initChart('mentionMediaChart2', (chart) => { mentionMediaChart2 = chart; });
-      initChart('mentionLanguageChart1', (chart) => { mentionLanguageChart1 = chart; });
-      initChart('mentionLanguageChart2', (chart) => { mentionLanguageChart2 = chart; });
-      initChart('mentionRegionChart1', (chart) => { mentionRegionChart1 = chart; });
-      initChart('mentionRegionChart2', (chart) => { mentionRegionChart2 = chart; });
-      initChart('sentimentTypeChart1', (chart) => { sentimentTypeChart1 = chart; });
-      initChart('sentimentTypeChart2', (chart) => { sentimentTypeChart2 = chart; });
+      initChart('mentionMediaChart1', (chart) => {
+        mentionMediaChart1 = chart
+      })
+      initChart('mentionMediaChart2', (chart) => {
+        mentionMediaChart2 = chart
+      })
+      initChart('mentionLanguageChart1', (chart) => {
+        mentionLanguageChart1 = chart
+      })
+      initChart('mentionLanguageChart2', (chart) => {
+        mentionLanguageChart2 = chart
+      })
+      initChart('mentionRegionChart1', (chart) => {
+        mentionRegionChart1 = chart
+      })
+      initChart('mentionRegionChart2', (chart) => {
+        mentionRegionChart2 = chart
+      })
+      initChart('sentimentTypeChart1', (chart) => {
+        sentimentTypeChart1 = chart
+      })
+      initChart('sentimentTypeChart2', (chart) => {
+        sentimentTypeChart2 = chart
+      })
 
       // 初始化堆叠柱状图
-      initChart('sentimentMediaChart1', (chart) => { sentimentMediaChart1 = chart; });
-      initChart('sentimentMediaChart2', (chart) => { sentimentMediaChart2 = chart; });
-      initChart('sentimentLanguageChart1', (chart) => { sentimentLanguageChart1 = chart; });
-      initChart('sentimentLanguageChart2', (chart) => { sentimentLanguageChart2 = chart; });
-      initChart('sentimentRegionChart1', (chart) => { sentimentRegionChart1 = chart; });
-      initChart('sentimentRegionChart2', (chart) => { sentimentRegionChart2 = chart; });
+      initChart('sentimentMediaChart1', (chart) => {
+        sentimentMediaChart1 = chart
+      })
+      initChart('sentimentMediaChart2', (chart) => {
+        sentimentMediaChart2 = chart
+      })
+      initChart('sentimentLanguageChart1', (chart) => {
+        sentimentLanguageChart1 = chart
+      })
+      initChart('sentimentLanguageChart2', (chart) => {
+        sentimentLanguageChart2 = chart
+      })
+      initChart('sentimentRegionChart1', (chart) => {
+        sentimentRegionChart1 = chart
+      })
+      initChart('sentimentRegionChart2', (chart) => {
+        sentimentRegionChart2 = chart
+      })
 
       setTimeout(() => {
-        forceResizeAllCharts();
-        console.log('✅ 所有图表初始化和尺寸调整完成');
-      }, 200);
-    }, 100);
-  });
-};
+        forceResizeAllCharts()
+        console.log('✅ 所有图表初始化和尺寸调整完成')
+      }, 200)
+    }, 100)
+  })
+}
 
 // 通用图表初始化函数
 const initChart = (chartId: string, setChart: (chart: echarts.ECharts) => void) => {
-  const chartDom = document.getElementById(chartId);
+  const chartDom = document.getElementById(chartId)
   if (chartDom) {
-    chartDom.style.width = '100%';
-    chartDom.style.height = '450px';
-    chartDom.style.minWidth = '400px';
+    chartDom.style.width = '100%'
+    chartDom.style.height = '450px'
+    chartDom.style.minWidth = '400px'
 
-    const chart = echarts.init(chartDom);
-    setChart(chart);
+    const chart = echarts.init(chartDom)
+    setChart(chart)
 
     // 多次强制resize确保正确尺寸
-    setTimeout(() => chart.resize(), 100);
-    setTimeout(() => chart.resize(), 300);
-    setTimeout(() => chart.resize(), 500);
+    setTimeout(() => chart.resize(), 100)
+    setTimeout(() => chart.resize(), 300)
+    setTimeout(() => chart.resize(), 500)
   }
-};
+}
 
 // 强制重新计算所有图表尺寸
 const forceResizeAllCharts = () => {
   const charts = [
-    mentionChart, videoViewChart, videoViewIncrementChart, videoCommentChart, videoCommentIncrementChart,
-    videoLikeChart, videoLikeIncrementChart, postViewChart, postViewIncrementChart, postCommentChart,
-    postCommentIncrementChart, postLikeChart, postLikeIncrementChart, positiveChart, neutralChart, negativeChart,
-    mentionMediaChart1, mentionMediaChart2, mentionLanguageChart1, mentionLanguageChart2,
-    mentionRegionChart1, mentionRegionChart2, sentimentTypeChart1, sentimentTypeChart2,
-    sentimentMediaChart1, sentimentMediaChart2, sentimentLanguageChart1, sentimentLanguageChart2,
-    sentimentRegionChart1, sentimentRegionChart2
-  ];
+    mentionChart,
+    videoViewChart,
+    videoViewIncrementChart,
+    videoCommentChart,
+    videoCommentIncrementChart,
+    videoLikeChart,
+    videoLikeIncrementChart,
+    postViewChart,
+    postViewIncrementChart,
+    postCommentChart,
+    postCommentIncrementChart,
+    postLikeChart,
+    postLikeIncrementChart,
+    positiveChart,
+    neutralChart,
+    negativeChart,
+    mentionMediaChart1,
+    mentionMediaChart2,
+    mentionLanguageChart1,
+    mentionLanguageChart2,
+    mentionRegionChart1,
+    mentionRegionChart2,
+    sentimentTypeChart1,
+    sentimentTypeChart2,
+    sentimentMediaChart1,
+    sentimentMediaChart2,
+    sentimentLanguageChart1,
+    sentimentLanguageChart2,
+    sentimentRegionChart1,
+    sentimentRegionChart2,
+  ]
 
-  charts.forEach(chart => {
-    if (chart) chart.resize();
-  });
-};
+  charts.forEach((chart) => {
+    if (chart) chart.resize()
+  })
+}
 
 // 更新折线图
 const updateLineChart = (
   chart: echarts.ECharts,
   dates: string[],
   series: Array<{ name: string; data: number[]; color: string }>,
-  originalDates?: string[]
+  originalDates?: string[],
 ) => {
-  if (!chart) return;
+  if (!chart) return
 
   const option = {
     tooltip: {
       trigger: 'axis',
-      formatter: function(params: any) {
-        let dateStr = params[0].name;
+      formatter: function (params: any) {
+        let dateStr = params[0].name
         if (originalDates && params[0].dataIndex < originalDates.length) {
-          const originalDate = new Date(originalDates[params[0].dataIndex]);
-          dateStr = `${originalDate.getFullYear()}-${originalDate.getMonth() + 1}-${originalDate.getDate()}`;
+          const originalDate = new Date(originalDates[params[0].dataIndex])
+          dateStr = `${originalDate.getFullYear()}-${originalDate.getMonth() + 1}-${originalDate.getDate()}`
         }
 
-        let result = dateStr + '<br/>';
+        let result = dateStr + '<br/>'
         params.forEach((param: any) => {
-          result += param.marker + param.seriesName + ': ' + param.value + '<br/>';
-        });
-        return result;
-      }
+          result += param.marker + param.seriesName + ': ' + param.value + '<br/>'
+        })
+        return result
+      },
     },
     legend: {
-      data: series.map(s => s.name),
+      data: series.map((s) => s.name),
       top: '5%',
       textStyle: {
         fontSize: 12,
-        color: '#666'
-      }
+        color: '#666',
+      },
     },
     grid: {
       left: '5%',
       right: '5%',
       bottom: '8%',
       top: '15%',
-      containLabel: true
+      containLabel: true,
     },
     toolbox: {
       feature: {
         saveAsImage: {
-          title: '保存图片'
-        }
+          title: '保存图片',
+        },
       },
       right: '20px',
-      top: '10px'
+      top: '10px',
     },
     xAxis: {
       type: 'category',
       boundaryGap: false,
       data: dates,
       axisLabel: {
-        color: '#666'
+        color: '#666',
       },
       axisLine: {
         lineStyle: {
-          color: '#e5e6eb'
-        }
-      }
+          color: '#e5e6eb',
+        },
+      },
     },
     yAxis: {
       type: 'value',
       name: '数量',
       nameTextStyle: {
-        color: '#666'
+        color: '#666',
       },
       axisLabel: {
-        color: '#666'
+        color: '#666',
       },
       axisLine: {
         lineStyle: {
-          color: '#e5e6eb'
-        }
+          color: '#e5e6eb',
+        },
       },
       splitLine: {
         lineStyle: {
-          color: '#f0f0f0'
-        }
-      }
+          color: '#f0f0f0',
+        },
+      },
     },
-    series: series.map(s => ({
+    series: series.map((s) => ({
       name: s.name,
       type: 'line',
       smooth: true,
@@ -868,10 +989,10 @@ const updateLineChart = (
       symbolSize: 6,
       lineStyle: {
         color: s.color,
-        width: 3
+        width: 3,
       },
       itemStyle: {
-        color: s.color
+        color: s.color,
       },
       areaStyle: {
         color: {
@@ -880,28 +1001,33 @@ const updateLineChart = (
           y: 0,
           x2: 0,
           y2: 1,
-          colorStops: [{
-            offset: 0, color: s.color + '4D'
-          }, {
-            offset: 1, color: s.color + '1A'
-          }]
-        }
+          colorStops: [
+            {
+              offset: 0,
+              color: s.color + '4D',
+            },
+            {
+              offset: 1,
+              color: s.color + '1A',
+            },
+          ],
+        },
       },
-      data: s.data
-    }))
-  };
+      data: s.data,
+    })),
+  }
 
-  chart.setOption(option);
-};
+  chart.setOption(option)
+}
 
 // 更新饼图
 const updatePieChart = (chart: echarts.ECharts, data: { name: string; value: number }[]) => {
-  if (!chart) return;
+  if (!chart) return
 
   const option = {
     tooltip: {
       trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
+      formatter: '{a} <br/>{b}: {c} ({d}%)',
     },
     legend: {
       orient: 'horizontal',
@@ -909,8 +1035,8 @@ const updatePieChart = (chart: echarts.ECharts, data: { name: string; value: num
       top: '5%',
       textStyle: {
         fontSize: 12,
-        color: '#666'
-      }
+        color: '#666',
+      },
     },
     series: [
       {
@@ -923,79 +1049,84 @@ const updatePieChart = (chart: echarts.ECharts, data: { name: string; value: num
           itemStyle: {
             shadowBlur: 10,
             shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+          },
         },
         itemStyle: {
-          color: function(params: any) {
-            return COLORS.pieColors[params.dataIndex % COLORS.pieColors.length];
-          }
+          color: function (params: any) {
+            return COLORS.pieColors[params.dataIndex % COLORS.pieColors.length]
+          },
         },
         avoidLabelOverlap: false,
         label: {
           show: true,
-          position: 'outside'
+          position: 'outside',
         },
         labelLine: {
-          show: true
-        }
-      }
-    ]
-  };
+          show: true,
+        },
+      },
+    ],
+  }
 
-  chart.setOption(option);
-};
+  chart.setOption(option)
+}
 
 // 更新堆叠柱状图（百分比模式）
 const updateStackedBarChart = (chart: echarts.ECharts, data: ComparisonDataItem[]) => {
-  if (!chart) return;
+  if (!chart) return
 
   // 按stage分组，按label分类
-  const categoryMap = new Map<string, Map<string, number>>();
-  const categories = new Set<string>();
-  const labels = new Set<string>();
+  const categoryMap = new Map<string, Map<string, number>>()
+  const categories = new Set<string>()
+  const labels = new Set<string>()
 
-  data.forEach(item => {
+  data.forEach((item) => {
     if (item.stage && item.label) {
-      categories.add(item.stage);
-      labels.add(item.label);
+      categories.add(item.stage)
+      labels.add(item.label)
 
       if (!categoryMap.has(item.stage)) {
-        categoryMap.set(item.stage, new Map());
+        categoryMap.set(item.stage, new Map())
       }
-      categoryMap.get(item.stage)!.set(item.label, item.value);
+      categoryMap.get(item.stage)!.set(item.label, item.value)
     }
-  });
+  })
 
   // 计算每个类别的总数并按总数排序
-  const categoryTotals: Array<{ category: string; total: number }> = [];
+  const categoryTotals: Array<{ category: string; total: number }> = []
   categoryMap.forEach((categoryData, category) => {
-    let sum = 0;
+    let sum = 0
     for (const value of categoryData.values()) {
-      sum += value;
+      sum += value
     }
-    categoryTotals.push({ category, total: sum });
-  });
+    categoryTotals.push({ category, total: sum })
+  })
 
   // 按总数从高到低排序
-  categoryTotals.sort((a, b) => b.total - a.total);
-  const categoryArray = categoryTotals.map(item => item.category);
+  categoryTotals.sort((a, b) => b.total - a.total)
+  const categoryArray = categoryTotals.map((item) => item.category)
 
   // 始终创建正面、中性、负面三种情感类型的系列
-  const series: any[] = [];
-  ['positive', 'neutral', 'negative'].forEach(sentiment => {
-    const chineseName = sentiment === 'positive' ? '正面' :
-                       sentiment === 'neutral' ? '中性' :
-                       sentiment === 'negative' ? '负面' : sentiment;
+  const series: any[] = []
+  ;['positive', 'neutral', 'negative'].forEach((sentiment) => {
+    const chineseName =
+      sentiment === 'positive'
+        ? '正面'
+        : sentiment === 'neutral'
+          ? '中性'
+          : sentiment === 'negative'
+            ? '负面'
+            : sentiment
 
     if (labels.has(sentiment)) {
       const seriesValueData: number[] = categoryArray.map((category) => {
-        const categoryData = categoryMap.get(category);
+        const categoryData = categoryMap.get(category)
         if (categoryData && categoryData.has(sentiment)) {
-          return categoryData.get(sentiment)!;
+          return categoryData.get(sentiment)!
         }
-        return 0;
-      });
+        return 0
+      })
 
       series.push({
         name: chineseName,
@@ -1003,18 +1134,18 @@ const updateStackedBarChart = (chart: echarts.ECharts, data: ComparisonDataItem[
         stack: 'total',
         barMaxWidth: 80, // 设置最大宽度
         label: {
-          show: false
+          show: false,
         },
         emphasis: {
           label: {
-            show: false
-          }
+            show: false,
+          },
         },
-                data: seriesValueData,
+        data: seriesValueData,
         itemStyle: {
-          color: getSentimentColor(chineseName)
-        }
-      });
+          color: getSentimentColor(chineseName),
+        },
+      })
     } else {
       // 没有数据的情感类型：创建空数据系列但保持图例可见
       series.push({
@@ -1023,56 +1154,63 @@ const updateStackedBarChart = (chart: echarts.ECharts, data: ComparisonDataItem[
         stack: 'total',
         barMaxWidth: 80,
         label: {
-          show: false
+          show: false,
         },
         emphasis: {
           label: {
-            show: false
-          }
+            show: false,
+          },
         },
-                data: [],
+        data: [],
         itemStyle: {
-          color: getSentimentColor(chineseName)
-        }
-      });
+          color: getSentimentColor(chineseName),
+        },
+      })
     }
-  });
+  })
 
   const option = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-        type: 'shadow'
+        type: 'shadow',
       },
-      formatter: function(params: any) {
-        let result = params[0].name + '<br/>';
-        let totalOriginalCount = 0;
+      formatter: function (params: any) {
+        let result = params[0].name + '<br/>'
+        let totalOriginalCount = 0
 
         // 获取该类别的原始数据
-        const categoryIndex = params[0].dataIndex;
-        const originalValues: { [key: string]: number } = {};
+        const categoryIndex = params[0].dataIndex
+        const originalValues: { [key: string]: number } = {}
 
-        series.forEach(s => {
+        series.forEach((s) => {
           if (s.data[categoryIndex]) {
-            originalValues[s.name] = s.data[categoryIndex];
-            totalOriginalCount += s.data[categoryIndex];
+            originalValues[s.name] = s.data[categoryIndex]
+            totalOriginalCount += s.data[categoryIndex]
           }
-        });
+        })
 
         // 显示各情感类型的数据和百分比
         params.forEach((param: any) => {
           if (typeof param.value === 'number' && param.value > 0) {
-            const originalValue = originalValues[param.seriesName] || 0;
-            const percentage = Math.round(param.value * 10) / 10;
-            result += param.marker + param.seriesName + ': ' + percentage + '% (' + originalValue + '条)<br/>';
+            const originalValue = originalValues[param.seriesName] || 0
+            const percentage = Math.round(param.value * 10) / 10
+            result +=
+              param.marker +
+              param.seriesName +
+              ': ' +
+              percentage +
+              '% (' +
+              originalValue +
+              '条)<br/>'
           }
-        });
+        })
 
         if (totalOriginalCount > 0) {
-          result += '<br/>总计: ' + totalOriginalCount + '条';
+          result += '<br/>总计: ' + totalOriginalCount + '条'
         }
-        return result;
-      }
+        return result
+      },
     },
     legend: {
       data: ['正面', '中性', '负面'],
@@ -1080,192 +1218,191 @@ const updateStackedBarChart = (chart: echarts.ECharts, data: ComparisonDataItem[
       top: '5%',
       textStyle: {
         fontSize: 12,
-        color: '#666'
-      }
+        color: '#666',
+      },
     },
     grid: {
       left: 100,
       right: 100,
       top: 50,
-      bottom: 50
+      bottom: 50,
     },
     xAxis: {
       type: 'category',
       data: categoryArray,
       axisLabel: {
-        color: '#666'
+        color: '#666',
       },
       axisLine: {
         lineStyle: {
-          color: '#e5e6eb'
-        }
-      }
+          color: '#e5e6eb',
+        },
+      },
     },
     yAxis: {
       type: 'value',
       name: '占比',
       nameTextStyle: {
-        color: '#666'
+        color: '#666',
       },
       axisLabel: {
         color: '#666',
-        formatter: '{value}%'
+        formatter: '{value}%',
       },
       max: 100,
       axisLine: {
         lineStyle: {
-          color: '#e5e6eb'
-        }
+          color: '#e5e6eb',
+        },
       },
       splitLine: {
         lineStyle: {
-          color: '#f0f0f0'
-        }
-      }
+          color: '#f0f0f0',
+        },
+      },
     },
     // 使用百分比堆叠模式
-    series: series.map(s => ({
+    series: series.map((s) => ({
       ...s,
       data: s.data.map((value: number, dataIndex: number) => {
         // 计算该类别的总数
-        let categoryTotal = 0;
-        series.forEach(seriesItem => {
+        let categoryTotal = 0
+        series.forEach((seriesItem) => {
           if (seriesItem.data[dataIndex]) {
-            categoryTotal += seriesItem.data[dataIndex];
+            categoryTotal += seriesItem.data[dataIndex]
           }
-        });
+        })
 
         // 返回百分比
-        return categoryTotal > 0 ? (value / categoryTotal) * 100 : 0;
-      })
-    }))
-  };
+        return categoryTotal > 0 ? (value / categoryTotal) * 100 : 0
+      }),
+    })),
+  }
 
-  chart.setOption(option);
+  chart.setOption(option)
 
   // 监听图例选择变化事件，重新计算百分比
-  chart.off('legendselectchanged'); // 移除之前的监听器
-  chart.on('legendselectchanged', function(params: any) {
-    const selectedLegends = params.selected;
+  chart.off('legendselectchanged') // 移除之前的监听器
+  chart.on('legendselectchanged', function (params: any) {
+    const selectedLegends = params.selected
 
     // 重新计算百分比数据
     const newSeries = series.map((originalSeries) => {
-      const seriesName = originalSeries.name;
-      const isSelected = selectedLegends[seriesName];
+      const seriesName = originalSeries.name
+      const isSelected = selectedLegends[seriesName]
 
       if (isSelected) {
         // 计算每个类别的新百分比
         const newData = originalSeries.data.map((value: number, dataIndex: number) => {
           // 计算该类别中所有选中系列的总和
-          let categoryTotal = 0;
-          series.forEach(s => {
+          let categoryTotal = 0
+          series.forEach((s) => {
             if (selectedLegends[s.name] && s.data[dataIndex]) {
-              categoryTotal += s.data[dataIndex];
+              categoryTotal += s.data[dataIndex]
             }
-          });
+          })
 
           // 返回百分比
-          return categoryTotal > 0 ? (value / categoryTotal) * 100 : 0;
-        });
+          return categoryTotal > 0 ? (value / categoryTotal) * 100 : 0
+        })
 
         return {
           ...originalSeries,
           data: newData,
           stack: 'total',
           label: {
-            show: false
+            show: false,
           },
           emphasis: {
             label: {
-              show: false
-            }
-          }
-        };
+              show: false,
+            },
+          },
+        }
       } else {
         return {
           ...originalSeries,
           data: originalSeries.data.map(() => 0), // 隐藏的系列数据设为0
           stack: 'total',
           label: {
-            show: false
+            show: false,
           },
           emphasis: {
             label: {
-              show: false
-            }
-          }
-        };
+              show: false,
+            },
+          },
+        }
       }
-    });
+    })
 
     // 更新图表
     chart.setOption({
-      series: newSeries
-    });
-  });
-};
+      series: newSeries,
+    })
+  })
+}
 
 // 获取项目列表
 const fetchProjectList = async () => {
   try {
-    const projects = await getProjectList();
+    const projects = await getProjectList()
     if (projects && Array.isArray(projects)) {
-      projectOptions.value = projects;
+      projectOptions.value = projects
     }
   } catch (err) {
-    console.error('获取项目列表失败:', err);
-    ElMessage.error('获取项目列表失败，请稍后重试');
+    console.error('获取项目列表失败:', err)
+    ElMessage.error('获取项目列表失败，请稍后重试')
   }
-};
+}
 
 // 获取对比分析数据
 const fetchComparisonData = async () => {
   try {
     if (!filter.value.project1 || !filter.value.project2) {
-      error.value = '请选择两个项目进行对比';
-      return;
+      error.value = '请选择两个项目进行对比'
+      return
     }
 
     if (filter.value.project1 === filter.value.project2) {
-      error.value = '请选择不同的项目进行对比';
-      return;
+      error.value = '请选择不同的项目进行对比'
+      return
     }
 
-    console.log('🚀 获取对比分析数据:', filter.value);
+    console.log('🚀 获取对比分析数据:', filter.value)
 
     // 构建请求参数
     const filterParams: ComparisonFilter = {
       projectIds: [filter.value.project1, filter.value.project2],
       platforms: filter.value.platforms.length > 0 ? filter.value.platforms : undefined,
-    };
+    }
 
     // 处理日期范围
     if (filter.value.dateRange && filter.value.dateRange.length === 2) {
-      filterParams.publishedAtStart = filter.value.dateRange[0];
-      filterParams.publishedAtEnd = filter.value.dateRange[1];
+      filterParams.publishedAtStart = filter.value.dateRange[0]
+      filterParams.publishedAtEnd = filter.value.dateRange[1]
     }
 
-    console.log('📤 发送请求参数:', filterParams);
+    console.log('📤 发送请求参数:', filterParams)
 
-    const data: ComparisonData = await getComparisonData(filterParams);
-    console.log('📥 收到API响应:', data);
+    const data: ComparisonData = await getComparisonData(filterParams)
+    console.log('📥 收到API响应:', data)
 
     // 处理后端返回的数据
-    processComparisonData(data);
+    processComparisonData(data)
 
     // 数据更新后强制调整图表尺寸
     setTimeout(() => {
-      forceResizeAllCharts();
-    }, 200);
+      forceResizeAllCharts()
+    }, 200)
 
-    ElMessage.success('数据对比分析完成');
-
+    ElMessage.success('数据对比分析完成')
   } catch (err) {
-    console.error('获取对比分析数据失败:', err);
-    ElMessage.error(err instanceof Error ? err.message : '获取数据失败，请稍后重试');
-    throw err;
+    console.error('获取对比分析数据失败:', err)
+    ElMessage.error(err instanceof Error ? err.message : '获取数据失败，请稍后重试')
+    throw err
   }
-};
+}
 
 // 重置筛选条件
 function resetFilter() {
@@ -1274,94 +1411,117 @@ function resetFilter() {
     project2: '',
     platforms: [],
     dateRange: [],
-  };
-  hasData.value = false;
+  }
+  hasData.value = false
 }
 
 // 搜索数据
 async function searchData() {
-  console.log('🔍 开始搜索对比分析数据:', filter.value);
+  console.log('🔍 开始搜索对比分析数据:', filter.value)
 
-  loading.value = true;
-  error.value = '';
-  hasData.value = false;
+  loading.value = true
+  error.value = ''
+  hasData.value = false
 
   try {
-    await fetchComparisonData();
-    console.log('✅ 搜索完成');
+    await fetchComparisonData()
+    console.log('✅ 搜索完成')
   } catch (err) {
-    console.error('❌ 搜索失败:', err);
-    error.value = err instanceof Error ? err.message : '搜索失败，请稍后重试';
+    console.error('❌ 搜索失败:', err)
+    error.value = err instanceof Error ? err.message : '搜索失败，请稍后重试'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 // 组件挂载时初始化
 onMounted(async () => {
-  console.log('对比分析页面挂载');
-  loading.value = true;
+  console.log('对比分析页面挂载')
+  loading.value = true
 
   try {
-    await fetchProjectList();
+    await fetchProjectList()
     // 延迟初始化图表，确保DOM完全加载
     setTimeout(() => {
-      initAllCharts();
-    }, 100);
+      initAllCharts()
+    }, 100)
   } catch (err) {
-    console.error('页面初始化失败:', err);
-    error.value = '页面加载失败，请刷新重试';
+    console.error('页面初始化失败:', err)
+    error.value = '页面加载失败，请刷新重试'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 
   // 页面完全加载后再次确保图表尺寸正确
   setTimeout(() => {
-    console.log('🎯 页面加载完成，最终调整图表尺寸');
-    forceResizeAllCharts();
-  }, 1000);
+    console.log('🎯 页面加载完成，最终调整图表尺寸')
+    forceResizeAllCharts()
+  }, 1000)
 
   // 监听窗口大小变化
   const handleResize = () => {
     setTimeout(() => {
-      forceResizeAllCharts();
-    }, 100);
-  };
+      forceResizeAllCharts()
+    }, 100)
+  }
 
-  window.addEventListener('resize', handleResize);
+  window.addEventListener('resize', handleResize)
 
   // 监听页面可见性变化
   const handleVisibilityChange = () => {
     if (!document.hidden) {
       setTimeout(() => {
-        forceResizeAllCharts();
-      }, 100);
+        forceResizeAllCharts()
+      }, 100)
     }
-  };
+  }
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 
   // 组件卸载时清理
   return () => {
-    window.removeEventListener('resize', handleResize);
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('resize', handleResize)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
 
     // 销毁所有图表实例
     const charts = [
-      mentionChart, videoViewChart, videoViewIncrementChart, videoCommentChart, videoCommentIncrementChart,
-      videoLikeChart, videoLikeIncrementChart, postViewChart, postViewIncrementChart, postCommentChart,
-      postCommentIncrementChart, postLikeChart, postLikeIncrementChart, positiveChart, neutralChart, negativeChart,
-      mentionMediaChart1, mentionMediaChart2, mentionLanguageChart1, mentionLanguageChart2,
-      mentionRegionChart1, mentionRegionChart2, sentimentTypeChart1, sentimentTypeChart2,
-      sentimentMediaChart1, sentimentMediaChart2, sentimentLanguageChart1, sentimentLanguageChart2,
-      sentimentRegionChart1, sentimentRegionChart2
-    ];
+      mentionChart,
+      videoViewChart,
+      videoViewIncrementChart,
+      videoCommentChart,
+      videoCommentIncrementChart,
+      videoLikeChart,
+      videoLikeIncrementChart,
+      postViewChart,
+      postViewIncrementChart,
+      postCommentChart,
+      postCommentIncrementChart,
+      postLikeChart,
+      postLikeIncrementChart,
+      positiveChart,
+      neutralChart,
+      negativeChart,
+      mentionMediaChart1,
+      mentionMediaChart2,
+      mentionLanguageChart1,
+      mentionLanguageChart2,
+      mentionRegionChart1,
+      mentionRegionChart2,
+      sentimentTypeChart1,
+      sentimentTypeChart2,
+      sentimentMediaChart1,
+      sentimentMediaChart2,
+      sentimentLanguageChart1,
+      sentimentLanguageChart2,
+      sentimentRegionChart1,
+      sentimentRegionChart2,
+    ]
 
-    charts.forEach(chart => {
-      if (chart) chart.dispose();
-    });
-  };
-});
+    charts.forEach((chart) => {
+      if (chart) chart.dispose()
+    })
+  }
+})
 </script>
 
 <style scoped>
@@ -1407,14 +1567,7 @@ onMounted(async () => {
   scrollbar-color: #c0c4cc #f5f5f5;
 }
 
-/* 筛选面板样式 */
-.filter-panel {
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
+/* filter-panel 样式现在由全局样式处理 */
 
 .filter-panel .el-row {
   margin-bottom: 16px;
@@ -1452,7 +1605,7 @@ onMounted(async () => {
   gap: 12px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--el-border-color);
 }
 
 .btn-reset,
@@ -1514,7 +1667,7 @@ onMounted(async () => {
 
 /* 图表区域 */
 .chart-section {
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -1602,9 +1755,9 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .loading-spinner {
@@ -1618,8 +1771,12 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-container p {
@@ -1640,7 +1797,7 @@ onMounted(async () => {
   padding: 0 20px;
   border: 1px solid #409eff;
   border-radius: 4px;
-  background: #fff;
+  background: var(--el-bg-color);
   color: #409eff;
   cursor: pointer;
   font-size: 14px;

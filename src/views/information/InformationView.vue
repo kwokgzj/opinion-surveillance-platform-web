@@ -28,12 +28,7 @@
                   全选
                 </el-checkbox>
               </template>
-              <el-option
-                v-for="brand in brandOptions"
-                :key="brand"
-                :label="brand"
-                :value="brand"
-              />
+              <el-option v-for="brand in brandOptions" :key="brand" :label="brand" :value="brand" />
             </el-select>
           </div>
         </el-col>
@@ -61,12 +56,7 @@
                   全选
                 </el-checkbox>
               </template>
-              <el-option
-                v-for="sku in skuOptions"
-                :key="sku"
-                :label="sku"
-                :value="sku"
-              />
+              <el-option v-for="sku in skuOptions" :key="sku" :label="sku" :value="sku" />
             </el-select>
           </div>
         </el-col>
@@ -103,7 +93,14 @@
             </el-select>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6" v-if="projectStore.currentProjectType !== 'GoogleNews'">
+        <el-col
+          :xs="24"
+          :sm="12"
+          :md="6"
+          :lg="6"
+          :xl="6"
+          v-if="projectStore.currentProjectType !== 'GoogleNews'"
+        >
           <div class="form-item">
             <label>平台：</label>
             <el-select
@@ -209,30 +206,32 @@
         <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <div class="form-item search-form-item">
             <label>搜索：</label>
-            <input v-model="filter.searchKeyword" type="text" placeholder="请输入搜索关键词" class="search-input" />
+            <el-input v-model="filter.searchKeyword" type="text" placeholder="请输入搜索关键词" />
           </div>
         </el-col>
         <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <div class="form-item">
             <label>排序：</label>
-            <div class="custom-select">
-              <div class="select-container" @click="toggleSortDropdown">
-                <span class="select-value">{{ filter.sort || '请选择排序' }}</span>
-                <span class="dropdown-arrow" :class="{ open: sortDropdownOpen }">▼</span>
-              </div>
-              <div v-if="sortDropdownOpen" class="dropdown-options">
-                <div v-for="sort in sortOptions" :key="sort" class="dropdown-option" @click="selectSort(sort)">
-                  {{ sort }}
-                </div>
-              </div>
-            </div>
+            <el-select v-model="filter.sort" placeholder="请选择排序" style="width: 100%" clearable>
+              <el-option v-for="sort in sortOptions" :key="sort" :label="sort" :value="sort" />
+            </el-select>
           </div>
         </el-col>
       </el-row>
 
       <el-row :gutter="24">
         <!-- 第三行：视频时长范围、频道、时间范围、标签 -->
-        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6" v-if="projectStore.currentProjectType === 'VideoList' || projectStore.currentProjectType === 'SocialMediaKeywords'">
+        <el-col
+          :xs="24"
+          :sm="12"
+          :md="6"
+          :lg="6"
+          :xl="6"
+          v-if="
+            projectStore.currentProjectType === 'VideoList' ||
+            projectStore.currentProjectType === 'SocialMediaKeywords'
+          "
+        >
           <div class="form-item">
             <label>视频时长：</label>
             <div class="custom-select">
@@ -241,14 +240,26 @@
                 <span class="dropdown-arrow" :class="{ open: durationDropdownOpen }">▼</span>
               </div>
               <div v-if="durationDropdownOpen" class="dropdown-options">
-                <div v-for="duration in durationOptions" :key="duration" class="dropdown-option" @click="selectDuration(duration)">
+                <div
+                  v-for="duration in durationOptions"
+                  :key="duration"
+                  class="dropdown-option"
+                  @click="selectDuration(duration)"
+                >
                   {{ duration }}
                 </div>
               </div>
             </div>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6" v-if="projectStore.currentProjectType !== 'GoogleNews'">
+        <el-col
+          :xs="24"
+          :sm="12"
+          :md="6"
+          :lg="6"
+          :xl="6"
+          v-if="projectStore.currentProjectType !== 'GoogleNews'"
+        >
           <div class="form-item">
             <label>频道：</label>
             <el-select
@@ -321,12 +332,7 @@
                   全选
                 </el-checkbox>
               </template>
-              <el-option
-                v-for="tag in tagOptions"
-                :key="tag"
-                :label="tag"
-                :value="tag"
-              />
+              <el-option v-for="tag in tagOptions" :key="tag" :label="tag" :value="tag" />
             </el-select>
           </div>
         </el-col>
@@ -341,22 +347,23 @@
 
     <!-- 多选按钮 -->
     <div class="multiselect-toggle" v-if="!isMultiSelectMode">
-      <button
-        class="multiselect-btn"
-        @click="toggleMultiSelectMode"
-      >
-        批量操作
-      </button>
+      <button class="multiselect-btn" @click="toggleMultiSelectMode">批量操作</button>
     </div>
 
     <!-- 退出多选按钮 -->
     <div class="exit-multiselect-toggle" v-if="isMultiSelectMode">
-      <button
-        class="exit-multiselect-btn"
-        @click="toggleMultiSelectMode"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+      <button class="exit-multiselect-btn" @click="toggleMultiSelectMode">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+            fill="currentColor"
+          />
         </svg>
         退出批量操作
       </button>
@@ -378,13 +385,19 @@
     </div>
 
     <div v-else class="information-list" :class="{ 'multi-select-mode': isMultiSelectMode }">
-      <div v-for="item in informationList" :key="item.id" class="info-card" :class="{
-        'multi-select-mode': isMultiSelectMode,
-        'selected': isMultiSelectMode && selectedItems.includes(item.id)
-      }" @click="isMultiSelectMode && handleCardClick(item.id)">
+      <div
+        v-for="item in informationList"
+        :key="item.id"
+        class="info-card"
+        :class="{
+          'multi-select-mode': isMultiSelectMode,
+          selected: isMultiSelectMode && selectedItems.includes(item.id),
+        }"
+        @click="isMultiSelectMode && handleCardClick(item.id)"
+      >
         <!-- 多选单选框 -->
         <div v-if="isMultiSelectMode" class="info-checkbox" @click.stop>
-          <input
+          <el-input
             type="checkbox"
             :checked="selectedItems.includes(item.id)"
             @change="toggleItemSelection(item.id)"
@@ -401,7 +414,7 @@
               :data-original-url="item.channelThumbnailUrl"
               :data-platform="item.platform"
               class="info-logo"
-              :class="{ 'inactive': !item.isActive }"
+              :class="{ inactive: !item.isActive }"
               @load="handleImageLoad"
               @error="handleImageError"
               crossorigin="anonymous"
@@ -409,19 +422,27 @@
               loading="lazy"
               :alt="item.channelName || '频道头像'"
             />
-            <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
+            <div
+              class="info-channel"
+              :class="{ inactive: !item.isActive }"
+              :title="item.channelName"
+            >
+              {{ item.channelName }}
+            </div>
             <div
               class="info-platform"
-              :class="{ 'inactive': !item.isActive }"
+              :class="{ inactive: !item.isActive }"
               v-if="item.newsPlatform"
               :title="`平台：${item.newsPlatform}`"
             >
               {{ item.newsPlatform }}
             </div>
-            <div class="info-fans" :class="{ 'inactive': !item.isActive }">月活：<span>{{ item.monthlyActiveUsers || '-' }}</span></div>
+            <div class="info-fans" :class="{ inactive: !item.isActive }">
+              月活：<span>{{ item.monthlyActiveUsers || '-' }}</span>
+            </div>
             <div
               class="info-region"
-              :class="{ 'inactive': !item.isActive }"
+              :class="{ inactive: !item.isActive }"
               v-if="item.newsPlatformRegion && item.newsPlatformRegion.length > 0"
               :title="`受众：${item.newsPlatformRegion.join(', ')}`"
             >
@@ -435,7 +456,7 @@
               :data-original-url="item.channelThumbnailUrl"
               :data-platform="item.platform"
               class="info-logo"
-              :class="{ 'inactive': !item.isActive }"
+              :class="{ inactive: !item.isActive }"
               @load="handleImageLoad"
               @error="handleImageError"
               crossorigin="anonymous"
@@ -443,8 +464,16 @@
               loading="lazy"
               :alt="item.channelName || '频道头像'"
             />
-            <div class="info-channel" :class="{ 'inactive': !item.isActive }" :title="item.channelName">{{ item.channelName }}</div>
-            <div class="info-fans" :class="{ 'inactive': !item.isActive }">粉丝：<span>{{ formatNumber(item.subscriberCount) }}</span></div>
+            <div
+              class="info-channel"
+              :class="{ inactive: !item.isActive }"
+              :title="item.channelName"
+            >
+              {{ item.channelName }}
+            </div>
+            <div class="info-fans" :class="{ inactive: !item.isActive }">
+              粉丝：<span>{{ formatNumber(item.subscriberCount) }}</span>
+            </div>
           </template>
         </div>
         <!-- 中栏 -->
@@ -460,7 +489,7 @@
               target="_blank"
               rel="noopener noreferrer"
               class="info-title-link"
-              :class="{ 'inactive': !item.isActive }"
+              :class="{ inactive: !item.isActive }"
               :title="getDisplayTitle(item)"
               @click="isMultiSelectMode && $event.preventDefault()"
             >
@@ -468,18 +497,8 @@
             </a>
             <!-- 标签显示 -->
             <div v-if="item.labels && item.labels.length > 0" class="info-labels">
-              <div
-                v-for="label in item.labels"
-                :key="label"
-                class="info-label-item"
-                :title="label"
-              >
-                <img
-                  :src="tagIcon"
-                  alt="标签"
-                  class="label-icon"
-                  @error="handleImageError"
-                />
+              <div v-for="label in item.labels" :key="label" class="info-label-item" :title="label">
+                <img :src="tagIcon" alt="标签" class="label-icon" @error="handleImageError" />
                 <span class="label-text">{{ label }}</span>
                 <button
                   class="label-delete-btn"
@@ -498,7 +517,7 @@
               :data-original-url="item.thumbnailUrl"
               :data-platform="item.platform"
               class="info-cover"
-              :class="{ 'inactive': !item.isActive }"
+              :class="{ inactive: !item.isActive }"
               @load="handleImageLoad"
               @error="handleImageError"
               crossorigin="anonymous"
@@ -510,7 +529,7 @@
               <div
                 v-if="hasDescriptionToShow(item)"
                 class="info-desc"
-                :class="{ 'inactive': !item.isActive }"
+                :class="{ inactive: !item.isActive }"
                 :title="item.description"
               >
                 {{ item.description }}
@@ -528,28 +547,34 @@
               <!-- 新闻类型特殊显示 -->
               <template v-if="isNewsType(item)">
                 <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
-                <span style="margin-left: 8px;">| SU：{{ (item.su || item.su === 0) ? item.su : '-' }}</span>
+                <span style="margin-left: 8px"
+                  >| SU：{{ item.su || item.su === 0 ? item.su : '-' }}</span
+                >
                 <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
               </template>
               <!-- 其他类型显示 -->
               <template v-else>
                 <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
-                <span v-if="item.platform" :title="`平台：${item.platform}`">| {{ item.platform }}</span>
+                <span v-if="item.platform" :title="`平台：${item.platform}`"
+                  >| {{ item.platform }}</span
+                >
                 <span v-if="item.region">| {{ getRegionLabel(item.region) }}</span>
                 <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
-                              <!-- 视频类型特有的字段 -->
-              <span v-if="isVideoType(item) && item.duration">| 时长：{{ formatDuration(item.duration) }}</span>
-              <span v-if="isVideoType(item) && item.engagementRate">| 互动率：{{ item.engagementRate }}%</span>
-              <!-- 帖子类型特有的字段 -->
-              <span v-if="isPostType(item) && item.engagementRate">| 互动率：{{ item.engagementRate }}%</span>
+                <!-- 视频类型特有的字段 -->
+                <span v-if="isVideoType(item) && item.duration"
+                  >| 时长：{{ formatDuration(item.duration) }}</span
+                >
+                <span v-if="isVideoType(item) && item.engagementRate"
+                  >| 互动率：{{ item.engagementRate }}%</span
+                >
+                <!-- 帖子类型特有的字段 -->
+                <span v-if="isPostType(item) && item.engagementRate"
+                  >| 互动率：{{ item.engagementRate }}%</span
+                >
               </template>
             </div>
             <div class="info-meta-actions" v-if="!isMultiSelectMode">
-              <button
-                class="action-btn tag-btn"
-                @click="handleAddTag(item)"
-                title="添加标签"
-              >
+              <button class="action-btn tag-btn" @click="handleAddTag(item)" title="添加标签">
                 <img :src="tagIcon" alt="添加标签" />
               </button>
               <button
@@ -563,11 +588,7 @@
                   :alt="item.isActive ? '停止抓取' : '开始抓取'"
                 />
               </button>
-              <button
-                class="action-btn delete-btn"
-                @click="handleDelete(item)"
-                title="删除"
-              >
+              <button class="action-btn delete-btn" @click="handleDelete(item)" title="删除">
                 <img :src="deleteIcon" alt="删除" />
               </button>
             </div>
@@ -578,73 +599,117 @@
         <!-- 右栏 -->
         <div class="info-right">
           <div class="info-table-2col">
-                          <!-- 新闻类型特殊布局 -->
-              <template v-if="isNewsType(item)">
-                <div class="info-row-2col">
-                  <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
-                  <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
+            <!-- 新闻类型特殊布局 -->
+            <template v-if="isNewsType(item)">
+              <div class="info-row-2col">
+                <div class="info-cell">
+                  <span class="info-label">品牌：</span
+                  ><span class="info-value" :title="getBrandFromContent(item)">{{
+                    getBrandFromContent(item)
+                  }}</span>
                 </div>
-                <div class="info-row-2col">
-                  <div class="info-cell" style="width:100%">
-                    <span class="info-label">关键信息：</span>
-                    <span class="info-value info-long-text" :title="item.keyInformation">{{ item.keyInformation || '-' }}</span>
-                  </div>
+                <div class="info-cell">
+                  <span class="info-label">SKU：</span
+                  ><span class="info-value" :title="getSkuFromContent(item)">{{
+                    getSkuFromContent(item)
+                  }}</span>
                 </div>
-                <div class="info-row-2col">
-                  <div class="info-cell" style="width:100%">
-                    <span class="info-label">中文翻译：</span>
-                    <span class="info-value info-long-text" :title="item.titleCN">{{ item.titleCN || '-' }}</span>
-                  </div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell" style="width: 100%">
+                  <span class="info-label">关键信息：</span>
+                  <span class="info-value info-long-text" :title="item.keyInformation">{{
+                    item.keyInformation || '-'
+                  }}</span>
                 </div>
-                <div class="info-row-2col">
-                  <div class="info-cell" style="width:100%">
-                    <span class="info-label">情感倾向：</span>
-                    <span class="info-value sentiment-icons-container">
-                      <template v-if="item.contentMentionedBrands && item.contentMentionedBrands.length > 0">
-                        <img
-                          v-for="brand in item.contentMentionedBrands"
-                          :key="brand.brand"
-                          :src="getSentimentIcon(brand.sentiment)"
-                          :title="getBrandSentimentTooltip(brand)"
-                          class="sentiment-icon"
-                          @error="handleImageError"
-                        />
-                      </template>
-                      <span v-else>-</span>
-                    </span>
-                  </div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell" style="width: 100%">
+                  <span class="info-label">中文翻译：</span>
+                  <span class="info-value info-long-text" :title="item.titleCN">{{
+                    item.titleCN || '-'
+                  }}</span>
                 </div>
+              </div>
+              <div class="info-row-2col">
+                <div class="info-cell" style="width: 100%">
+                  <span class="info-label">情感倾向：</span>
+                  <span class="info-value sentiment-icons-container">
+                    <template
+                      v-if="item.contentMentionedBrands && item.contentMentionedBrands.length > 0"
+                    >
+                      <img
+                        v-for="brand in item.contentMentionedBrands"
+                        :key="brand.brand"
+                        :src="getSentimentIcon(brand.sentiment)"
+                        :title="getBrandSentimentTooltip(brand)"
+                        class="sentiment-icon"
+                        @error="handleImageError"
+                      />
+                    </template>
+                    <span v-else>-</span>
+                  </span>
+                </div>
+              </div>
               <div class="info-row-2col last-row">
-                <div class="info-cell" style="width:100%">
+                <div class="info-cell" style="width: 100%">
                   <span class="info-label">抓取时间：</span>
-                  <span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{ formatDateYMDOnly(item.captureAt) }}</span>
+                  <span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{
+                    formatDateYMDOnly(item.captureAt)
+                  }}</span>
                 </div>
               </div>
             </template>
             <!-- 其他类型布局 -->
             <template v-else>
               <div class="info-row-2col">
-                <div class="info-cell"><span class="info-label">品牌：</span><span class="info-value" :title="getBrandFromContent(item)">{{ getBrandFromContent(item) }}</span></div>
-                <div class="info-cell"><span class="info-label">SKU：</span><span class="info-value" :title="getSkuFromContent(item)">{{ getSkuFromContent(item) }}</span></div>
+                <div class="info-cell">
+                  <span class="info-label">品牌：</span
+                  ><span class="info-value" :title="getBrandFromContent(item)">{{
+                    getBrandFromContent(item)
+                  }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">SKU：</span
+                  ><span class="info-value" :title="getSkuFromContent(item)">{{
+                    getSkuFromContent(item)
+                  }}</span>
+                </div>
               </div>
               <div class="info-row-2col">
-                <div class="info-cell"><span class="info-label">评论数：</span><span class="info-value" :title="String(item.commentCount)">{{ item.commentCount }}</span></div>
-                <div class="info-cell"><span class="info-label">点赞数：</span><span class="info-value" :title="String(item.likeCount)">{{ item.likeCount }}</span></div>
+                <div class="info-cell">
+                  <span class="info-label">评论数：</span
+                  ><span class="info-value" :title="String(item.commentCount)">{{
+                    item.commentCount
+                  }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">点赞数：</span
+                  ><span class="info-value" :title="String(item.likeCount)">{{
+                    item.likeCount
+                  }}</span>
+                </div>
               </div>
               <div class="info-row-2col">
                 <!-- 根据类型显示不同的字段 -->
                 <div class="info-cell" v-if="isVideoType(item)">
                   <span class="info-label">播放量：</span>
-                  <span class="info-value" :title="String(item.viewCount)">{{ item.viewCount }}</span>
+                  <span class="info-value" :title="String(item.viewCount)">{{
+                    item.viewCount
+                  }}</span>
                 </div>
                 <div class="info-cell" v-else-if="isPostType(item)">
                   <span class="info-label">分享数：</span>
-                  <span class="info-value" :title="String(item.shareCount)">{{ item.shareCount }}</span>
+                  <span class="info-value" :title="String(item.shareCount)">{{
+                    item.shareCount
+                  }}</span>
                 </div>
-                <div class="info-cell" style="width:100%">
+                <div class="info-cell" style="width: 100%">
                   <span class="info-label">情感倾向：</span>
                   <span class="info-value sentiment-icons-container">
-                    <template v-if="item.contentMentionedBrands && item.contentMentionedBrands.length > 0">
+                    <template
+                      v-if="item.contentMentionedBrands && item.contentMentionedBrands.length > 0"
+                    >
                       <img
                         v-for="brand in item.contentMentionedBrands"
                         :key="brand.brand"
@@ -666,9 +731,11 @@
                 </div>
               </div>
               <div class="info-row-2col last-row">
-                <div class="info-cell" style="width:100%">
+                <div class="info-cell" style="width: 100%">
                   <span class="info-label">抓取时间：</span>
-                  <span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{ formatDateYMDOnly(item.captureAt) }}</span>
+                  <span class="info-value" :title="formatDateYMDOnly(item.captureAt)">{{
+                    formatDateYMDOnly(item.captureAt)
+                  }}</span>
                 </div>
               </div>
             </template>
@@ -761,31 +828,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { getInformationList, getFilterOptions, updateLinkActiveStatus, deleteProjectLink, updateLinksLabelsBatch } from '@/api/information/information';
-import type { Information, InformationFilt, FilterOptions, FilterOption } from '@/api/information/information.type';
-import { useProjectStore } from '@/stores/project';
-import youtubeIcon from '@/components/icons/youtube.svg';
-import googleIcon from '@/components/icons/google.svg';
-import facebookIcon from '@/components/icons/facebook.svg';
-import XIcon from '@/components/icons/X.svg';
-import instagramIcon from '@/components/icons/instagram.svg';
-import noPictureIcon from '@/components/icons/noPicture.svg';
-import tagIcon from '@/components/icons/tag.svg';
-import captureActiveIcon from '@/components/icons/capture-active.svg';
-import captureInactiveIcon from '@/components/icons/capture-inactive.svg';
-import deleteIcon from '@/components/icons/delete.svg';
-import positiveIcon from '@/components/icons/positive.svg';
-import neutralIcon from '@/components/icons/neutral.svg';
-import negativeIcon from '@/components/icons/negative.svg';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getInformationList,
+  getFilterOptions,
+  updateLinkActiveStatus,
+  deleteProjectLink,
+  updateLinksLabelsBatch,
+} from '@/api/information/information'
+import type {
+  Information,
+  InformationFilt,
+  FilterOptions,
+  FilterOption,
+} from '@/api/information/information.type'
+import { useProjectStore } from '@/stores/project'
+import youtubeIcon from '@/components/icons/youtube.svg'
+import googleIcon from '@/components/icons/google.svg'
+import facebookIcon from '@/components/icons/facebook.svg'
+import XIcon from '@/components/icons/X.svg'
+import instagramIcon from '@/components/icons/instagram.svg'
+import noPictureIcon from '@/components/icons/noPicture.svg'
+import tagIcon from '@/components/icons/tag.svg'
+import captureActiveIcon from '@/components/icons/capture-active.svg'
+import captureInactiveIcon from '@/components/icons/capture-inactive.svg'
+import deleteIcon from '@/components/icons/delete.svg'
+import positiveIcon from '@/components/icons/positive.svg'
+import neutralIcon from '@/components/icons/neutral.svg'
+import negativeIcon from '@/components/icons/negative.svg'
 
 // 使用项目store
-const projectStore = useProjectStore();
+const projectStore = useProjectStore()
 
 // 加载状态
-const loading = ref(false);
-const error = ref('');
+const loading = ref(false)
+const error = ref('')
 
 // 筛选选项
 const filterOptions = ref<FilterOptions>({
@@ -799,8 +877,8 @@ const filterOptions = ref<FilterOptions>({
   channels: [],
   durations: [],
   labels: [],
-  count: 0
-});
+  count: 0,
+})
 
 const filter = ref({
   brands: [] as string[],
@@ -815,314 +893,305 @@ const filter = ref({
   channels: [] as string[],
   dateRange: [] as string[],
   tags: [] as string[],
-});
+})
 
 // 获取筛选选项
 const fetchFilterOptions = async () => {
   try {
-    const currentProjectId = projectStore.currentProjectId;
-
+    const currentProjectId = projectStore.currentProjectId
 
     if (!currentProjectId) {
-      console.warn('没有项目ID，无法获取筛选选项');
-      return;
+      console.warn('没有项目ID，无法获取筛选选项')
+      return
     }
 
-    const response = await getFilterOptions(currentProjectId);
+    const response = await getFilterOptions(currentProjectId)
 
     if (response) {
-      filterOptions.value = response;
+      filterOptions.value = response
 
       // 设置第一个排序选项为默认值
       if (response.sortBy && response.sortBy.length > 0 && !filter.value.sort) {
-        filter.value.sort = response.sortBy[0].label;
+        filter.value.sort = response.sortBy[0].label
       }
 
       // 更新分页信息
       if (response.count !== undefined) {
-        totalCount.value = response.count;
-        totalPages.value = Math.ceil(response.count / pageSize.value);
+        totalCount.value = response.count
+        totalPages.value = Math.ceil(response.count / pageSize.value)
       }
     }
   } catch (err) {
-    console.error('获取筛选选项失败:', err);
-    throw new Error('获取筛选选项失败，请稍后重试');
+    console.error('获取筛选选项失败:', err)
+    throw new Error('获取筛选选项失败，请稍后重试')
   }
-};
+}
 
 // 选项数据（从API获取，如果没有数据则为空）
 const brandOptions = computed(() => {
-  const options = filterOptions.value.brands?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.brands?.map((item) => item.label) || []
+  return options
+})
 const skuOptions = computed(() => {
-  const options = filterOptions.value.skus?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.skus?.map((item) => item.label) || []
+  return options
+})
 const sentimentOptions = computed(() => {
-  const options = filterOptions.value.sentiments?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.sentiments?.map((item) => item.label) || []
+  return options
+})
 const platformOptions = computed(() => {
-  const options = filterOptions.value.platforms?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.platforms?.map((item) => item.label) || []
+  return options
+})
 const languageOptions = computed(() => {
-  const options = filterOptions.value.languages?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.languages?.map((item) => item.label) || []
+  return options
+})
 const regionOptions = computed(() => {
-  const options = filterOptions.value.regions?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.regions?.map((item) => item.label) || []
+  return options
+})
 const sortOptions = computed(() => {
-  const options = filterOptions.value.sortBy?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.sortBy?.map((item) => item.label) || []
+  return options
+})
 
 // 获取第一个排序选项的value
 const firstSortValue = computed(() => {
   if (filterOptions.value.sortBy && filterOptions.value.sortBy.length > 0) {
-    return filterOptions.value.sortBy[0].value;
+    return filterOptions.value.sortBy[0].value
   }
-  return 'publishedAt:desc'; // 默认值
-});
+  return 'publishedAt:desc' // 默认值
+})
 const durationOptions = computed(() => {
-  const options = filterOptions.value.durations?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.durations?.map((item) => item.label) || []
+  return options
+})
 const channelOptions = computed(() => {
-  const options = filterOptions.value.channels?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.channels?.map((item) => item.label) || []
+  return options
+})
 const tagOptions = computed(() => {
-  const options = filterOptions.value.labels?.map(item => item.label) || [];
-  return options;
-});
+  const options = filterOptions.value.labels?.map((item) => item.label) || []
+  return options
+})
 
 // 全选状态计算属性 - 已移除，使用Element Plus组件
 
 // 下拉框状态
-const sortDropdownOpen = ref(false);
-const durationDropdownOpen = ref(false);
+const durationDropdownOpen = ref(false)
 
 // 多选模式状态
-const isMultiSelectMode = ref(false);
-const selectedItems = ref<string[]>([]);
+const isMultiSelectMode = ref(false)
+const selectedItems = ref<string[]>([])
 
 // Element Plus 全选状态
-const brandCheckAll = ref(false);
-const brandIndeterminate = ref(false);
-const skuCheckAll = ref(false);
-const skuIndeterminate = ref(false);
-const sentimentCheckAll = ref(false);
-const sentimentIndeterminate = ref(false);
-const platformCheckAll = ref(false);
-const platformIndeterminate = ref(false);
-const languageCheckAll = ref(false);
-const languageIndeterminate = ref(false);
-const regionCheckAll = ref(false);
-const regionIndeterminate = ref(false);
-const channelCheckAll = ref(false);
-const channelIndeterminate = ref(false);
-const tagCheckAll = ref(false);
-const tagIndeterminate = ref(false);
+const brandCheckAll = ref(false)
+const brandIndeterminate = ref(false)
+const skuCheckAll = ref(false)
+const skuIndeterminate = ref(false)
+const sentimentCheckAll = ref(false)
+const sentimentIndeterminate = ref(false)
+const platformCheckAll = ref(false)
+const platformIndeterminate = ref(false)
+const languageCheckAll = ref(false)
+const languageIndeterminate = ref(false)
+const regionCheckAll = ref(false)
+const regionIndeterminate = ref(false)
+const channelCheckAll = ref(false)
+const channelIndeterminate = ref(false)
+const tagCheckAll = ref(false)
+const tagIndeterminate = ref(false)
 
 // 品牌相关函数 - 已移除，使用Element Plus组件
 
 // Element Plus 全选处理函数
 function handleBrandCheckAll(val: boolean) {
-  brandIndeterminate.value = false;
+  brandIndeterminate.value = false
   if (val) {
-    filter.value.brands = [...brandOptions.value];
+    filter.value.brands = [...brandOptions.value]
   } else {
-    filter.value.brands = [];
+    filter.value.brands = []
   }
 }
 
 function handleSkuCheckAll(val: boolean) {
-  skuIndeterminate.value = false;
+  skuIndeterminate.value = false
   if (val) {
-    filter.value.skus = [...skuOptions.value];
+    filter.value.skus = [...skuOptions.value]
   } else {
-    filter.value.skus = [];
+    filter.value.skus = []
   }
 }
 
 function handleSentimentCheckAll(val: boolean) {
-  sentimentIndeterminate.value = false;
+  sentimentIndeterminate.value = false
   if (val) {
-    filter.value.sentiments = [...sentimentOptions.value];
+    filter.value.sentiments = [...sentimentOptions.value]
   } else {
-    filter.value.sentiments = [];
+    filter.value.sentiments = []
   }
 }
 
 function handlePlatformCheckAll(val: boolean) {
-  platformIndeterminate.value = false;
+  platformIndeterminate.value = false
   if (val) {
-    filter.value.platforms = [...platformOptions.value];
+    filter.value.platforms = [...platformOptions.value]
   } else {
-    filter.value.platforms = [];
+    filter.value.platforms = []
   }
 }
 
 function handleLanguageCheckAll(val: boolean) {
-  languageIndeterminate.value = false;
+  languageIndeterminate.value = false
   if (val) {
-    filter.value.languages = [...languageOptions.value];
+    filter.value.languages = [...languageOptions.value]
   } else {
-    filter.value.languages = [];
+    filter.value.languages = []
   }
 }
 
 function handleRegionCheckAll(val: boolean) {
-  regionIndeterminate.value = false;
+  regionIndeterminate.value = false
   if (val) {
-    filter.value.regions = [...regionOptions.value];
+    filter.value.regions = [...regionOptions.value]
   } else {
-    filter.value.regions = [];
+    filter.value.regions = []
   }
 }
 
 function handleChannelCheckAll(val: boolean) {
-  channelIndeterminate.value = false;
+  channelIndeterminate.value = false
   if (val) {
-    filter.value.channels = [...channelOptions.value];
+    filter.value.channels = [...channelOptions.value]
   } else {
-    filter.value.channels = [];
+    filter.value.channels = []
   }
 }
 
 function handleTagCheckAll(val: boolean) {
-  tagIndeterminate.value = false;
+  tagIndeterminate.value = false
   if (val) {
-    filter.value.tags = [...tagOptions.value];
+    filter.value.tags = [...tagOptions.value]
   } else {
-    filter.value.tags = [];
+    filter.value.tags = []
   }
 }
 
 // SKU、情感倾向、平台、语言、地区相关函数 - 已移除，使用Element Plus组件
 
-// 排序相关函数
-function toggleSortDropdown() {
-  sortDropdownOpen.value = !sortDropdownOpen.value;
-}
-function selectSort(sort: string) {
-  filter.value.sort = sort;
-  sortDropdownOpen.value = false;
-}
+// 排序相关函数已移除，现在使用Element UI组件
 
 // 视频时长相关函数
 function toggleDurationDropdown() {
-  durationDropdownOpen.value = !durationDropdownOpen.value;
+  durationDropdownOpen.value = !durationDropdownOpen.value
 }
 function selectDuration(duration: string) {
-  filter.value.duration = duration;
-  durationDropdownOpen.value = false;
+  filter.value.duration = duration
+  durationDropdownOpen.value = false
 }
 
 // 从时长选项中提取最小和最大时长
 function getDurationRange(durationLabel: string): { minDuration: number; maxDuration: number } {
   if (!durationLabel) {
-    return { minDuration: 0, maxDuration: 0 };
+    return { minDuration: 0, maxDuration: 0 }
   }
 
   // 根据label找到对应的value
-  const durationOption = filterOptions.value.durations?.find(item => item.label === durationLabel);
+  const durationOption = filterOptions.value.durations?.find((item) => item.label === durationLabel)
   if (!durationOption) {
-    return { minDuration: 0, maxDuration: 0 };
+    return { minDuration: 0, maxDuration: 0 }
   }
 
-  const value = durationOption.value;
+  const value = durationOption.value
 
   // 解析value格式，例如"0-240"
   if (value.includes('-')) {
-    const parts = value.split('-');
+    const parts = value.split('-')
     if (parts.length === 2) {
-      const min = parseInt(parts[0]);
-      const max = parseInt(parts[1]);
+      const min = parseInt(parts[0])
+      const max = parseInt(parts[1])
       if (!isNaN(min) && !isNaN(max)) {
-        return { minDuration: min, maxDuration: max };
+        return { minDuration: min, maxDuration: max }
       }
     }
   }
 
   // 如果解析失败，返回默认值
-  return { minDuration: 0, maxDuration: 0 };
+  return { minDuration: 0, maxDuration: 0 }
 }
 
 // 格式化时间为标准格式
 function formatDateTime(dateString: string): string {
-  if (!dateString) return '';
+  if (!dateString) return ''
 
   try {
-    const date = new Date(dateString);
+    const date = new Date(dateString)
     if (isNaN(date.getTime())) {
-      console.warn('无效的日期格式:', dateString);
-      return '';
+      console.warn('无效的日期格式:', dateString)
+      return ''
     }
 
     // 格式化为标准ISO格式：YYYY-MM-DDTHH:mm:ss.SSSZ
-    return date.toISOString();
+    return date.toISOString()
   } catch (error) {
-    console.error('日期格式化错误:', error, '原始值:', dateString);
-    return '';
+    console.error('日期格式化错误:', error, '原始值:', dateString)
+    return ''
   }
 }
 
 // 分页相关计算属性
 const visiblePages = computed(() => {
-  const pages = [];
-  const maxVisible = 5; // 最多显示5个页码按钮
+  const pages = []
+  const maxVisible = 5 // 最多显示5个页码按钮
 
   if (totalPages.value <= maxVisible) {
     // 如果总页数小于等于最大显示数，显示所有页码
     for (let i = 1; i <= totalPages.value; i++) {
-      pages.push(i);
+      pages.push(i)
     }
   } else {
     // 否则显示当前页附近的页码
-    let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages.value, start + maxVisible - 1);
+    let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+    const end = Math.min(totalPages.value, start + maxVisible - 1)
 
     // 调整起始位置，确保显示maxVisible个页码
     if (end - start + 1 < maxVisible) {
-      start = Math.max(1, end - maxVisible + 1);
+      start = Math.max(1, end - maxVisible + 1)
     }
 
     for (let i = start; i <= end; i++) {
-      pages.push(i);
+      pages.push(i)
     }
   }
 
-  return pages;
-});
+  return pages
+})
 
 // 分页相关函数
 async function goToPage(page: number) {
   if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
-    currentPage.value = page;
-    loading.value = true;
-    error.value = '';
+    currentPage.value = page
+    loading.value = true
+    error.value = ''
 
     try {
-      await fetchInformationData();
+      await fetchInformationData()
     } catch (err) {
-      console.error('分页切换失败:', err);
-      error.value = err instanceof Error ? err.message : '分页切换失败，请稍后重试';
+      console.error('分页切换失败:', err)
+      error.value = err instanceof Error ? err.message : '分页切换失败，请稍后重试'
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 }
 
 function resetPagination() {
-  currentPage.value = 1;
+  currentPage.value = 1
   // 重置为筛选选项中的值
-  totalCount.value = totalCountFromOptions.value;
-  totalPages.value = Math.ceil(totalCountFromOptions.value / pageSize.value);
+  totalCount.value = totalCountFromOptions.value
+  totalPages.value = Math.ceil(totalCountFromOptions.value / pageSize.value)
 }
 
 // 频道、标签相关函数 - 已移除，使用Element Plus组件
@@ -1130,7 +1199,7 @@ function resetPagination() {
 
 // 多选模式相关函数
 function toggleMultiSelectMode() {
-  isMultiSelectMode.value = !isMultiSelectMode.value;
+  isMultiSelectMode.value = !isMultiSelectMode.value
   if (isMultiSelectMode.value) {
     // 进入多选模式时，清空所有已选的筛选条件
     filter.value = {
@@ -1146,42 +1215,40 @@ function toggleMultiSelectMode() {
       channels: [],
       dateRange: [],
       tags: [],
-    };
+    }
     // 重置分页
-    resetPagination();
+    resetPagination()
     // 清空已选项目
-    selectedItems.value = [];
+    selectedItems.value = []
   } else {
     // 退出多选模式时，清空已选项目
-    selectedItems.value = [];
+    selectedItems.value = []
   }
 }
 
 // 切换单个项目的选择状态
 function toggleItemSelection(itemId: string) {
-  const index = selectedItems.value.indexOf(itemId);
+  const index = selectedItems.value.indexOf(itemId)
   if (index === -1) {
-    selectedItems.value.push(itemId);
+    selectedItems.value.push(itemId)
   } else {
-    selectedItems.value.splice(index, 1);
+    selectedItems.value.splice(index, 1)
   }
 }
 
 // 全选/取消全选
 function toggleSelectAll() {
   if (selectedItems.value.length === informationList.value.length) {
-    selectedItems.value = [];
+    selectedItems.value = []
   } else {
-    selectedItems.value = informationList.value.map(item => item.id);
+    selectedItems.value = informationList.value.map((item) => item.id)
   }
 }
 
 // 处理卡片点击
 function handleCardClick(itemId: string) {
-  toggleItemSelection(itemId);
+  toggleItemSelection(itemId)
 }
-
-
 
 // 重置和搜索函数
 function resetFilter() {
@@ -1198,399 +1265,450 @@ function resetFilter() {
     channels: [],
     dateRange: [],
     tags: [],
-  };
+  }
 
   // 设置排序为第一个选项
   if (filterOptions.value.sortBy && filterOptions.value.sortBy.length > 0) {
-    filter.value.sort = filterOptions.value.sortBy[0].label;
+    filter.value.sort = filterOptions.value.sortBy[0].label
   }
 
   // 重置分页
-  resetPagination();
+  resetPagination()
 }
 
 async function searchData() {
-
   // 检查排序是否已选择，如果没有选择则提醒用户
-      if (!filter.value.sort) {
-      ElMessage.warning('请选择排序方式');
-      return;
-    }
+  if (!filter.value.sort) {
+    ElMessage.warning('请选择排序方式')
+    return
+  }
 
   // 重置分页到第一页
-  currentPage.value = 1;
+  currentPage.value = 1
 
-  loading.value = true;
-  error.value = '';
+  loading.value = true
+  error.value = ''
 
   try {
-    await fetchInformationData();
+    await fetchInformationData()
   } catch (err) {
-    console.error('搜索失败:', err);
-    error.value = err instanceof Error ? err.message : '搜索失败，请稍后重试';
+    console.error('搜索失败:', err)
+    error.value = err instanceof Error ? err.message : '搜索失败，请稍后重试'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 // 点击外部关闭下拉框
 function handleClickOutside(event: Event) {
-  const target = event.target as HTMLElement;
+  const target = event.target as HTMLElement
 
   // 如果点击的是链接，不处理下拉框关闭逻辑
   if (target.closest('a') || target.tagName === 'A') {
-    return;
+    return
   }
 
   // 检查点击的元素是否在下拉框内部
   if (!target.closest('.custom-select')) {
-    sortDropdownOpen.value = false;
-    durationDropdownOpen.value = false;
+    durationDropdownOpen.value = false
   }
 }
 
 // 监听筛选条件变化，更新全选状态
-watch(() => filter.value.brands, (val) => {
-  if (val.length === 0) {
-    brandCheckAll.value = false;
-    brandIndeterminate.value = false;
-  } else if (val.length === brandOptions.value.length) {
-    brandCheckAll.value = true;
-    brandIndeterminate.value = false;
-  } else {
-    brandIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.brands,
+  (val) => {
+    if (val.length === 0) {
+      brandCheckAll.value = false
+      brandIndeterminate.value = false
+    } else if (val.length === brandOptions.value.length) {
+      brandCheckAll.value = true
+      brandIndeterminate.value = false
+    } else {
+      brandIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.skus, (val) => {
-  if (val.length === 0) {
-    skuCheckAll.value = false;
-    skuIndeterminate.value = false;
-  } else if (val.length === skuOptions.value.length) {
-    skuCheckAll.value = true;
-    skuIndeterminate.value = false;
-  } else {
-    skuIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.skus,
+  (val) => {
+    if (val.length === 0) {
+      skuCheckAll.value = false
+      skuIndeterminate.value = false
+    } else if (val.length === skuOptions.value.length) {
+      skuCheckAll.value = true
+      skuIndeterminate.value = false
+    } else {
+      skuIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.sentiments, (val) => {
-  if (val.length === 0) {
-    sentimentCheckAll.value = false;
-    sentimentIndeterminate.value = false;
-  } else if (val.length === sentimentOptions.value.length) {
-    sentimentCheckAll.value = true;
-    sentimentIndeterminate.value = false;
-  } else {
-    sentimentIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.sentiments,
+  (val) => {
+    if (val.length === 0) {
+      sentimentCheckAll.value = false
+      sentimentIndeterminate.value = false
+    } else if (val.length === sentimentOptions.value.length) {
+      sentimentCheckAll.value = true
+      sentimentIndeterminate.value = false
+    } else {
+      sentimentIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.platforms, (val) => {
-  if (val.length === 0) {
-    platformCheckAll.value = false;
-    platformIndeterminate.value = false;
-  } else if (val.length === platformOptions.value.length) {
-    platformCheckAll.value = true;
-    platformIndeterminate.value = false;
-  } else {
-    platformIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.platforms,
+  (val) => {
+    if (val.length === 0) {
+      platformCheckAll.value = false
+      platformIndeterminate.value = false
+    } else if (val.length === platformOptions.value.length) {
+      platformCheckAll.value = true
+      platformIndeterminate.value = false
+    } else {
+      platformIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.languages, (val) => {
-  if (val.length === 0) {
-    languageCheckAll.value = false;
-    languageIndeterminate.value = false;
-  } else if (val.length === languageOptions.value.length) {
-    languageCheckAll.value = true;
-    languageIndeterminate.value = false;
-  } else {
-    languageIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.languages,
+  (val) => {
+    if (val.length === 0) {
+      languageCheckAll.value = false
+      languageIndeterminate.value = false
+    } else if (val.length === languageOptions.value.length) {
+      languageCheckAll.value = true
+      languageIndeterminate.value = false
+    } else {
+      languageIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.regions, (val) => {
-  if (val.length === 0) {
-    regionCheckAll.value = false;
-    regionIndeterminate.value = false;
-  } else if (val.length === regionOptions.value.length) {
-    regionCheckAll.value = true;
-    regionIndeterminate.value = false;
-  } else {
-    regionIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.regions,
+  (val) => {
+    if (val.length === 0) {
+      regionCheckAll.value = false
+      regionIndeterminate.value = false
+    } else if (val.length === regionOptions.value.length) {
+      regionCheckAll.value = true
+      regionIndeterminate.value = false
+    } else {
+      regionIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.channels, (val) => {
-  if (val.length === 0) {
-    channelCheckAll.value = false;
-    channelIndeterminate.value = false;
-  } else if (val.length === channelOptions.value.length) {
-    channelCheckAll.value = true;
-    channelIndeterminate.value = false;
-  } else {
-    channelIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.channels,
+  (val) => {
+    if (val.length === 0) {
+      channelCheckAll.value = false
+      channelIndeterminate.value = false
+    } else if (val.length === channelOptions.value.length) {
+      channelCheckAll.value = true
+      channelIndeterminate.value = false
+    } else {
+      channelIndeterminate.value = true
+    }
+  },
+)
 
-watch(() => filter.value.tags, (val) => {
-  if (val.length === 0) {
-    tagCheckAll.value = false;
-    tagIndeterminate.value = false;
-  } else if (val.length === tagOptions.value.length) {
-    tagCheckAll.value = true;
-    tagIndeterminate.value = false;
-  } else {
-    tagIndeterminate.value = true;
-  }
-});
+watch(
+  () => filter.value.tags,
+  (val) => {
+    if (val.length === 0) {
+      tagCheckAll.value = false
+      tagIndeterminate.value = false
+    } else if (val.length === tagOptions.value.length) {
+      tagCheckAll.value = true
+      tagIndeterminate.value = false
+    } else {
+      tagIndeterminate.value = true
+    }
+  },
+)
 
 // 监听项目ID变化
-watch(() => projectStore.currentProjectId, async (newProjectId, oldProjectId) => {
-  if (newProjectId && newProjectId !== oldProjectId) {
-    loading.value = true;
-    error.value = '';
+watch(
+  () => projectStore.currentProjectId,
+  async (newProjectId, oldProjectId) => {
+    if (newProjectId && newProjectId !== oldProjectId) {
+      loading.value = true
+      error.value = ''
 
-    // 重置分页状态到第一页
-    resetPagination();
+      // 重置分页状态到第一页
+      resetPagination()
 
-    try {
-      // 并行执行获取筛选选项和获取数据
-      const [filterResult, dataResult] = await Promise.allSettled([
-        fetchFilterOptions(),
-        fetchInformationData()
-      ]);
+      try {
+        // 并行执行获取筛选选项和获取数据
+        const [filterResult, dataResult] = await Promise.allSettled([
+          fetchFilterOptions(),
+          fetchInformationData(),
+        ])
 
-      // 检查是否有失败的请求
-      const failedRequests = [];
-      if (filterResult.status === 'rejected') {
-        console.error('获取筛选选项失败:', filterResult.reason);
-        failedRequests.push('筛选选项');
+        // 检查是否有失败的请求
+        const failedRequests = []
+        if (filterResult.status === 'rejected') {
+          console.error('获取筛选选项失败:', filterResult.reason)
+          failedRequests.push('筛选选项')
+        }
+        if (dataResult.status === 'rejected') {
+          console.error('获取数据失败:', dataResult.reason)
+          failedRequests.push('数据')
+        }
+
+        if (failedRequests.length > 0) {
+          error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
+        }
+      } catch (err) {
+        console.error('项目切换失败:', err)
+        error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试'
+      } finally {
+        loading.value = false
       }
-      if (dataResult.status === 'rejected') {
-        console.error('获取数据失败:', dataResult.reason);
-        failedRequests.push('数据');
-      }
-
-      if (failedRequests.length > 0) {
-        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
-      }
-    } catch (err) {
-      console.error('项目切换失败:', err);
-      error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
-    } finally {
-      loading.value = false;
     }
-  }
-});
+  },
+)
 
 // 组件挂载时添加全局点击监听
 onMounted(async () => {
-  document.addEventListener('click', handleClickOutside);
+  document.addEventListener('click', handleClickOutside)
 
   // 显示初始loading状态
-  loading.value = true;
+  loading.value = true
 
   // 等待一下确保项目状态已经加载
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise((resolve) => setTimeout(resolve, 100))
 
   try {
     // 并行执行获取筛选选项和获取数据
     const [filterResult, dataResult] = await Promise.allSettled([
       fetchFilterOptions(),
-      fetchInformationData()
-    ]);
+      fetchInformationData(),
+    ])
 
     // 检查是否有失败的请求
-    const failedRequests = [];
+    const failedRequests = []
     if (filterResult.status === 'rejected') {
-      console.error('获取筛选选项失败:', filterResult.reason);
-      failedRequests.push('筛选选项');
+      console.error('获取筛选选项失败:', filterResult.reason)
+      failedRequests.push('筛选选项')
     }
     if (dataResult.status === 'rejected') {
-      console.error('获取数据失败:', dataResult.reason);
-      failedRequests.push('数据');
+      console.error('获取数据失败:', dataResult.reason)
+      failedRequests.push('数据')
     }
 
     if (failedRequests.length > 0) {
-      error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
     }
   } catch (err) {
-    console.error('组件初始化失败:', err);
-    error.value = '页面加载失败，请稍后重试';
+    console.error('组件初始化失败:', err)
+    error.value = '页面加载失败，请稍后重试'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-});
+})
 
 // 组件卸载时移除全局点击监听
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
+  document.removeEventListener('click', handleClickOutside)
+})
 
 // 信息数据
-const informationList = ref<Information[]>([]);
+const informationList = ref<Information[]>([])
 
 // 分页相关状态
-const currentPage = ref(1);
-const pageSize = ref(30); // 默认30条
-const totalCount = ref(0);
-const totalPages = ref(0);
+const currentPage = ref(1)
+const pageSize = ref(30) // 默认30条
+const totalCount = ref(0)
+const totalPages = ref(0)
 
 // 从筛选选项中获取分页信息的计算属性
-const totalCountFromOptions = computed(() => filterOptions.value.count || 0);
+const totalCountFromOptions = computed(() => filterOptions.value.count || 0)
 
 // 信息类型判断函数
 function isVideoType(item: Information): boolean {
-  return item.type === 'video';
+  return item.type === 'video'
 }
 
 function isPostType(item: Information): boolean {
-  return item.type === 'post';
+  return item.type === 'post'
 }
 
 function isNewsType(item: Information): boolean {
-  return item.type === 'new';
+  return item.type === 'new'
 }
 
 // 获取信息数据
 const fetchInformationData = async () => {
   try {
     // 获取当前项目ID
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      error.value = '请先选择一个项目';
-      return;
+      error.value = '请先选择一个项目'
+      return
     }
 
     // 从选中的时长选项中提取时长范围
-    const durationRange = getDurationRange(filter.value.duration);
+    const durationRange = getDurationRange(filter.value.duration)
 
     // 构建过滤条件 - 安全地处理筛选选项可能尚未加载的情况
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
-      brands: filterOptions.value.brands ? convertLabelsToValues(filterOptions.value.brands, filter.value.brands) : filter.value.brands,
-      skus: filterOptions.value.skus ? convertLabelsToValues(filterOptions.value.skus, filter.value.skus) : filter.value.skus,
-      platforms: filterOptions.value.platforms ? convertLabelsToValues(filterOptions.value.platforms, filter.value.platforms) : filter.value.platforms,
-      sentiments: filterOptions.value.sentiments ? convertLabelsToValues(filterOptions.value.sentiments, filter.value.sentiments) : filter.value.sentiments,
-      languages: filterOptions.value.languages ? convertLabelsToValues(filterOptions.value.languages, filter.value.languages) : filter.value.languages,
-      regions: filterOptions.value.regions ? convertLabelsToValues(filterOptions.value.regions, filter.value.regions) : filter.value.regions,
+      brands: filterOptions.value.brands
+        ? convertLabelsToValues(filterOptions.value.brands, filter.value.brands)
+        : filter.value.brands,
+      skus: filterOptions.value.skus
+        ? convertLabelsToValues(filterOptions.value.skus, filter.value.skus)
+        : filter.value.skus,
+      platforms: filterOptions.value.platforms
+        ? convertLabelsToValues(filterOptions.value.platforms, filter.value.platforms)
+        : filter.value.platforms,
+      sentiments: filterOptions.value.sentiments
+        ? convertLabelsToValues(filterOptions.value.sentiments, filter.value.sentiments)
+        : filter.value.sentiments,
+      languages: filterOptions.value.languages
+        ? convertLabelsToValues(filterOptions.value.languages, filter.value.languages)
+        : filter.value.languages,
+      regions: filterOptions.value.regions
+        ? convertLabelsToValues(filterOptions.value.regions, filter.value.regions)
+        : filter.value.regions,
       keyword: filter.value.searchKeyword || '',
       sortBy: filter.value.sort ? getSortValue(filter.value.sort) : firstSortValue.value,
       minDuration: durationRange.minDuration,
       maxDuration: durationRange.maxDuration,
-      channels: filterOptions.value.channels ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels) : filter.value.channels,
+      channels: filterOptions.value.channels
+        ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels)
+        : filter.value.channels,
       publishedAtStart: formatDateTime(filter.value.dateRange[0]),
       publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
-      labels: filterOptions.value.labels ? convertLabelsToValues(filterOptions.value.labels, filter.value.tags) : filter.value.tags,
+      labels: filterOptions.value.labels
+        ? convertLabelsToValues(filterOptions.value.labels, filter.value.tags)
+        : filter.value.tags,
       page: currentPage.value,
-      size: pageSize.value
-    };
+      size: pageSize.value,
+    }
 
-    const data = await getInformationList(filterParams);
+    const data = await getInformationList(filterParams)
 
     // 处理API响应格式：{ code: 0, data: { records: [...], totalCount: 239, ... }, msg: "成功" }
     if (data && typeof data === 'object' && 'data' in data && data.data) {
-      const resultData = data.data as any;
+      const resultData = data.data as any
       if (resultData && 'records' in resultData && 'totalCount' in resultData) {
         // 新的InformationsResult格式
-        informationList.value = resultData.records || [];
-        totalCount.value = resultData.totalCount || 0;
-        totalPages.value = resultData.totalPages || Math.ceil(totalCount.value / pageSize.value);
-        currentPage.value = resultData.currentPage || 1;
-        pageSize.value = resultData.pageSize || 30;
-
-
+        informationList.value = resultData.records || []
+        totalCount.value = resultData.totalCount || 0
+        totalPages.value = resultData.totalPages || Math.ceil(totalCount.value / pageSize.value)
+        currentPage.value = resultData.currentPage || 1
+        pageSize.value = resultData.pageSize || 30
       } else {
         // 兼容性处理：如果不是新格式，使用默认值
-        informationList.value = [];
-        totalCount.value = totalCountFromOptions.value || 0;
-        totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+        informationList.value = []
+        totalCount.value = totalCountFromOptions.value || 0
+        totalPages.value = Math.ceil(totalCount.value / pageSize.value)
       }
     } else {
       // 兼容性处理：如果不是新格式，使用默认值
-      informationList.value = [];
-      totalCount.value = totalCountFromOptions.value || 0;
-      totalPages.value = Math.ceil(totalCount.value / pageSize.value);
+      informationList.value = []
+      totalCount.value = totalCountFromOptions.value || 0
+      totalPages.value = Math.ceil(totalCount.value / pageSize.value)
     }
 
     // 在多选模式下，如果数据发生变化，清空已选项目
     if (isMultiSelectMode.value) {
-      selectedItems.value = [];
+      selectedItems.value = []
     }
 
     // 调试：显示当前加载的平台信息
-    const platforms = informationList.value.map(item => item.platform).filter((platform, index, self) => self.indexOf(platform) === index);
-    console.log('当前加载的平台:', platforms);
-    console.log('总项目数量:', informationList.value.length);
-
-
+    const platforms = informationList.value
+      .map((item) => item.platform)
+      .filter((platform, index, self) => self.indexOf(platform) === index)
+    console.log('当前加载的平台:', platforms)
+    console.log('总项目数量:', informationList.value.length)
   } catch (err) {
-    console.error('获取信息数据失败:', err);
-    throw new Error('获取数据失败，请稍后重试');
+    console.error('获取信息数据失败:', err)
+    throw new Error('获取数据失败，请稍后重试')
   }
-};
+}
 
 // 格式化数字
 function formatNumber(num: number): string {
   if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万';
+    return (num / 10000).toFixed(1) + '万'
   }
-  return num.toString();
+  return num.toString()
 }
 
 // 新增日期格式化方法
 function formatDateYMD(timeStr: string): string {
-  if (!timeStr) return '-';
+  if (!timeStr) return '-'
 
   try {
-    console.log('formatDateYMD - 原始时间字符串:', timeStr);
+    console.log('formatDateYMD - 原始时间字符串:', timeStr)
 
     // 尝试解析时间字符串
-    let date: Date;
+    let date: Date
 
     // 如果是时间戳格式
     if (/^\d{10,13}$/.test(timeStr)) {
       // 如果是10位时间戳，转换为13位
-      const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr);
-      date = new Date(timestamp);
-        } else {
-                  // 处理 ISO 8601 格式，如 "2025-07-25T09:20:05+08:00"
+      const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr)
+      date = new Date(timestamp)
+    } else {
+      // 处理 ISO 8601 格式，如 "2025-07-25T09:20:05+08:00"
       if (timeStr.includes('T') && (timeStr.includes('+') || timeStr.includes('Z'))) {
         // 解析ISO 8601格式并转换为北京时间显示
-        date = new Date(timeStr);
+        date = new Date(timeStr)
 
         // 转换为北京时间 (UTC+8)
-        const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+        const beijingTime = new Date(
+          date.getTime() + 8 * 60 * 60 * 1000 + date.getTimezoneOffset() * 60 * 1000,
+        )
 
         console.log('formatDateYMD - ISO 8601转北京时间:', {
           原始: timeStr,
           解析后UTC: date.toISOString(),
           北京时间: beijingTime.toString(),
-          时区偏移: date.getTimezoneOffset()
-        });
+          时区偏移: date.getTimezoneOffset(),
+        })
 
-        const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`;
-        console.log('formatDateYMD - 北京时间格式化结果:', result);
-        return result;
+        const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`
+        console.log('formatDateYMD - 北京时间格式化结果:', result)
+        return result
       }
       // 处理 CST 时间格式，如 "Thu Jul 24 19:20:05 CST 2025"
       else if (timeStr.includes('CST')) {
         // 解析 CST 时间格式: "Thu Jul 24 19:20:05 CST 2025"
-        const cstRegex = /(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+CST\s+(\d{4})/;
-        const match = timeStr.match(cstRegex);
+        const cstRegex = /(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+CST\s+(\d{4})/
+        const match = timeStr.match(cstRegex)
 
         if (match) {
-          const [, , monthStr, day, hour, minute, second, year] = match;
+          const [, , monthStr, day, hour, minute, second, year] = match
 
           // 月份映射
           const monthMap: { [key: string]: number } = {
-            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-          };
+            Jan: 0,
+            Feb: 1,
+            Mar: 2,
+            Apr: 3,
+            May: 4,
+            Jun: 5,
+            Jul: 6,
+            Aug: 7,
+            Sep: 8,
+            Oct: 9,
+            Nov: 10,
+            Dec: 11,
+          }
 
-          const month = monthMap[monthStr];
+          const month = monthMap[monthStr]
 
           // CST已经是北京时间，直接创建本地时间对象
           const beijingTime = new Date(
@@ -1599,91 +1717,110 @@ function formatDateYMD(timeStr: string): string {
             parseInt(day),
             parseInt(hour),
             parseInt(minute),
-            parseInt(second)
-          );
+            parseInt(second),
+          )
 
           console.log('formatDateYMD - CST时间手动解析:', {
             原始: timeStr,
             解析结果: match,
-            年: year, 月: monthStr, 日: day, 时: hour, 分: minute, 秒: second,
+            年: year,
+            月: monthStr,
+            日: day,
+            时: hour,
+            分: minute,
+            秒: second,
             最终Date对象: beijingTime,
-            最终时间戳: beijingTime.getTime()
-          });
+            最终时间戳: beijingTime.getTime(),
+          })
 
-          const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`;
-          console.log('formatDateYMD - CST北京时间格式化结果:', result);
-          return result;
+          const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`
+          console.log('formatDateYMD - CST北京时间格式化结果:', result)
+          return result
         } else {
           // 如果正则匹配失败，尝试移除CST后解析
-          const cleanTimeStr = timeStr.replace(' CST', '');
-          date = new Date(cleanTimeStr);
-          console.log('formatDateYMD - CST正则匹配失败，使用简单方式解析');
+          const cleanTimeStr = timeStr.replace(' CST', '')
+          date = new Date(cleanTimeStr)
+          console.log('formatDateYMD - CST正则匹配失败，使用简单方式解析')
         }
       } else {
         // 尝试直接解析时间字符串
-        date = new Date(timeStr);
+        date = new Date(timeStr)
       }
     }
 
     // 检查日期是否有效
     if (isNaN(date.getTime())) {
-      console.warn('无效的日期格式:', timeStr);
-      return '-';
+      console.warn('无效的日期格式:', timeStr)
+      return '-'
     }
 
     // 转换为北京时间显示
-    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+    const beijingTime = new Date(
+      date.getTime() + 8 * 60 * 60 * 1000 + date.getTimezoneOffset() * 60 * 1000,
+    )
 
-    const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`;
-    console.log('formatDateYMD - 北京时间格式化结果:', result);
+    const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`
+    console.log('formatDateYMD - 北京时间格式化结果:', result)
 
-    return result;
+    return result
   } catch (error) {
-    console.error('日期格式化错误:', error, '原始值:', timeStr);
-    return '-';
+    console.error('日期格式化错误:', error, '原始值:', timeStr)
+    return '-'
   }
 }
 
 // 只显示年月日的日期格式化方法
 function formatDateYMDOnly(timeStr: string): string {
-  if (!timeStr) return '-';
+  if (!timeStr) return '-'
 
   try {
     // 尝试解析时间字符串
-    let date: Date;
+    let date: Date
 
     // 如果是时间戳格式
     if (/^\d{10,13}$/.test(timeStr)) {
       // 如果是10位时间戳，转换为13位
-      const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr);
-      date = new Date(timestamp);
-        } else {
-                  // 处理 ISO 8601 格式，如 "2025-07-25T09:20:05+08:00"
+      const timestamp = timeStr.length === 10 ? parseInt(timeStr) * 1000 : parseInt(timeStr)
+      date = new Date(timestamp)
+    } else {
+      // 处理 ISO 8601 格式，如 "2025-07-25T09:20:05+08:00"
       if (timeStr.includes('T') && (timeStr.includes('+') || timeStr.includes('Z'))) {
         // 解析ISO 8601格式并转换为北京时间显示
-        date = new Date(timeStr);
+        date = new Date(timeStr)
 
         // 转换为北京时间 (UTC+8)
-        const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+        const beijingTime = new Date(
+          date.getTime() + 8 * 60 * 60 * 1000 + date.getTimezoneOffset() * 60 * 1000,
+        )
 
-        return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`;
+        return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`
       }
       // 处理 CST 时间格式，如 "Thu Jul 24 19:20:05 CST 2025"
       else if (timeStr.includes('CST')) {
         // 解析 CST 时间格式: "Thu Jul 24 19:20:05 CST 2025"
-        const cstRegex = /(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+CST\s+(\d{4})/;
-        const match = timeStr.match(cstRegex);
+        const cstRegex = /(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+CST\s+(\d{4})/
+        const match = timeStr.match(cstRegex)
 
         if (match) {
-          const [, , monthStr, day, hour, minute, second, year] = match;
+          const [, , monthStr, day, hour, minute, second, year] = match
 
           // 月份映射
           const monthMap: { [key: string]: number } = {
-            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-          };
+            Jan: 0,
+            Feb: 1,
+            Mar: 2,
+            Apr: 3,
+            May: 4,
+            Jun: 5,
+            Jul: 6,
+            Aug: 7,
+            Sep: 8,
+            Oct: 9,
+            Nov: 10,
+            Dec: 11,
+          }
 
-          const month = monthMap[monthStr];
+          const month = monthMap[monthStr]
 
           // CST已经是北京时间，直接创建本地时间对象
           const beijingTime = new Date(
@@ -1692,192 +1829,191 @@ function formatDateYMDOnly(timeStr: string): string {
             parseInt(day),
             parseInt(hour),
             parseInt(minute),
-            parseInt(second)
-          );
+            parseInt(second),
+          )
 
-          return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`;
+          return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`
         } else {
           // 如果正则匹配失败，尝试移除CST后解析
-          const cleanTimeStr = timeStr.replace(' CST', '');
-          date = new Date(cleanTimeStr);
+          const cleanTimeStr = timeStr.replace(' CST', '')
+          date = new Date(cleanTimeStr)
         }
       } else {
         // 尝试直接解析时间字符串
-        date = new Date(timeStr);
+        date = new Date(timeStr)
       }
     }
 
     // 检查日期是否有效
     if (isNaN(date.getTime())) {
-      console.warn('无效的日期格式:', timeStr);
-      return '-';
+      console.warn('无效的日期格式:', timeStr)
+      return '-'
     }
 
     // 转换为北京时间显示
-    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000) + (date.getTimezoneOffset() * 60 * 1000));
+    const beijingTime = new Date(
+      date.getTime() + 8 * 60 * 60 * 1000 + date.getTimezoneOffset() * 60 * 1000,
+    )
 
-    return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`;
+    return `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')}`
   } catch (error) {
-    console.error('日期格式化错误:', error, '原始值:', timeStr);
-    return '-';
+    console.error('日期格式化错误:', error, '原始值:', timeStr)
+    return '-'
   }
 }
 
 // 获取平台图标
 function getPlatformIcon(platform: string): string {
   const iconMap: Record<string, string> = {
-    'YouTube': youtubeIcon,
-    'GoogleNews': googleIcon,
-    'Facebook': facebookIcon,
-    'X': XIcon,
-    'Instagram': instagramIcon
-  };
-  return iconMap[platform] || noPictureIcon;
+    YouTube: youtubeIcon,
+    GoogleNews: googleIcon,
+    Facebook: facebookIcon,
+    X: XIcon,
+    Instagram: instagramIcon,
+  }
+  return iconMap[platform] || noPictureIcon
 }
 
 // 获取情感图标
 function getSentimentIcon(sentiment: number): string {
-  console.log('getSentimentIcon - 输入情感分数:', sentiment);
+  console.log('getSentimentIcon - 输入情感分数:', sentiment)
 
   // 处理不同的数据格式
-  let normalizedSentiment = sentiment;
+  let normalizedSentiment = sentiment
   if (sentiment <= 1) {
     // 如果是0-1之间的小数，转换为0-100
-    normalizedSentiment = Math.round(sentiment * 100);
+    normalizedSentiment = Math.round(sentiment * 100)
   }
 
-  console.log('getSentimentIcon - 标准化后的情感分数:', normalizedSentiment);
+  console.log('getSentimentIcon - 标准化后的情感分数:', normalizedSentiment)
 
-  let str = 'Neutral';
-  if (normalizedSentiment <= 40) str = 'Negative';
-  if (normalizedSentiment >= 61) str = 'Positive';
-  if (normalizedSentiment >= 41 && normalizedSentiment <= 60) str = 'Neutral';
+  let str = 'Neutral'
+  if (normalizedSentiment <= 40) str = 'Negative'
+  if (normalizedSentiment >= 61) str = 'Positive'
+  if (normalizedSentiment >= 41 && normalizedSentiment <= 60) str = 'Neutral'
 
-  console.log('getSentimentIcon - 计算得到的情感类型:', str);
+  console.log('getSentimentIcon - 计算得到的情感类型:', str)
 
   const iconMap: Record<string, string> = {
-    'Positive': positiveIcon,
-    'Neutral': neutralIcon,
-    'Negative': negativeIcon
-  };
-  return iconMap[str];
+    Positive: positiveIcon,
+    Neutral: neutralIcon,
+    Negative: negativeIcon,
+  }
+  return iconMap[str]
 }
 
 // 获取情感文本
 function getSentimentText(sentiment: number): string {
-  if (sentiment <= 30) return '负面';
-  if (sentiment >= 71) return '正面';
-  if (sentiment >= 31 && sentiment <= 70) return '中性';
-  return '中性';
+  if (sentiment <= 30) return '负面'
+  if (sentiment >= 71) return '正面'
+  if (sentiment >= 31 && sentiment <= 70) return '中性'
+  return '中性'
 }
 
 // 根据label获取对应的value
 function getValueByLabel(options: FilterOption[], label: string): string {
-  const option = options.find(opt => opt.label === label);
-  return option ? option.value : label;
+  const option = options.find((opt) => opt.label === label)
+  return option ? option.value : label
 }
 
 // 将label数组转换为value数组
 function convertLabelsToValues(options: FilterOption[], labels: string[]): string[] {
-  return labels.map(label => getValueByLabel(options, label));
+  return labels.map((label) => getValueByLabel(options, label))
 }
 
 // 从内容中获取品牌信息
 function getBrandFromContent(item: Information): string {
   if (item.contentMentionedBrands && item.contentMentionedBrands.length > 0) {
-    return item.contentMentionedBrands.map(brand => brand.brand).join(', ');
+    return item.contentMentionedBrands.map((brand) => brand.brand).join(', ')
   }
-  return '-';
+  return '-'
 }
 
 // 从内容中获取SKU信息
 function getSkuFromContent(item: Information): string {
   if (item.contentMentionedSkus && item.contentMentionedSkus.length > 0) {
-    return item.contentMentionedSkus.map(sku => sku.sku).join(', ');
+    return item.contentMentionedSkus.map((sku) => sku.sku).join(', ')
   }
-  return '-';
+  return '-'
 }
-
-
 
 // 获取单个品牌的情感依据（用于单个图标tooltip）
 function getBrandSentimentTooltip(brand: any): string {
   // 使用相同的标准化逻辑
-  let normalizedSentiment = brand.sentiment;
+  let normalizedSentiment = brand.sentiment
   if (brand.sentiment <= 1) {
-    normalizedSentiment = Math.round(brand.sentiment * 100);
+    normalizedSentiment = Math.round(brand.sentiment * 100)
   }
 
-  const sentimentText = getSentimentText(normalizedSentiment);
-  return `${brand.brand}（${sentimentText}）：${brand.evidence || '无具体依据'}`;
+  const sentimentText = getSentimentText(normalizedSentiment)
+  return `${brand.brand}（${sentimentText}）：${brand.evidence || '无具体依据'}`
 }
-
-
 
 // 根据value获取语言的label
 function getLanguageLabel(value: string): string {
-  if (!value || !filterOptions.value.languages) return value;
-  const language = filterOptions.value.languages.find(item => item.value === value);
-  return language ? language.label : value;
+  if (!value || !filterOptions.value.languages) return value
+  const language = filterOptions.value.languages.find((item) => item.value === value)
+  return language ? language.label : value
 }
 
 // 根据value获取地区的label
 function getRegionLabel(value: string): string {
-  if (!value || !filterOptions.value.regions) return value;
-  const region = filterOptions.value.regions.find(item => item.value === value);
-  return region ? region.label : value;
+  if (!value || !filterOptions.value.regions) return value
+  const region = filterOptions.value.regions.find((item) => item.value === value)
+  return region ? region.label : value
 }
 
 // 获取显示的地区文本（如果太长则截断）
 function getDisplayRegions(regions: string[]): string {
-  if (!regions || regions.length === 0) return '-';
+  if (!regions || regions.length === 0) return '-'
 
-  const fullText = regions.join(', ');
-  const maxLength = 20; // 最大显示长度
+  const fullText = regions.join(', ')
+  const maxLength = 20 // 最大显示长度
 
   if (fullText.length <= maxLength) {
-    return fullText;
+    return fullText
   }
 
   // 如果太长，显示前几个地区加省略号
-  let displayText = '';
-  let count = 0;
+  let displayText = ''
+  let count = 0
 
   for (const region of regions) {
-    const testText = displayText ? `${displayText}, ${region}` : region;
-    if (testText.length > maxLength - 3) { // 为 "..." 预留3个字符
-      break;
+    const testText = displayText ? `${displayText}, ${region}` : region
+    if (testText.length > maxLength - 3) {
+      // 为 "..." 预留3个字符
+      break
     }
-    displayText = testText;
-    count++;
+    displayText = testText
+    count++
   }
 
   if (count < regions.length) {
-    displayText += '...';
+    displayText += '...'
   }
 
-  return displayText;
+  return displayText
 }
 
 // 根据label获取排序的value
 function getSortValue(label: string): string {
-  if (!label || !filterOptions.value.sortBy) return firstSortValue.value;
-  const sortOption = filterOptions.value.sortBy.find(item => item.label === label);
-  return sortOption ? sortOption.value : firstSortValue.value;
+  if (!label || !filterOptions.value.sortBy) return firstSortValue.value
+  const sortOption = filterOptions.value.sortBy.find((item) => item.label === label)
+  return sortOption ? sortOption.value : firstSortValue.value
 }
 
 // 格式化视频时长
 function formatDuration(seconds: number): string {
-  if (!seconds || seconds <= 0) return '-';
+  if (!seconds || seconds <= 0) return '-'
 
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
 
   if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
   } else {
-    return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
+    return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
   }
 }
 
@@ -1887,65 +2023,65 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
     await ElMessageBox.confirm(`确定要删除标签"${labelToDelete}"吗？`, '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
-    });
+      type: 'warning',
+    })
   } catch {
-    return;
+    return
   }
 
   try {
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      ElMessage.error('项目ID不存在，无法删除标签');
-      return;
+      ElMessage.error('项目ID不存在，无法删除标签')
+      return
     }
 
     console.log('删除标签:', {
       projectId: currentProjectId,
       linkId: item.id,
-      labelToDelete: labelToDelete
-    });
+      labelToDelete: labelToDelete,
+    })
 
     // 构建新的标签列表（移除要删除的标签）
-    const currentLabels = item.labels || [];
-    const newLabels = currentLabels.filter(label => label !== labelToDelete);
+    const currentLabels = item.labels || []
+    const newLabels = currentLabels.filter((label) => label !== labelToDelete)
 
-    const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels]);
-    console.log('删除标签响应:', response);
+    const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels])
+    console.log('删除标签响应:', response)
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        ElMessage.success(`删除标签成功，已删除标签"${labelToDelete}"`);
+        ElMessage.success(`删除标签成功，已删除标签"${labelToDelete}"`)
         // 更新本地数据
-        item.labels = newLabels;
+        item.labels = newLabels
         // 重新获取数据以确保数据同步
-        await fetchInformationData();
+        await fetchInformationData()
       } else {
-        const errorMsg = response.message || response.msg || response.error || '未知错误';
-        console.error('API返回错误:', response);
-        ElMessage.error(`删除标签失败：${errorMsg}`);
+        const errorMsg = response.message || response.msg || response.error || '未知错误'
+        console.error('API返回错误:', response)
+        ElMessage.error(`删除标签失败：${errorMsg}`)
       }
     } else {
-      ElMessage.error('删除标签失败：响应为空');
+      ElMessage.error('删除标签失败：响应为空')
     }
   } catch (error: any) {
-    console.error('删除标签失败:', error);
+    console.error('删除标签失败:', error)
     // 显示更详细的错误信息
-    let errorMessage = '删除标签失败，请稍后重试';
+    let errorMessage = '删除标签失败，请稍后重试'
     if (error.response) {
-      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`
     } else if (error.request) {
-      errorMessage = '网络请求失败，请检查网络连接';
+      errorMessage = '网络请求失败，请检查网络连接'
     } else if (error.message) {
-      errorMessage = `请求错误: ${error.message}`;
+      errorMessage = `请求错误: ${error.message}`
     }
-    ElMessage.error(errorMessage);
+    ElMessage.error(errorMessage)
   }
 }
 
 // 处理添加标签
 async function handleAddTag(item: Information) {
-  console.log('添加标签:', item);
+  console.log('添加标签:', item)
 
   try {
     const { value: tag } = await ElMessageBox.prompt('请输入要添加的标签名称：', '添加标签', {
@@ -1953,152 +2089,152 @@ async function handleAddTag(item: Information) {
       cancelButtonText: '取消',
       inputValidator: (value) => {
         if (!value || value.trim() === '') {
-          return '标签名称不能为空';
+          return '标签名称不能为空'
         }
-        return true;
-      }
-    });
+        return true
+      },
+    })
 
     if (!tag || tag.trim() === '') {
-      return;
+      return
     }
 
-    const trimmedTag = tag.trim();
+    const trimmedTag = tag.trim()
 
     try {
       await ElMessageBox.confirm(`确定要为"${item.title}"添加标签"${trimmedTag}"吗？`, '确认添加', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
-      });
+        type: 'warning',
+      })
     } catch {
       // 用户点击取消，直接返回，不显示错误
-      return;
+      return
     }
 
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      ElMessage.error('项目ID不存在，无法添加标签');
-      return;
+      ElMessage.error('项目ID不存在，无法添加标签')
+      return
     }
 
     console.log('添加标签:', {
       projectId: currentProjectId,
       linkId: item.id,
-      tag: trimmedTag
-    });
+      tag: trimmedTag,
+    })
 
     // 构建新的标签列表
-    const currentLabels = item.labels || [];
-    const newLabels = [...currentLabels, trimmedTag];
+    const currentLabels = item.labels || []
+    const newLabels = [...currentLabels, trimmedTag]
 
-    const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels]);
-    console.log('添加标签响应:', response);
+    const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels])
+    console.log('添加标签响应:', response)
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        ElMessage.success(`添加标签成功，已添加标签"${trimmedTag}"`);
+        ElMessage.success(`添加标签成功，已添加标签"${trimmedTag}"`)
         // 更新本地数据
-        item.labels = newLabels;
+        item.labels = newLabels
         // 重新获取数据以确保数据同步
-        await fetchInformationData();
+        await fetchInformationData()
       } else {
-        const errorMsg = response.message || response.msg || response.error || '未知错误';
-        console.error('API返回错误:', response);
-        ElMessage.error(`添加标签失败：${errorMsg}`);
+        const errorMsg = response.message || response.msg || response.error || '未知错误'
+        console.error('API返回错误:', response)
+        ElMessage.error(`添加标签失败：${errorMsg}`)
       }
     } else {
-      ElMessage.error('添加标签失败：响应为空');
+      ElMessage.error('添加标签失败：响应为空')
     }
   } catch (error: any) {
     // 检查是否是用户取消操作
     if (error === 'cancel' || error.action === 'cancel') {
       // 用户点击取消，直接返回，不显示错误
-      return;
+      return
     }
 
-    console.error('添加标签失败:', error);
+    console.error('添加标签失败:', error)
     // 显示更详细的错误信息
-    let errorMessage = '添加标签失败，请稍后重试';
+    let errorMessage = '添加标签失败，请稍后重试'
     if (error.response) {
-      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`
     } else if (error.request) {
-      errorMessage = '网络请求失败，请检查网络连接';
+      errorMessage = '网络请求失败，请检查网络连接'
     } else if (error.message) {
-      errorMessage = `请求错误: ${error.message}`;
+      errorMessage = `请求错误: ${error.message}`
     }
-    ElMessage.error(errorMessage);
+    ElMessage.error(errorMessage)
   }
 }
 
 // 处理切换抓取状态
 async function handleToggleCapture(item: Information) {
   try {
-    console.log('切换抓取状态:', item);
+    console.log('切换抓取状态:', item)
 
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      console.error('没有项目ID');
-      return;
+      console.error('没有项目ID')
+      return
     }
 
     // 调用API更新抓取状态
-    const response = await updateLinkActiveStatus(currentProjectId, [item.id], !item.isActive);
+    const response = await updateLinkActiveStatus(currentProjectId, [item.id], !item.isActive)
 
     if (response && response.code === 0) {
       // 更新本地数据
-      item.isActive = !item.isActive;
-      console.log('抓取状态更新成功:', item.isActive);
+      item.isActive = !item.isActive
+      console.log('抓取状态更新成功:', item.isActive)
     } else {
-      console.error('抓取状态更新失败:', response);
+      console.error('抓取状态更新失败:', response)
     }
   } catch (error) {
-    console.error('切换抓取状态失败:', error);
+    console.error('切换抓取状态失败:', error)
   }
 }
 
 // 处理删除
 async function handleDelete(item: Information) {
-  console.log('删除项目:', item);
+  console.log('删除项目:', item)
 
   try {
     await ElMessageBox.confirm('确定要删除这个信息项吗？', '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
-    });
+      type: 'warning',
+    })
   } catch {
-    return;
+    return
   }
 
   try {
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      ElMessage.error('项目ID不存在，无法删除');
-      return;
+      ElMessage.error('项目ID不存在，无法删除')
+      return
     }
 
-    console.log('开始删除链接:', item.id);
-    const response = await deleteProjectLink(currentProjectId, [item.id]);
+    console.log('开始删除链接:', item.id)
+    const response = await deleteProjectLink(currentProjectId, [item.id])
 
     if (response) {
-      ElMessage.success('删除成功');
+      ElMessage.success('删除成功')
       // 重新获取数据
-      fetchInformationData();
+      fetchInformationData()
     } else {
-      ElMessage.error('删除失败，请稍后重试');
+      ElMessage.error('删除失败，请稍后重试')
     }
   } catch (error) {
-    console.error('删除失败:', error);
-    ElMessage.error('删除失败，请稍后重试');
+    console.error('删除失败:', error)
+    ElMessage.error('删除失败，请稍后重试')
   }
 }
 
 // 批量添加标签
 async function handleBatchAddTag() {
   if (selectedItems.value.length === 0) {
-    ElMessage.warning('请先选择要添加标签的项目');
-    return;
+    ElMessage.warning('请先选择要添加标签的项目')
+    return
   }
 
   try {
@@ -2107,234 +2243,241 @@ async function handleBatchAddTag() {
       cancelButtonText: '取消',
       inputValidator: (value) => {
         if (!value || value.trim() === '') {
-          return '标签名称不能为空';
+          return '标签名称不能为空'
         }
-        return true;
-      }
-    });
+        return true
+      },
+    })
 
     if (!tag || tag.trim() === '') {
-      return;
+      return
     }
 
-    const trimmedTag = tag.trim();
+    const trimmedTag = tag.trim()
 
     try {
-      await ElMessageBox.confirm(`确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`, '确认批量添加', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      });
+      await ElMessageBox.confirm(
+        `确定要为选中的 ${selectedItems.value.length} 项添加标签"${trimmedTag}"吗？`,
+        '确认批量添加',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        },
+      )
     } catch {
       // 用户点击取消，直接返回，不显示错误
-      return;
+      return
     }
 
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      ElMessage.error('项目ID不存在，无法添加标签');
-      return;
+      ElMessage.error('项目ID不存在，无法添加标签')
+      return
     }
 
     console.log('批量添加标签:', {
       projectId: currentProjectId,
       linkIds: selectedItems.value,
-      tag: trimmedTag
-    });
+      tag: trimmedTag,
+    })
 
     // 为每个选中的项目添加标签
-    const labelsList: string[][] = [];
+    const labelsList: string[][] = []
     for (const linkId of selectedItems.value) {
       // 找到对应的信息项
-      const item = informationList.value.find(info => info.id === linkId);
+      const item = informationList.value.find((info) => info.id === linkId)
       if (item) {
         // 如果项目已有标签，则添加新标签；否则创建新标签数组
-        const currentLabels = item.labels || [];
-        const newLabels = [...currentLabels, trimmedTag];
-        labelsList.push(newLabels);
+        const currentLabels = item.labels || []
+        const newLabels = [...currentLabels, trimmedTag]
+        labelsList.push(newLabels)
       } else {
         // 如果找不到项目，则只添加新标签
-        labelsList.push([trimmedTag]);
+        labelsList.push([trimmedTag])
       }
     }
 
-    const response = await updateLinksLabelsBatch(currentProjectId, selectedItems.value, labelsList);
-    console.log('批量添加标签响应:', response);
+    const response = await updateLinksLabelsBatch(currentProjectId, selectedItems.value, labelsList)
+    console.log('批量添加标签响应:', response)
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        ElMessage.success(`批量添加标签成功，已添加标签"${trimmedTag}"`);
+        ElMessage.success(`批量添加标签成功，已添加标签"${trimmedTag}"`)
         // 清空已选项目
-        selectedItems.value = [];
+        selectedItems.value = []
         // 重新获取数据
-        await fetchInformationData();
+        await fetchInformationData()
       } else {
-        const errorMsg = response.message || response.msg || response.error || '未知错误';
-        console.error('API返回错误:', response);
-        ElMessage.error(`批量添加标签失败：${errorMsg}`);
+        const errorMsg = response.message || response.msg || response.error || '未知错误'
+        console.error('API返回错误:', response)
+        ElMessage.error(`批量添加标签失败：${errorMsg}`)
       }
     } else {
-      ElMessage.error('批量添加标签失败：响应为空');
+      ElMessage.error('批量添加标签失败：响应为空')
     }
   } catch (error: any) {
     // 检查是否是用户取消操作
     if (error === 'cancel' || error.action === 'cancel') {
       // 用户点击取消，直接返回，不显示错误
-      return;
+      return
     }
 
-    console.error('批量添加标签失败:', error);
+    console.error('批量添加标签失败:', error)
     // 显示更详细的错误信息
-    let errorMessage = '批量添加标签失败，请稍后重试';
+    let errorMessage = '批量添加标签失败，请稍后重试'
     if (error.response) {
-      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`
     } else if (error.request) {
-      errorMessage = '网络请求失败，请检查网络连接';
+      errorMessage = '网络请求失败，请检查网络连接'
     } else if (error.message) {
-      errorMessage = `请求错误: ${error.message}`;
+      errorMessage = `请求错误: ${error.message}`
     }
-    ElMessage.error(errorMessage);
+    ElMessage.error(errorMessage)
   }
 }
 
 // 批量设置抓取状态
 async function handleBatchSetCapture(isActive: boolean) {
   if (selectedItems.value.length === 0) {
-    ElMessage.warning('请先选择要设置抓取状态的项目');
-    return;
+    ElMessage.warning('请先选择要设置抓取状态的项目')
+    return
   }
 
-  const actionText = isActive ? '抓取' : '不抓取';
+  const actionText = isActive ? '抓取' : '不抓取'
 
   try {
-    await ElMessageBox.confirm(`确定要将选中的 ${selectedItems.value.length} 项设置为${actionText}状态吗？`, '确认设置', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
+    await ElMessageBox.confirm(
+      `确定要将选中的 ${selectedItems.value.length} 项设置为${actionText}状态吗？`,
+      '确认设置',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
   } catch {
-    return;
+    return
   }
 
   try {
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      ElMessage.error('项目ID不存在，无法设置抓取状态');
-      return;
+      ElMessage.error('项目ID不存在，无法设置抓取状态')
+      return
     }
 
     console.log('批量设置抓取状态:', {
       projectId: currentProjectId,
       linkIds: selectedItems.value,
-      isActive: isActive
-    });
+      isActive: isActive,
+    })
 
-    const response = await updateLinkActiveStatus(currentProjectId, selectedItems.value, isActive);
-    console.log('批量设置抓取状态响应:', response);
+    const response = await updateLinkActiveStatus(currentProjectId, selectedItems.value, isActive)
+    console.log('批量设置抓取状态响应:', response)
 
     // 处理不同的响应格式
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        ElMessage.success(`批量设置抓取状态成功，已设置为${actionText}`);
+        ElMessage.success(`批量设置抓取状态成功，已设置为${actionText}`)
         // 清空已选项目
-        selectedItems.value = [];
+        selectedItems.value = []
         // 重新获取数据
-        await fetchInformationData();
+        await fetchInformationData()
       } else {
-        const errorMsg = response.message || response.msg || response.error || '未知错误';
-        console.error('API返回错误:', response);
-        ElMessage.error(`批量设置抓取状态失败：${errorMsg}`);
+        const errorMsg = response.message || response.msg || response.error || '未知错误'
+        console.error('API返回错误:', response)
+        ElMessage.error(`批量设置抓取状态失败：${errorMsg}`)
       }
     } else {
-      ElMessage.error('批量设置抓取状态失败：响应为空');
+      ElMessage.error('批量设置抓取状态失败：响应为空')
     }
   } catch (error: any) {
-    console.error('批量设置抓取状态失败:', error);
+    console.error('批量设置抓取状态失败:', error)
     // 显示更详细的错误信息
-    let errorMessage = '批量设置抓取状态失败，请稍后重试';
+    let errorMessage = '批量设置抓取状态失败，请稍后重试'
     if (error.response) {
-      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`
     } else if (error.request) {
-      errorMessage = '网络请求失败，请检查网络连接';
+      errorMessage = '网络请求失败，请检查网络连接'
     } else if (error.message) {
-      errorMessage = `请求错误: ${error.message}`;
+      errorMessage = `请求错误: ${error.message}`
     }
-    ElMessage.error(errorMessage);
+    ElMessage.error(errorMessage)
   }
 }
 
 // 处理图片加载错误
 function handleImageError(event: Event) {
-  const target = event.target as HTMLImageElement;
-  const originalUrl = target.dataset.originalUrl;
-  const platform = target.dataset.platform;
+  const target = event.target as HTMLImageElement
+  const originalUrl = target.dataset.originalUrl
+  const platform = target.dataset.platform
 
   if (!originalUrl) {
     // 如果没有原始URL，直接显示占位符
-    showImagePlaceholder(target);
-    return;
+    showImagePlaceholder(target)
+    return
   }
 
   // 获取当前尝试次数
-  const retryCount = parseInt(target.dataset.retryCount || '0');
-  const maxRetries = imageProxyConfigs.length;
+  const retryCount = parseInt(target.dataset.retryCount || '0')
+  const maxRetries = imageProxyConfigs.length
 
   // 记录失败的代理
   if (retryCount > 0) {
-    const failedProxyConfig = imageProxyConfigs[retryCount - 1];
-    const failedProxyKey = `${failedProxyConfig.name}:${originalUrl}`;
-    failedProxyCache.add(failedProxyKey);
+    const failedProxyConfig = imageProxyConfigs[retryCount - 1]
+    const failedProxyKey = `${failedProxyConfig.name}:${originalUrl}`
+    failedProxyCache.add(failedProxyKey)
 
     // 更新代理统计
-    const stats = proxyStats.get(failedProxyConfig.name) || { success: 0, total: 0 };
-    stats.total += 1;
-    proxyStats.set(failedProxyConfig.name, stats);
+    const stats = proxyStats.get(failedProxyConfig.name) || { success: 0, total: 0 }
+    stats.total += 1
+    proxyStats.set(failedProxyConfig.name, stats)
 
-    console.warn(`代理${failedProxyConfig.name}加载失败:`, originalUrl);
+    console.warn(`代理${failedProxyConfig.name}加载失败:`, originalUrl)
   } else {
     // 第一次失败，记录原始图片加载失败
-    console.log('原始图片加载失败，开始尝试代理:', platform, originalUrl);
+    console.log('原始图片加载失败，开始尝试代理:', platform, originalUrl)
   }
 
   if (retryCount >= maxRetries) {
     // 所有代理都尝试过了，显示占位符
-    console.warn('所有图片代理都失败，显示占位符:', originalUrl);
-    showImagePlaceholder(target);
-    return;
+    console.warn('所有图片代理都失败，显示占位符:', originalUrl)
+    showImagePlaceholder(target)
+    return
   }
 
   // 尝试下一个代理
-  const nextProxyConfig = imageProxyConfigs[retryCount];
-  console.log(`图片加载失败，尝试第${retryCount + 1}个代理:`, nextProxyConfig.name, originalUrl);
+  const nextProxyConfig = imageProxyConfigs[retryCount]
+  console.log(`图片加载失败，尝试第${retryCount + 1}个代理:`, nextProxyConfig.name, originalUrl)
 
   try {
-    const nextProxiedUrl = nextProxyConfig.template(originalUrl);
-    target.dataset.retryCount = String(retryCount + 1);
-    target.src = nextProxiedUrl;
+    const nextProxiedUrl = nextProxyConfig.template(originalUrl)
+    target.dataset.retryCount = String(retryCount + 1)
+    target.src = nextProxiedUrl
 
     // 设置超时，如果这个代理也失败了会自动重试下一个
     setTimeout(() => {
       if (target.complete && target.naturalWidth === 0) {
         // 图片还是没有加载成功，触发下一次重试
-        handleImageError(event);
+        handleImageError(event)
       }
-    }, nextProxyConfig.timeout);
-
+    }, nextProxyConfig.timeout)
   } catch (error) {
-    console.warn(`代理${nextProxyConfig.name}配置失败:`, error);
+    console.warn(`代理${nextProxyConfig.name}配置失败:`, error)
     // 直接尝试下一个代理
-    target.dataset.retryCount = String(retryCount + 1);
-    setTimeout(() => handleImageError(event), 100);
+    target.dataset.retryCount = String(retryCount + 1)
+    setTimeout(() => handleImageError(event), 100)
   }
 }
 
 // 显示图片占位符
 function showImagePlaceholder(target: HTMLImageElement) {
-  target.dataset.errorHandled = 'true';
+  target.dataset.errorHandled = 'true'
 
   // 根据图片类型生成不同的占位符
-  const isLogo = target.classList.contains('info-logo');
-  let placeholderSvg;
+  const isLogo = target.classList.contains('info-logo')
+  let placeholderSvg
 
   if (isLogo) {
     // 圆形头像占位符 - 简洁无文字版本
@@ -2344,7 +2487,7 @@ function showImagePlaceholder(target: HTMLImageElement) {
         <circle cx="24" cy="18" r="8" fill="#ddd"/>
         <path d="M8 40c0-8.8 7.2-16 16-16s16 7.2 16 16" fill="#ddd"/>
       </svg>
-    `)}`;
+    `)}`
   } else {
     // 矩形封面占位符 - 简洁无文字版本
     placeholderSvg = `data:image/svg+xml;base64,${btoa(`
@@ -2353,124 +2496,128 @@ function showImagePlaceholder(target: HTMLImageElement) {
         <circle cx="45" cy="25" r="8" fill="#ddd"/>
         <polygon points="35,45 35,35 55,25 65,35 75,30 85,40 85,45" fill="#ddd"/>
       </svg>
-    `)}`;
+    `)}`
   }
 
-  target.src = placeholderSvg;
-  target.onerror = null; // 清除错误处理，避免再次触发
+  target.src = placeholderSvg
+  target.onerror = null // 清除错误处理，避免再次触发
 }
 
 // 处理图片加载成功
 function handleImageLoad(event: Event) {
-  const target = event.target as HTMLImageElement;
-  const originalUrl = target.dataset.originalUrl;
-  const platform = target.dataset.platform;
-  const retryCount = parseInt(target.dataset.retryCount || '0');
+  const target = event.target as HTMLImageElement
+  const originalUrl = target.dataset.originalUrl
+  const platform = target.dataset.platform
+  const retryCount = parseInt(target.dataset.retryCount || '0')
 
   if (originalUrl) {
     // 缓存成功的代理URL
-    workingProxyCache.set(originalUrl, target.src);
+    workingProxyCache.set(originalUrl, target.src)
 
     // 更新代理成功统计
     if (retryCount > 0) {
-      const successProxyConfig = imageProxyConfigs[retryCount - 1];
-      const stats = proxyStats.get(successProxyConfig.name) || { success: 0, total: 0 };
-      stats.success += 1;
-      stats.total += 1;
-      proxyStats.set(successProxyConfig.name, stats);
+      const successProxyConfig = imageProxyConfigs[retryCount - 1]
+      const stats = proxyStats.get(successProxyConfig.name) || { success: 0, total: 0 }
+      stats.success += 1
+      stats.total += 1
+      proxyStats.set(successProxyConfig.name, stats)
 
-      console.log(`代理${successProxyConfig.name}加载成功:`, originalUrl, `成功率: ${(stats.success / stats.total * 100).toFixed(1)}%`);
+      console.log(
+        `代理${successProxyConfig.name}加载成功:`,
+        originalUrl,
+        `成功率: ${((stats.success / stats.total) * 100).toFixed(1)}%`,
+      )
     } else {
-      console.log('原始图片加载成功:', platform, originalUrl);
+      console.log('原始图片加载成功:', platform, originalUrl)
     }
   }
 }
 
-
-
-
-
 // 获取显示标题（如果没有标题则使用描述）
 function getDisplayTitle(item: Information): string {
   if (item.title && item.title.trim()) {
-    return item.title;
+    return item.title
   }
   if (item.description && item.description.trim()) {
-    return item.description;
+    return item.description
   }
-  return '暂无标题';
+  return '暂无标题'
 }
 
 // 检查是否需要显示描述（如果标题已经是描述，则不重复显示）
 function hasDescriptionToShow(item: Information): boolean {
   // 如果有标题且不为空，则显示描述
   if (item.title && item.title.trim()) {
-    return !!(item.description && item.description.trim() !== '');
+    return !!(item.description && item.description.trim() !== '')
   }
   // 如果没有标题，描述已经作为标题显示，不再重复显示
-  return false;
+  return false
 }
 
 // 批量删除
 async function handleBatchDelete() {
   if (selectedItems.value.length === 0) {
-    ElMessage.warning('请先选择要删除的项目');
-    return;
+    ElMessage.warning('请先选择要删除的项目')
+    return
   }
 
   try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${selectedItems.value.length} 项信息吗？此操作不可恢复！`, '确认删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedItems.value.length} 项信息吗？此操作不可恢复！`,
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
   } catch {
-    return;
+    return
   }
 
   try {
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
-      ElMessage.error('项目ID不存在，无法删除');
-      return;
+      ElMessage.error('项目ID不存在，无法删除')
+      return
     }
 
     console.log('批量删除:', {
       projectId: currentProjectId,
-      linkIds: selectedItems.value
-    });
+      linkIds: selectedItems.value,
+    })
 
-    const response = await deleteProjectLink(currentProjectId, selectedItems.value);
-    console.log('批量删除响应:', response);
+    const response = await deleteProjectLink(currentProjectId, selectedItems.value)
+    console.log('批量删除响应:', response)
 
     // 处理不同的响应格式
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
-        ElMessage.success('批量删除成功');
+        ElMessage.success('批量删除成功')
         // 清空已选项目
-        selectedItems.value = [];
+        selectedItems.value = []
         // 重新获取数据
-        await fetchInformationData();
+        await fetchInformationData()
       } else {
-        const errorMsg = response.message || response.msg || response.error || '未知错误';
-        console.error('API返回错误:', response);
-        ElMessage.error(`批量删除失败：${errorMsg}`);
+        const errorMsg = response.message || response.msg || response.error || '未知错误'
+        console.error('API返回错误:', response)
+        ElMessage.error(`批量删除失败：${errorMsg}`)
       }
     } else {
-      ElMessage.error('批量删除失败：响应为空');
+      ElMessage.error('批量删除失败：响应为空')
     }
   } catch (error: any) {
-    console.error('批量删除失败:', error);
+    console.error('批量删除失败:', error)
     // 显示更详细的错误信息
-    let errorMessage = '批量删除失败，请稍后重试';
+    let errorMessage = '批量删除失败，请稍后重试'
     if (error.response) {
-      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+      errorMessage = `请求失败 (${error.response.status}): ${error.response.data?.message || error.response.statusText}`
     } else if (error.request) {
-      errorMessage = '网络请求失败，请检查网络连接';
+      errorMessage = '网络请求失败，请检查网络连接'
     } else if (error.message) {
-      errorMessage = `请求错误: ${error.message}`;
+      errorMessage = `请求错误: ${error.message}`
     }
-    ElMessage.error(errorMessage);
+    ElMessage.error(errorMessage)
   }
 }
 
@@ -2478,50 +2625,48 @@ async function handleBatchDelete() {
 const imageProxyConfigs = [
   {
     name: 'weserv',
-    template: (url: string) => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=300&h=200&fit=cover&we&output=webp`,
+    template: (url: string) =>
+      `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=300&h=200&fit=cover&we&output=webp`,
     timeout: 3000,
-    priority: 1
+    priority: 1,
   },
   {
     name: 'imageproxy',
-    template: (url: string) => `https://imageproxy.pimg.tw/resize?url=${encodeURIComponent(url)}&width=300&height=200`,
+    template: (url: string) =>
+      `https://imageproxy.pimg.tw/resize?url=${encodeURIComponent(url)}&width=300&height=200`,
     timeout: 3000,
-    priority: 2
+    priority: 2,
   },
   {
     name: 'allorigins',
     template: (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     timeout: 5000,
-    priority: 3
+    priority: 3,
   },
   {
     name: 'proxy-api',
     template: (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
     timeout: 5000,
-    priority: 4
-  }
-];
+    priority: 4,
+  },
+]
 
 // 缓存已测试成功的代理和失败的代理
-const workingProxyCache = new Map<string, string>();
-const failedProxyCache = new Set<string>();
+const workingProxyCache = new Map<string, string>()
+const failedProxyCache = new Set<string>()
 
 // 代理成功率统计
-const proxyStats = new Map<string, { success: number; total: number }>();
+const proxyStats = new Map<string, { success: number; total: number }>()
 
 // 获取图片URL（初始加载时使用原始URL）
 function getProxiedImageUrl(originalUrl: string): string {
   if (!originalUrl) {
-    return noPictureIcon;
+    return noPictureIcon
   }
 
   // 初始加载时直接返回原始URL，失败时由错误处理函数进行代理重试
-  return originalUrl;
+  return originalUrl
 }
-
-
-
-
 </script>
 
 <style scoped>
@@ -2567,13 +2712,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   scrollbar-color: #c0c4cc #f5f5f5;
 }
 
-.filter-panel {
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
+/* filter-panel 样式现在由全局样式处理 */
 /* 筛选面板布局 */
 .filter-panel .el-row {
   margin-bottom: 16px;
@@ -2652,7 +2791,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  background: #fff;
+  background: var(--el-bg-color);
   transition: border-color 0.3s;
 }
 .multiselect-container:hover,
@@ -2709,10 +2848,10 @@ function getProxiedImageUrl(originalUrl: string): string {
   position: absolute;
   left: 0;
   top: 100%;
-  background: #fff;
+  background: var(--el-bg-color);
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 100%;
   max-height: 300px;
@@ -2847,7 +2986,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   gap: 12px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--el-border-color);
 }
 
 .btn-reset,
@@ -2889,7 +3028,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   padding: 0 16px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  background: #fff;
+  background: var(--el-bg-color);
   color: #409eff;
   cursor: pointer;
   display: flex;
@@ -2924,7 +3063,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   padding: 0 16px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  background: #fff;
+  background: var(--el-bg-color);
   color: #f56c6c;
   cursor: pointer;
   display: flex;
@@ -2951,9 +3090,9 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 .info-card {
   display: flex;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 0px 0px;
   align-items: stretch;
   gap: 10px;
@@ -3359,7 +3498,9 @@ function getProxiedImageUrl(originalUrl: string): string {
   border: 1px solid #eee;
   flex-shrink: 0;
   background: #f8f9fa;
-  transition: opacity 0.3s ease, filter 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
   position: relative;
 }
 
@@ -3370,20 +3511,30 @@ function getProxiedImageUrl(originalUrl: string): string {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+  background:
+    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
   background-size: 10px 10px;
-  background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+  background-position:
+    0 0,
+    0 5px,
+    5px -5px,
+    -5px 0px;
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: 6px;
   pointer-events: none;
 }
 
-.info-cover[src=""], .info-cover:not([src]) {
+.info-cover[src=''],
+.info-cover:not([src]) {
   opacity: 0.5;
 }
 
-.info-cover[src=""]:before, .info-cover:not([src]):before {
+.info-cover[src='']:before,
+.info-cover:not([src]):before {
   opacity: 0.3;
 }
 .info-content-main {
@@ -3640,9 +3791,9 @@ function getProxiedImageUrl(originalUrl: string): string {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .loading-spinner {
@@ -3656,8 +3807,12 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-container p {
@@ -3673,9 +3828,9 @@ function getProxiedImageUrl(originalUrl: string): string {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .error-message {
@@ -3690,7 +3845,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   padding: 0 20px;
   border: 1px solid #409eff;
   border-radius: 4px;
-  background: #fff;
+  background: var(--el-bg-color);
   color: #409eff;
   cursor: pointer;
   font-size: 14px;
@@ -3708,9 +3863,9 @@ function getProxiedImageUrl(originalUrl: string): string {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .empty-container p {
@@ -3804,7 +3959,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 .pagination-btn {
   padding: 8px 12px;
   border: 1px solid #dcdfe6;
-  background: #fff;
+  background: var(--el-bg-color);
   color: #606266;
   border-radius: 4px;
   cursor: pointer;

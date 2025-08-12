@@ -9,7 +9,7 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">项目名称：</label>
-          <input
+          <el-input
             v-model="projectForm.name"
             type="text"
             placeholder="请输入项目名称"
@@ -22,37 +22,29 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">项目类型：</label>
-          <div class="custom-select">
-            <div class="select-container" @click="toggleTypeDropdown">
-              <span class="select-value">{{ getTypeLabel(projectForm.type) }}</span>
-              <span class="dropdown-arrow" :class="{ 'open': typeDropdownOpen }">▼</span>
-            </div>
-            <div v-if="typeDropdownOpen" class="dropdown-options">
-              <div
-                v-for="option in projectTypeOptions"
-                :key="option.value"
-                class="dropdown-option"
-                @click="selectType(option.value)"
-              >
-                {{ option.label }}
-              </div>
-            </div>
-          </div>
+          <el-select v-model="projectForm.type" placeholder="请选择项目类型" style="width: 200px">
+            <el-option
+              v-for="option in projectTypeOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
         </div>
       </div>
 
       <!-- 下一步按钮 -->
       <div class="form-actions">
         <div class="action-buttons">
-          <button class="btn-cancel" @click="handleCancel">取消</button>
-          <button
+          <el-button class="btn-cancel" @click="handleCancel">取消</el-button>
+          <el-button
             class="btn-save"
             :class="{ 'btn-save-disabled': !isFormValid }"
             :disabled="!isFormValid || loading"
             @click="handleNextStep"
           >
             {{ loading ? '处理中...' : '下一步' }}
-          </button>
+          </el-button>
         </div>
       </div>
     </div>
@@ -60,92 +52,50 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ref, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 // 路由实例
-const router = useRouter();
+const router = useRouter()
 
 // 加载状态
-const loading = ref(false);
-const typeDropdownOpen = ref(false);
+const loading = ref(false)
 
 // 项目表单数据
 const projectForm = reactive({
   name: '',
-  type: ''
-});
+  type: '',
+})
 
 // 项目类型选项
 const projectTypeOptions = [
   { value: 'SocialMediaKeywords', label: '社媒关键字项目' },
   { value: 'VideoList', label: '视频列表项目' },
   { value: 'GoogleNews', label: 'Google新闻项目' },
-];
+]
 
 // 表单验证
 const isFormValid = computed(() => {
-  return projectForm.name.trim().length >= 2 &&
-         projectForm.name.trim().length <= 50 &&
-         projectForm.type.trim();
-});
-
-// 组件挂载时设置点击外部事件
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-});
-
-// 组件卸载时移除事件监听
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
-
-// 处理点击外部关闭下拉框
-const handleClickOutside = (event: Event) => {
-  const customSelects = document.querySelectorAll('.custom-select');
-  let clickedInCustomSelect = false;
-
-  customSelects.forEach(select => {
-    if (select.contains(event.target as Node)) {
-      clickedInCustomSelect = true;
-    }
-  });
-
-  if (!clickedInCustomSelect) {
-    typeDropdownOpen.value = false;
-  }
-};
-
-// 切换类型下拉框
-const toggleTypeDropdown = () => {
-  typeDropdownOpen.value = !typeDropdownOpen.value;
-};
-
-// 选择项目类型
-const selectType = (value: string) => {
-  projectForm.type = value;
-  typeDropdownOpen.value = false;
-};
-
-// 获取类型标签
-const getTypeLabel = (value: string) => {
-  const option = projectTypeOptions.find(o => o.value === value);
-  return option ? option.label : '请选择项目类型';
-};
+  return (
+    projectForm.name.trim().length >= 2 &&
+    projectForm.name.trim().length <= 50 &&
+    projectForm.type.trim()
+  )
+})
 
 // 处理下一步按钮点击事件
 const handleNextStep = async () => {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value) return
 
-  loading.value = true;
+  loading.value = true
 
   // 这里可以添加保存项目基本信息的逻辑
-  console.log('提交的项目信息:', projectForm);
+  console.log('提交的项目信息:', projectForm)
 
   // 模拟API请求
   setTimeout(() => {
-    loading.value = false;
+    loading.value = false
 
     // 导航到下一步 - 跳转到关键字项目设置页面
     if (projectForm.type === 'SocialMediaKeywords') {
@@ -155,9 +105,9 @@ const handleNextStep = async () => {
           isNew: 'true',
           projectName: projectForm.name,
           projectType: projectForm.type,
-          isCreate: 'true'
-        }
-      });
+          isCreate: 'true',
+        },
+      })
     } else if (projectForm.type === 'VideoList') {
       router.push({
         name: 'videoListSettingView',
@@ -165,9 +115,9 @@ const handleNextStep = async () => {
           isNew: 'true',
           projectName: projectForm.name,
           projectType: projectForm.type,
-          isCreate: 'true'
-        }
-      });
+          isCreate: 'true',
+        },
+      })
     } else if (projectForm.type === 'GoogleNews') {
       router.push({
         name: 'googleNewsSettingView',
@@ -175,40 +125,39 @@ const handleNextStep = async () => {
           isNew: 'true',
           projectName: projectForm.name,
           projectType: projectForm.type,
-          isCreate: 'true'
-        }
-      });
+          isCreate: 'true',
+        },
+      })
     } else {
       // 其他类型项目的设置页面
       router.push({
         name: 'projectDetailSettings',
         params: {
-          step: 'keywords'
+          step: 'keywords',
         },
         query: {
           isNew: 'true',
           projectType: projectForm.type,
           projectName: projectForm.name,
-          isCreate: 'true'
-        }
-      });
+          isCreate: 'true',
+        },
+      })
     }
 
     // ElMessage.success('基本信息已保存，进入下一步配置');
-  }, 1000);
-};
+  }, 1000)
+}
 
 // 取消创建项目
 const handleCancel = () => {
-  ElMessage.info('已取消创建项目');
-  router.back();
-};
+  ElMessage.info('已取消创建项目')
+  router.back()
+}
 </script>
 
 <style lang="less" scoped>
 .new-project {
   padding: 20px;
-  background-color: #fff;
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -220,7 +169,7 @@ const handleCancel = () => {
 .page-header h1 {
   font-size: 24px;
   font-weight: 500;
-  color: #333;
+  color: var(--el-text-color-primary);
 }
 
 .project-form {
@@ -255,7 +204,7 @@ label {
   color: #ff4d4f;
 }
 
-input[type="text"] {
+input[type='text'] {
   height: 36px;
   padding: 0 10px;
   border: 1px solid #ddd;
@@ -264,82 +213,10 @@ input[type="text"] {
   transition: border-color 0.3s;
 }
 
-input[type="text"]:hover,
-input[type="text"]:focus {
+input[type='text']:hover,
+input[type='text']:focus {
   border-color: #1890ff;
   outline: none;
-}
-
-/* 自定义下拉框样式 */
-.custom-select {
-  position: relative;
-  min-width: 200px;
-}
-
-.select-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-.select-container:hover {
-  border-color: #1890ff;
-}
-
-.select-value {
-  flex: 1;
-  color: #333;
-  font-size: 14px;
-}
-
-.select-value:empty::before {
-  content: '请选择项目类型';
-  color: #999;
-}
-
-.custom-select .dropdown-arrow {
-  transition: transform 0.3s;
-  color: #999;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-.custom-select .dropdown-arrow.open {
-  transform: rotate(180deg);
-}
-
-.custom-select .dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.custom-select .dropdown-option {
-  padding: 8px 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  font-size: 14px;
-  color: #333;
-}
-
-.custom-select .dropdown-option:hover {
-  background-color: #f5f5f5;
 }
 
 .form-actions {
@@ -394,7 +271,8 @@ button {
 }
 
 @media (max-width: 768px) {
-  .form-row, .form-actions {
+  .form-row,
+  .form-actions {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -406,10 +284,6 @@ button {
 
   .action-buttons {
     margin-top: 15px;
-  }
-
-  .custom-select {
-    width: 100%;
   }
 
   label {

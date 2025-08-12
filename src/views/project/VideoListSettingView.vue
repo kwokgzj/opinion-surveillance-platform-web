@@ -9,7 +9,7 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">项目名称：</label>
-          <input v-model="projectName" type="text" placeholder="请输入项目名称" />
+          <el-input v-model="projectName" type="text" placeholder="请输入项目名称" />
         </div>
       </div>
 
@@ -28,7 +28,7 @@
           <div class="custom-select">
             <div class="select-container" @click="toggleTimeRangeDropdown">
               <span class="select-value">{{ getTimeRangeLabel(crawlTimeRange) }}</span>
-              <span class="dropdown-arrow" :class="{ 'open': timeRangeDropdownOpen }">▼</span>
+              <span class="dropdown-arrow" :class="{ open: timeRangeDropdownOpen }">▼</span>
             </div>
             <div v-if="timeRangeDropdownOpen" class="dropdown-options">
               <div
@@ -47,7 +47,7 @@
           <div class="custom-select">
             <div class="select-container" @click="toggleFrequencyDropdown">
               <span class="select-value">{{ getFrequencyLabel(crawlFrequency) }}</span>
-              <span class="dropdown-arrow" :class="{ 'open': frequencyDropdownOpen }">▼</span>
+              <span class="dropdown-arrow" :class="{ open: frequencyDropdownOpen }">▼</span>
             </div>
             <div v-if="frequencyDropdownOpen" class="dropdown-options">
               <div
@@ -87,23 +87,17 @@
               <tr v-for="(video, index) in monitoredVideos" :key="index">
                 <td class="sequence-number">{{ index + 1 }}</td>
                 <td>
-                  <input
+                  <el-input
                     v-model="video.url"
                     @blur="validateVideoUrl(index)"
                     placeholder="视频链接"
                   />
                 </td>
                 <td>
-                  <input
-                    v-model="video.brand"
-                    placeholder="品牌名称，逗号分隔"
-                  />
+                  <el-input v-model="video.brand" placeholder="品牌名称，逗号分隔" />
                 </td>
                 <td>
-                  <input
-                    v-model="video.sku"
-                    placeholder="SKU编码，逗号分隔"
-                  />
+                  <el-input v-model="video.sku" placeholder="SKU编码，逗号分隔" />
                 </td>
                 <td>
                   <button class="btn-delete" @click="removeVideo(index)">-</button>
@@ -111,8 +105,7 @@
               </tr>
               <tr>
                 <td></td>
-                <td colspan="3">
-                </td>
+                <td colspan="3"></td>
                 <td>
                   <button class="btn-add" @click="addVideo">+</button>
                 </td>
@@ -142,11 +135,7 @@
           </span>
         </div>
         <div class="action-buttons">
-          <button
-            v-if="shouldShowCancelButton"
-            class="btn-cancel"
-            @click="cancelChanges"
-          >
+          <button v-if="shouldShowCancelButton" class="btn-cancel" @click="cancelChanges">
             取消
           </button>
           <button
@@ -181,7 +170,7 @@
           </div>
 
           <div class="upload-area">
-            <input
+            <el-input
               type="file"
               ref="fileInput"
               @change="handleFileUpload"
@@ -216,14 +205,29 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(row, index) in previewData.slice(0, 5)" :key="index" :class="{ 'duplicate-row': row.isDuplicate, 'invalid-row': row.validationResult && !row.validationResult.isValid }">
+                  <tr
+                    v-for="(row, index) in previewData.slice(0, 5)"
+                    :key="index"
+                    :class="{
+                      'duplicate-row': row.isDuplicate,
+                      'invalid-row': row.validationResult && !row.validationResult.isValid,
+                    }"
+                  >
                     <td>{{ row.url || '-' }}</td>
                     <td>{{ row.brand || '-' }}</td>
                     <td>{{ row.sku || '-' }}</td>
                     <td>
                       <span v-if="row.isDuplicate" class="status-duplicate">重复</span>
-                      <span v-else-if="row.validationResult && !row.validationResult.isValid" class="status-invalid">无效</span>
-                      <span v-else-if="row.validationResult && row.validationResult.isValid" class="status-valid">有效</span>
+                      <span
+                        v-else-if="row.validationResult && !row.validationResult.isValid"
+                        class="status-invalid"
+                        >无效</span
+                      >
+                      <span
+                        v-else-if="row.validationResult && row.validationResult.isValid"
+                        class="status-valid"
+                        >有效</span
+                      >
                       <span v-else class="status-unknown">-</span>
                     </td>
                   </tr>
@@ -235,7 +239,13 @@
         </div>
         <div class="modal-footer">
           <button class="btn-cancel" @click="closeBatchImport">取消</button>
-          <button class="btn-import" @click="processBatchImport" :disabled="previewData.length === 0">确认导入</button>
+          <button
+            class="btn-import"
+            @click="processBatchImport"
+            :disabled="previewData.length === 0"
+          >
+            确认导入
+          </button>
         </div>
       </div>
     </div>
@@ -243,8 +253,14 @@
 </template>
 
 <script>
-import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask } from '@/api/project/project';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  createProject,
+  getProjectById,
+  updateProject,
+  deleteProject,
+  executeDataCrawlTask,
+} from '@/api/project/project'
+import { ElMessage, ElMessageBox } from 'element-plus'
 export default {
   name: 'VideoListSettingView',
   data() {
@@ -258,9 +274,7 @@ export default {
       projectType: 'VideoList',
       crawlTimeRange: '',
       crawlFrequency: '',
-      monitoredVideos: [
-        { url: '', brand: '', sku: '', platform: '', platformID: '' }
-      ],
+      monitoredVideos: [{ url: '', brand: '', sku: '', platform: '', platformID: '' }],
       dropdownOpen: false,
       timeRangeDropdownOpen: false,
       frequencyDropdownOpen: false,
@@ -281,7 +295,7 @@ export default {
       frequencyOptions: [
         { value: '24', label: '每天抓取' },
         { value: '168', label: '每周抓取' },
-        { value: '720', label: '每月抓取' }
+        { value: '720', label: '每月抓取' },
       ],
 
       // 批量导入相关
@@ -297,165 +311,161 @@ export default {
   computed: {
     // 表单验证
     isFormValid() {
-      const hasValidVideos = this.monitoredVideos.some(video =>
-        video.url.trim() && video.brand.trim() && video.sku.trim()
-      );
-      return this.projectName.trim() &&
-             this.crawlTimeRange &&
-             this.crawlFrequency &&
-             hasValidVideos;
+      const hasValidVideos = this.monitoredVideos.some(
+        (video) => video.url.trim() && video.brand.trim() && video.sku.trim(),
+      )
+      return this.projectName.trim() && this.crawlTimeRange && this.crawlFrequency && hasValidVideos
     },
 
     // 是否可以保存
     canSave() {
       if (this.isEditMode) {
         // 编辑模式：有变更且表单有效
-        return this.hasChanges && this.isFormValid;
+        return this.hasChanges && this.isFormValid
       } else {
         // 新建模式：表单有效
-        return this.isFormValid;
+        return this.isFormValid
       }
     },
 
     // 是否显示删除按钮
     shouldShowDeleteButton() {
-      return this.isEditMode || this.projectStatus === 'created';
+      return this.isEditMode || this.projectStatus === 'created'
     },
 
     // 是否可以点击删除
     canClickDelete() {
-      return !this.hasChanges;
+      return !this.hasChanges
     },
 
     // 是否显示取消按钮
     shouldShowCancelButton() {
       if (!this.isEditMode && this.projectStatus === 'creating') {
         // 新建模式，一直显示取消按钮
-        return true;
+        return true
       }
       // 编辑模式或已创建，只有有变更时显示
-      return this.hasChanges;
+      return this.hasChanges
     },
 
-                // 有效视频数量
-      validVideosCount() {
-        return this.monitoredVideos.filter(video =>
-          video.url.trim() && video.brand.trim() && video.sku.trim()
-        ).length;
-      },
+    // 有效视频数量
+    validVideosCount() {
+      return this.monitoredVideos.filter(
+        (video) => video.url.trim() && video.brand.trim() && video.sku.trim(),
+      ).length
+    },
   },
   watch: {
     // 添加路由监听
-    '$route'(to, from) {
-      console.log('路由变化:', { to, from });
+    $route(to, from) {
+      console.log('路由变化:', { to, from })
       if (to.path === from.path) {
-        this.initializePageMode();
+        this.initializePageMode()
       }
     },
     // 监听所有可能变更的字段
     projectName() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     crawlTimeRange() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     crawlFrequency() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     monitoredVideos: {
       handler() {
-        this.checkForChanges();
+        this.checkForChanges()
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   mounted() {
     // 根据路由参数判断是新建还是编辑模式
-    this.initializePageMode();
+    this.initializePageMode()
 
     // 点击外部关闭下拉框
-    document.addEventListener('click', this.handleClickOutside);
+    document.addEventListener('click', this.handleClickOutside)
     // 保存初始表单数据
-    this.saveInitialFormData();
+    this.saveInitialFormData()
   },
   beforeUnmount() {
-    document.removeEventListener('click', this.handleClickOutside);
+    document.removeEventListener('click', this.handleClickOutside)
   },
   methods: {
     // 初始化页面模式
     initializePageMode() {
-      const projectId = this.$route.params.id || this.$route.query.projectId;
-      const isEdit = this.$route.query.isEdit === 'true';
-      const newlyCreated = this.$route.query.newlyCreated === 'true';
+      const projectId = this.$route.params.id || this.$route.query.projectId
+      const isEdit = this.$route.query.isEdit === 'true'
+      const newlyCreated = this.$route.query.newlyCreated === 'true'
 
       if (projectId && newlyCreated) {
-        this.isEditMode = false;
-        this.projectStatus = 'created';
+        this.isEditMode = false
+        this.projectStatus = 'created'
         this.$nextTick(() => {
-          this.saveInitialFormData();
-          this.hasChanges = false;
-        });
+          this.saveInitialFormData()
+          this.hasChanges = false
+        })
       } else if (projectId && projectId !== 'new' && isEdit) {
-        this.isEditMode = true;
-        this.projectStatus = 'editing';
-        this.loadProjectData(projectId);
+        this.isEditMode = true
+        this.projectStatus = 'editing'
+        this.loadProjectData(projectId)
       } else {
-        this.isEditMode = false;
-        this.projectStatus = 'creating';
-        this.setDefaultValues();
+        this.isEditMode = false
+        this.projectStatus = 'creating'
+        this.setDefaultValues()
       }
     },
 
     // 设置新建时的默认值
     setDefaultValues() {
-      const projectName = this.$route.query.projectName;
-      this.projectName = projectName || '';
-      this.crawlTimeRange = '720'; // 默认近30天
-      this.crawlFrequency = '168'; // 默认每周抓取
-      this.monitoredVideos = [{ url: '', brand: '', sku: '', platform: '', platformID: '' }];
+      const projectName = this.$route.query.projectName
+      this.projectName = projectName || ''
+      this.crawlTimeRange = '720' // 默认近30天
+      this.crawlFrequency = '168' // 默认每周抓取
+      this.monitoredVideos = [{ url: '', brand: '', sku: '', platform: '', platformID: '' }]
     },
 
     // 加载项目数据（编辑模式）
     async loadProjectData(projectId) {
-      this.isLoading = true;
+      this.isLoading = true
       try {
-        const response = await getProjectById(projectId);
+        const response = await getProjectById(projectId)
 
         if (response.code === 0) {
-          const project = response.data;
+          const project = response.data
 
           // 填充表单数据
-          this.projectName = project.name || '';
-          this.crawlTimeRange = String(project.fetchTime || '720');
-          this.crawlFrequency = String(project.crawlFrequency || '24');
+          this.projectName = project.name || ''
+          this.crawlTimeRange = String(project.fetchTime || '720')
+          this.crawlFrequency = String(project.crawlFrequency || '24')
 
           // 转换监控视频格式
-          this.monitoredVideos = project.monitoredVideoLinks && project.monitoredVideoLinks.length > 0
-            ? project.monitoredVideoLinks.map(video => ({
-                url: video.url,
-                brand: Array.isArray(video.brand) ? video.brand.join(', ') : (video.brand || ''),
-                sku: Array.isArray(video.sku) ? video.sku.join(', ') : (video.sku || ''),
-                platform: video.platform,
-                platformID: video.platformID
-              }))
-            : [{ url: '', brand: '', sku: '', platform: '', platformID: '' }];
+          this.monitoredVideos =
+            project.monitoredVideoLinks && project.monitoredVideoLinks.length > 0
+              ? project.monitoredVideoLinks.map((video) => ({
+                  url: video.url,
+                  brand: Array.isArray(video.brand) ? video.brand.join(', ') : video.brand || '',
+                  sku: Array.isArray(video.sku) ? video.sku.join(', ') : video.sku || '',
+                  platform: video.platform,
+                  platformID: video.platformID,
+                }))
+              : [{ url: '', brand: '', sku: '', platform: '', platformID: '' }]
 
           this.$nextTick(() => {
-            this.saveInitialFormData();
-            this.hasChanges = false;
-          });
-
+            this.saveInitialFormData()
+            this.hasChanges = false
+          })
         } else {
-          ElMessage.error(`加载项目数据失败：${response.msg}`);
-          this.$router.go(-1);
+          ElMessage.error(`加载项目数据失败：${response.msg}`)
+          this.$router.go(-1)
         }
-
       } catch (error) {
-        console.error('加载项目数据失败:', error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
-        this.$router.go(-1);
+        console.error('加载项目数据失败:', error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
+        this.$router.go(-1)
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
@@ -465,411 +475,418 @@ export default {
         projectName: this.projectName,
         crawlTimeRange: this.crawlTimeRange,
         crawlFrequency: this.crawlFrequency,
-        monitoredVideos: JSON.parse(JSON.stringify(this.monitoredVideos))
-      };
+        monitoredVideos: JSON.parse(JSON.stringify(this.monitoredVideos)),
+      }
     },
 
     // 检测表单是否有变更
     checkForChanges() {
-      if (!this.initialFormData) return;
+      if (!this.initialFormData) return
 
       const currentData = {
         projectName: this.projectName,
         crawlTimeRange: this.crawlTimeRange,
         crawlFrequency: this.crawlFrequency,
-        monitoredVideos: JSON.parse(JSON.stringify(this.monitoredVideos))
-      };
+        monitoredVideos: JSON.parse(JSON.stringify(this.monitoredVideos)),
+      }
 
-      this.hasChanges = !this.isDataEqual(this.initialFormData, currentData);
+      this.hasChanges = !this.isDataEqual(this.initialFormData, currentData)
 
       // 如果有变更，更新项目状态
       if (this.hasChanges && this.projectStatus !== 'creating') {
-        this.projectStatus = 'editing';
+        this.projectStatus = 'editing'
       }
     },
 
     // 深度比较两个对象是否相等
     isDataEqual(obj1, obj2) {
-      return JSON.stringify(obj1) === JSON.stringify(obj2);
+      return JSON.stringify(obj1) === JSON.stringify(obj2)
     },
 
     // 取消变更
     cancelChanges() {
       if (!this.isEditMode && this.projectStatus === 'creating') {
         // 新建模式的取消，返回上一页
-        this.$router.go(-1);
+        this.$router.go(-1)
       } else {
         // 编辑模式的取消，恢复原始数据
         if (this.initialFormData) {
-          this.projectName = this.initialFormData.projectName;
-          this.crawlTimeRange = this.initialFormData.crawlTimeRange;
-          this.crawlFrequency = this.initialFormData.crawlFrequency;
-          this.monitoredVideos = JSON.parse(JSON.stringify(this.initialFormData.monitoredVideos));
+          this.projectName = this.initialFormData.projectName
+          this.crawlTimeRange = this.initialFormData.crawlTimeRange
+          this.crawlFrequency = this.initialFormData.crawlFrequency
+          this.monitoredVideos = JSON.parse(JSON.stringify(this.initialFormData.monitoredVideos))
 
-          this.hasChanges = false;
-          this.projectStatus = this.isEditMode ? 'saved' : 'created';
+          this.hasChanges = false
+          this.projectStatus = this.isEditMode ? 'saved' : 'created'
         }
       }
     },
 
     // 添加视频
     addVideo() {
-      this.monitoredVideos.push({ url: '', brand: '', sku: '', platform: '', platformID: '' });
+      this.monitoredVideos.push({ url: '', brand: '', sku: '', platform: '', platformID: '' })
     },
 
     // 删除视频
     removeVideo(index) {
-      this.monitoredVideos.splice(index, 1);
+      this.monitoredVideos.splice(index, 1)
       if (this.monitoredVideos.length === 0) {
-        this.monitoredVideos.push({ url: '', brand: '', sku: '', platform: '', platformID: '' });
+        this.monitoredVideos.push({ url: '', brand: '', sku: '', platform: '', platformID: '' })
       }
     },
 
     // 规范化YouTube URL
     normalizeYouTubeUrl(url) {
       if (!url || typeof url !== 'string') {
-        return url;
+        return url
       }
 
       try {
-        const urlObj = new URL(url);
+        const urlObj = new URL(url)
 
         // 处理 youtube.com/watch 格式
         if (url.includes('youtube.com/watch')) {
-          const videoId = urlObj.searchParams.get('v');
+          const videoId = urlObj.searchParams.get('v')
           if (videoId) {
             // 只保留视频ID，去掉所有其他参数
-            return `https://www.youtube.com/watch?v=${videoId}`;
+            return `https://www.youtube.com/watch?v=${videoId}`
           }
         }
         // 处理 youtu.be 格式
         else if (url.includes('youtu.be')) {
-          const parts = urlObj.pathname.split('/');
-          const videoId = parts[1];
+          const parts = urlObj.pathname.split('/')
+          const videoId = parts[1]
           if (videoId) {
             // 转换为标准格式，去掉查询参数
-            const cleanVideoId = videoId.split('?')[0];
-            return `https://www.youtube.com/watch?v=${cleanVideoId}`;
+            const cleanVideoId = videoId.split('?')[0]
+            return `https://www.youtube.com/watch?v=${cleanVideoId}`
           }
         }
       } catch (error) {
-        console.warn('URL格式错误:', url, error);
+        console.warn('URL格式错误:', url, error)
       }
 
-      return url;
+      return url
     },
 
     // 验证单个视频URL
     validateSingleVideoUrl(url) {
       if (!url || !url.trim()) {
-        return { isValid: false, error: '视频链接为空' };
+        return { isValid: false, error: '视频链接为空' }
       }
 
-      const trimmedUrl = url.trim();
+      const trimmedUrl = url.trim()
 
       // 基本URL格式检查
       try {
-        new URL(trimmedUrl);
+        new URL(trimmedUrl)
       } catch {
-        return { isValid: false, error: 'URL格式无效' };
+        return { isValid: false, error: 'URL格式无效' }
       }
 
       // 如果是YouTube链接，先规范化URL格式
-      let normalizedUrl = trimmedUrl;
+      let normalizedUrl = trimmedUrl
       if (trimmedUrl.includes('youtube.com') || trimmedUrl.includes('youtu.be')) {
-        normalizedUrl = this.normalizeYouTubeUrl(trimmedUrl);
+        normalizedUrl = this.normalizeYouTubeUrl(trimmedUrl)
       }
 
-      const platform = this.detectPlatformFromUrl(normalizedUrl);
-      const platformID = this.generatePlatformID(normalizedUrl);
+      const platform = this.detectPlatformFromUrl(normalizedUrl)
+      const platformID = this.generatePlatformID(normalizedUrl)
 
       if (platform === 'Unknown' || !platform) {
         return {
           isValid: false,
-          error: '无法识别平台，支持的平台：YouTube、Instagram、Twitter/X、Facebook'
-        };
+          error: '无法识别平台，支持的平台：YouTube、Instagram、Twitter/X、Facebook',
+        }
       }
 
       if (platformID === 'unknown' || !platformID) {
         return {
           isValid: false,
-          error: '无法提取视频ID，请检查链接格式是否正确'
-        };
+          error: '无法提取视频ID，请检查链接格式是否正确',
+        }
       }
 
       return {
         isValid: true,
         platform,
         platformID,
-        normalizedUrl
-      };
+        normalizedUrl,
+      }
     },
 
-                // 验证所有视频链接和重复性
+    // 验证所有视频链接和重复性
     validateAllVideoLinksAndDuplicates(videos) {
-      const errors = [];
-      const processedVideos = [];
-      const validVideos = [];
+      const errors = []
+      const processedVideos = []
+      const validVideos = []
 
       videos.forEach((video) => {
-        const result = this.validateSingleVideoUrl(video.url);
-        const displayIndex = this.monitoredVideos.findIndex(v => v === video) + 1;
+        const result = this.validateSingleVideoUrl(video.url)
+        const displayIndex = this.monitoredVideos.findIndex((v) => v === video) + 1
 
         if (!result.isValid) {
-          errors.push(`第 ${displayIndex} 行：${result.error} (${video.url})`);
+          errors.push(`第 ${displayIndex} 行：${result.error} (${video.url})`)
         } else {
           // 检查是否与表格中已处理的视频重复
-          const isDuplicateInTable = processedVideos.some(processed =>
-            processed.platform && processed.platformID &&
-            processed.platform.toLowerCase() === result.platform.toLowerCase() &&
-            processed.platformID === result.platformID
-          );
+          const isDuplicateInTable = processedVideos.some(
+            (processed) =>
+              processed.platform &&
+              processed.platformID &&
+              processed.platform.toLowerCase() === result.platform.toLowerCase() &&
+              processed.platformID === result.platformID,
+          )
 
           if (isDuplicateInTable) {
-            errors.push(`第 ${displayIndex} 行：与表格中其他视频重复 (${result.platform} - ${result.platformID})`);
+            errors.push(
+              `第 ${displayIndex} 行：与表格中其他视频重复 (${result.platform} - ${result.platformID})`,
+            )
           } else {
             // 更新视频信息
-            video.platform = result.platform;
-            video.platformID = result.platformID;
-            video.url = result.normalizedUrl;
+            video.platform = result.platform
+            video.platformID = result.platformID
+            video.url = result.normalizedUrl
 
             // 添加到已处理列表
             processedVideos.push({
               platform: result.platform,
               platformID: result.platformID,
-              index: displayIndex
-            });
+              index: displayIndex,
+            })
 
-            validVideos.push(video);
+            validVideos.push(video)
           }
         }
-      });
+      })
 
-      return { errors, validVideos };
+      return { errors, validVideos }
     },
 
     // 验证所有视频链接（保留原方法以兼容其他地方的调用）
     validateAllVideoLinks(videos) {
-      const result = this.validateAllVideoLinksAndDuplicates(videos);
-      return result.errors;
+      const result = this.validateAllVideoLinksAndDuplicates(videos)
+      return result.errors
     },
 
     // 检查视频是否重复
     checkVideoDuplicate(platform, platformID) {
       if (!platform || !platformID) {
-        return false;
+        return false
       }
 
-      return this.monitoredVideos.some(video => {
+      return this.monitoredVideos.some((video) => {
         // 确保比较的字段都存在
         if (!video.platform || !video.platformID) {
-          return false;
+          return false
         }
 
         // 统一平台名称格式进行比较（防止大小写不一致）
-        const normalizedPlatform = platform.toLowerCase();
-        const normalizedVideoPlatform = video.platform.toLowerCase();
+        const normalizedPlatform = platform.toLowerCase()
+        const normalizedVideoPlatform = video.platform.toLowerCase()
 
-        return normalizedVideoPlatform === normalizedPlatform &&
-               video.platformID === platformID;
-      });
+        return normalizedVideoPlatform === normalizedPlatform && video.platformID === platformID
+      })
     },
 
-            // 验证视频URL（用于单行验证）
+    // 验证视频URL（用于单行验证）
     validateVideoUrl(index) {
-      const video = this.monitoredVideos[index];
+      const video = this.monitoredVideos[index]
       if (!video.url.trim()) {
-        video.platform = '';
-        video.platformID = '';
-        return;
+        video.platform = ''
+        video.platformID = ''
+        return
       }
 
-      const result = this.validateSingleVideoUrl(video.url);
+      const result = this.validateSingleVideoUrl(video.url)
 
       if (!result.isValid) {
-        ElMessage.warning(`第 ${index + 1} 行的视频链接${result.error}：${video.url}`);
-        return;
+        ElMessage.warning(`第 ${index + 1} 行的视频链接${result.error}：${video.url}`)
+        return
       }
 
-            // 检查是否与表格中其他视频重复（排除当前行）
-      const duplicateIndexes = [];
+      // 检查是否与表格中其他视频重复（排除当前行）
+      const duplicateIndexes = []
       this.monitoredVideos.forEach((v, i) => {
-        if (i !== index &&
-            v.platform && v.platformID &&
-            v.platform.toLowerCase() === result.platform.toLowerCase() &&
-            v.platformID === result.platformID) {
-          duplicateIndexes.push(i + 1);
+        if (
+          i !== index &&
+          v.platform &&
+          v.platformID &&
+          v.platform.toLowerCase() === result.platform.toLowerCase() &&
+          v.platformID === result.platformID
+        ) {
+          duplicateIndexes.push(i + 1)
         }
-      });
+      })
 
       if (duplicateIndexes.length > 0) {
-        ElMessage.warning(`第 ${index + 1} 行的视频与第 ${duplicateIndexes.join('、')} 行重复：${result.platform} 平台的 ${result.platformID}`);
-        return;
+        ElMessage.warning(
+          `第 ${index + 1} 行的视频与第 ${duplicateIndexes.join('、')} 行重复：${result.platform} 平台的 ${result.platformID}`,
+        )
+        return
       }
 
       // 更新视频信息
-      video.platform = result.platform;
-      video.platformID = result.platformID;
-      video.url = result.normalizedUrl;
+      video.platform = result.platform
+      video.platformID = result.platformID
+      video.url = result.normalizedUrl
     },
 
     // 根据 URL 检测平台
     detectPlatformFromUrl(url) {
       if (!url || typeof url !== 'string') {
-        return 'Unknown';
+        return 'Unknown'
       }
 
-      const lowerUrl = url.toLowerCase();
+      const lowerUrl = url.toLowerCase()
 
       if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-        return 'YouTube';
+        return 'YouTube'
       } else if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
-        return 'X';
+        return 'X'
       } else if (lowerUrl.includes('instagram.com')) {
-        return 'Instagram';
+        return 'Instagram'
       } else if (lowerUrl.includes('facebook.com')) {
-        return 'Facebook';
+        return 'Facebook'
       } else {
-        return 'Unknown';
+        return 'Unknown'
       }
     },
 
     // 生成平台ID
     generatePlatformID(url) {
       if (!url || typeof url !== 'string') {
-        return 'unknown';
+        return 'unknown'
       }
 
       try {
-        const urlObj = new URL(url);
-        const pathname = urlObj.pathname;
+        const urlObj = new URL(url)
+        const pathname = urlObj.pathname
 
         // YouTube 处理
         if (url.includes('youtube.com/watch')) {
-          const videoId = urlObj.searchParams.get('v');
-          return videoId || 'unknown';
+          const videoId = urlObj.searchParams.get('v')
+          return videoId || 'unknown'
         } else if (url.includes('youtu.be')) {
-          const parts = pathname.split('/');
-          const videoId = parts[1];
+          const parts = pathname.split('/')
+          const videoId = parts[1]
           // 去掉youtu.be链接中可能存在的查询参数
-          return videoId ? videoId.split('?')[0] : 'unknown';
+          return videoId ? videoId.split('?')[0] : 'unknown'
         }
         // Twitter/X 处理
         else if (url.includes('twitter.com') || url.includes('x.com')) {
-          const parts = pathname.split('/').filter(part => part.length > 0);
+          const parts = pathname.split('/').filter((part) => part.length > 0)
           // Twitter URL 格式通常是 /username/status/tweetId
           if (parts.length >= 3 && parts[1] === 'status') {
-            return parts[2] || 'unknown';
+            return parts[2] || 'unknown'
           }
           // 或者直接取最后一部分
-          return parts[parts.length - 1] || 'unknown';
+          return parts[parts.length - 1] || 'unknown'
         }
         // Instagram 处理
         else if (url.includes('instagram.com')) {
-          const parts = pathname.split('/').filter(part => part.length > 0);
+          const parts = pathname.split('/').filter((part) => part.length > 0)
           // Instagram URL 格式通常是 /p/postId/ 或 /reel/reelId/
           if (parts.length >= 2 && (parts[0] === 'p' || parts[0] === 'reel')) {
-            return parts[1] || 'unknown';
+            return parts[1] || 'unknown'
           }
-          return 'unknown';
+          return 'unknown'
         }
         // Facebook 处理
         else if (url.includes('facebook.com')) {
-          const parts = pathname.split('/').filter(part => part.length > 0);
+          const parts = pathname.split('/').filter((part) => part.length > 0)
           // Facebook URL 格式比较复杂，尝试提取最后的数字ID
-          const lastPart = parts[parts.length - 1];
+          const lastPart = parts[parts.length - 1]
           if (lastPart && /^\d+$/.test(lastPart)) {
-            return lastPart;
+            return lastPart
           }
           // 如果没有找到数字ID，返回unknown
-          return 'unknown';
+          return 'unknown'
         }
 
         // 其他情况，尝试提取路径最后一部分
-        const lastSegment = pathname.split('/').pop();
-        return lastSegment || 'unknown';
-
+        const lastSegment = pathname.split('/').pop()
+        return lastSegment || 'unknown'
       } catch {
         // URL 格式错误
-        return 'unknown';
+        return 'unknown'
       }
     },
 
     toggleDropdown() {
-      this.dropdownOpen = !this.dropdownOpen;
-      this.timeRangeDropdownOpen = false;
-      this.frequencyDropdownOpen = false;
+      this.dropdownOpen = !this.dropdownOpen
+      this.timeRangeDropdownOpen = false
+      this.frequencyDropdownOpen = false
     },
     toggleTimeRangeDropdown() {
-      this.timeRangeDropdownOpen = !this.timeRangeDropdownOpen;
-      this.frequencyDropdownOpen = false;
-      this.dropdownOpen = false;
+      this.timeRangeDropdownOpen = !this.timeRangeDropdownOpen
+      this.frequencyDropdownOpen = false
+      this.dropdownOpen = false
     },
     toggleFrequencyDropdown() {
-      this.frequencyDropdownOpen = !this.frequencyDropdownOpen;
-      this.timeRangeDropdownOpen = false;
-      this.dropdownOpen = false;
+      this.frequencyDropdownOpen = !this.frequencyDropdownOpen
+      this.timeRangeDropdownOpen = false
+      this.dropdownOpen = false
     },
     selectTimeRange(value) {
-      this.crawlTimeRange = value;
-      this.timeRangeDropdownOpen = false;
+      this.crawlTimeRange = value
+      this.timeRangeDropdownOpen = false
     },
     selectFrequency(value) {
-      this.crawlFrequency = value;
-      this.frequencyDropdownOpen = false;
+      this.crawlFrequency = value
+      this.frequencyDropdownOpen = false
     },
     getTimeRangeLabel(value) {
-      const option = this.timeRangeOptions.find(o => o.value === value);
-      return option ? option.label : '请选择';
+      const option = this.timeRangeOptions.find((o) => o.value === value)
+      return option ? option.label : '请选择'
     },
     getFrequencyLabel(value) {
-      const option = this.frequencyOptions.find(o => o.value === value);
-      return option ? option.label : '请选择';
+      const option = this.frequencyOptions.find((o) => o.value === value)
+      return option ? option.label : '请选择'
     },
     handleClickOutside(event) {
-      const timeRangeSelects = this.$el.querySelectorAll('.custom-select');
+      const timeRangeSelects = this.$el.querySelectorAll('.custom-select')
 
-      let clickedInCustomSelect = false;
-      timeRangeSelects.forEach(select => {
+      let clickedInCustomSelect = false
+      timeRangeSelects.forEach((select) => {
         if (select.contains(event.target)) {
-          clickedInCustomSelect = true;
+          clickedInCustomSelect = true
         }
-      });
+      })
 
       if (!clickedInCustomSelect) {
-        this.timeRangeDropdownOpen = false;
-        this.frequencyDropdownOpen = false;
+        this.timeRangeDropdownOpen = false
+        this.frequencyDropdownOpen = false
       }
     },
 
     async saveProject() {
       if (this.isSaving) {
-        return;
+        return
       }
 
       if (!this.isFormValid) {
-        ElMessage.warning('请填写完整的表单信息');
-        return;
+        ElMessage.warning('请填写完整的表单信息')
+        return
       }
 
-      this.isSaving = true;
+      this.isSaving = true
 
-      const validVideos = this.monitoredVideos.filter(video =>
-        video.url.trim() && video.brand.trim() && video.sku.trim()
-      );
+      const validVideos = this.monitoredVideos.filter(
+        (video) => video.url.trim() && video.brand.trim() && video.sku.trim(),
+      )
 
       if (validVideos.length === 0) {
-        ElMessage.warning('请至少添加一个有效的监控视频');
-        this.isSaving = false;
-        return;
+        ElMessage.warning('请至少添加一个有效的监控视频')
+        this.isSaving = false
+        return
       }
 
       // 检查所有链接的有效性和重复性
-      const validationResult = this.validateAllVideoLinksAndDuplicates(validVideos);
+      const validationResult = this.validateAllVideoLinksAndDuplicates(validVideos)
       if (validationResult.errors.length > 0) {
-        ElMessage.error(`以下视频链接存在问题：\n${validationResult.errors.join('\n')}`);
-        this.isSaving = false;
-        return;
+        ElMessage.error(`以下视频链接存在问题：\n${validationResult.errors.join('\n')}`)
+        this.isSaving = false
+        return
       }
 
       const projectData = {
@@ -880,48 +897,58 @@ export default {
         monitoredVideoLinks: validVideos.map((video, index) => ({
           index: index,
           url: video.url,
-          brand: video.brand ? video.brand.split(',').map(item => item.trim()).filter(item => item) : [],
-          sku: video.sku ? video.sku.split(',').map(item => item.trim()).filter(item => item) : [],
+          brand: video.brand
+            ? video.brand
+                .split(',')
+                .map((item) => item.trim())
+                .filter((item) => item)
+            : [],
+          sku: video.sku
+            ? video.sku
+                .split(',')
+                .map((item) => item.trim())
+                .filter((item) => item)
+            : [],
           platform: video.platform,
-          platformID: video.platformID
-        }))
-      };
+          platformID: video.platformID,
+        })),
+      }
 
       // 如果是编辑模式，需要添加项目ID
       if (this.isEditMode) {
-        const projectId = this.$route.params.id || this.$route.query.projectId;
-        projectData.projectId = projectId;
+        const projectId = this.$route.params.id || this.$route.query.projectId
+        projectData.projectId = projectId
       }
 
       try {
-        let response;
+        let response
 
         if (this.isEditMode) {
-          response = await updateProject(projectData);
+          response = await updateProject(projectData)
         } else {
-          response = await createProject(projectData);
+          response = await createProject(projectData)
         }
 
-        console.log('API响应:', response);
+        console.log('API响应:', response)
 
         // 判断响应是否成功 - 支持多种成功码
-        const isSuccess = response && (
-          response.code === 0 ||
-          response.code === '0' ||
-          response.code === 200 ||
-          response.code === '200'
-        );
+        const isSuccess =
+          response &&
+          (response.code === 0 ||
+            response.code === '0' ||
+            response.code === 200 ||
+            response.code === '200')
 
         if (isSuccess && response.data) {
-          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
-          ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data)
+          ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`)
 
           if (!this.isEditMode) {
-            const projectId = response.data.projectId || response.data.id;
-            const projectName = response.data.name || response.data.projectName;
-            const projectType = response.data.type || response.data.projectType;
+            const projectId = response.data.projectId || response.data.id
+            const projectName = response.data.name || response.data.projectName
+            const projectType = response.data.type || response.data.projectType
 
-            const projectIdStr = String(projectId);
+            const projectIdStr = String(projectId)
 
             if (projectIdStr && projectIdStr !== 'undefined') {
               this.$router.push({
@@ -932,45 +959,48 @@ export default {
                   projectType: projectType,
                   refresh: 'true',
                   page: 'settings',
-                  newlyCreated: 'true'
-                }
-              });
+                  newlyCreated: 'true',
+                },
+              })
             } else {
-              console.error('响应数据中缺少项目ID:', response.data);
-              ElMessage.error('项目保存成功，但跳转失败，请手动刷新页面');
+              console.error('响应数据中缺少项目ID:', response.data)
+              ElMessage.error('项目保存成功，但跳转失败，请手动刷新页面')
             }
           } else {
-            this.saveInitialFormData();
-            this.hasChanges = false;
-            this.isSaving = false;
+            this.saveInitialFormData()
+            this.hasChanges = false
+            this.isSaving = false
           }
         } else {
-          const errorMsg = response?.msg || response?.message || '保存失败，请重试';
-          console.error('项目保存失败:', { response, errorMsg });
-          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`);
+          const errorMsg = response?.msg || response?.message || '保存失败，请重试'
+          console.error('项目保存失败:', { response, errorMsg })
+          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`)
         }
-
       } catch (error) {
-        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
+        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
       } finally {
-        this.isSaving = false;
+        this.isSaving = false
       }
     },
 
     // 确认删除项目
     async confirmDelete() {
       if (!this.canClickDelete) {
-        return;
+        return
       }
 
       try {
-        await ElMessageBox.confirm(`确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`, '确认删除', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        });
-        this.deleteProject();
+        await ElMessageBox.confirm(
+          `确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`,
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          },
+        )
+        this.deleteProject()
       } catch {
         // 用户取消删除
       }
@@ -978,179 +1008,187 @@ export default {
 
     // 删除项目
     async deleteProject() {
-      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const projectId = this.$route.params.id || this.$route.query.projectId
 
       if (!projectId) {
-        ElMessage.error('项目ID不存在，无法删除');
-        return;
+        ElMessage.error('项目ID不存在，无法删除')
+        return
       }
 
       try {
-        const response = await deleteProject(projectId);
+        const response = await deleteProject(projectId)
 
         if (response.code === 0) {
-          ElMessage.success('项目删除成功！');
+          ElMessage.success('项目删除成功！')
           this.$router.push({
-              name: 'settings',
-              query: {
-                projectId: null,
-                projectName: null,
-                refresh: 'true'
-              }
-            });
+            name: 'settings',
+            query: {
+              projectId: null,
+              projectName: null,
+              refresh: 'true',
+            },
+          })
         } else {
-          ElMessage.error(`删除项目失败：${response.msg}`);
+          ElMessage.error(`删除项目失败：${response.msg}`)
         }
       } catch (error) {
-        console.error('删除项目失败:', error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
+        console.error('删除项目失败:', error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
       }
     },
 
     // 搜索测试功能
     async testSearch() {
-      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const projectId = this.$route.params.id || this.$route.query.projectId
 
       if (!projectId) {
-        ElMessage.error('项目ID不存在，无法执行搜索测试');
-        return;
+        ElMessage.error('项目ID不存在，无法执行搜索测试')
+        return
       }
 
       try {
-        const response = await executeDataCrawlTask(projectId);
+        const response = await executeDataCrawlTask(projectId)
 
         if (response.code === 0) {
-          ElMessage.success('搜索测试任务已启动，请稍后查看结果');
+          ElMessage.success('搜索测试任务已启动，请稍后查看结果')
         } else {
-          ElMessage.error(`搜索测试失败：${response.msg}`);
+          ElMessage.error(`搜索测试失败：${response.msg}`)
         }
       } catch (error) {
-        console.error('搜索测试失败:', error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
+        console.error('搜索测试失败:', error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
       }
     },
 
     // 显示批量导入模态框
     showBatchImport() {
-      this.batchImportVisible = true;
-      this.selectedFile = null;
-      this.previewData = [];
-      this.isDragOver = false;
+      this.batchImportVisible = true
+      this.selectedFile = null
+      this.previewData = []
+      this.isDragOver = false
     },
 
     // 关闭批量导入模态框
     closeBatchImport() {
-      this.batchImportVisible = false;
-      this.selectedFile = null;
-      this.previewData = [];
-      this.isDragOver = false;
+      this.batchImportVisible = false
+      this.selectedFile = null
+      this.previewData = []
+      this.isDragOver = false
     },
 
     // 触发文件选择
     triggerFileSelect() {
-      this.$refs.fileInput.click();
+      this.$refs.fileInput.click()
     },
 
     // 处理文件上传
     async handleFileUpload(event) {
-      const file = event.target.files[0];
+      const file = event.target.files[0]
       if (file) {
-        await this.processExcelFile(file);
+        await this.processExcelFile(file)
       }
     },
 
     // 处理文件拖拽
     async handleFileDrop(event) {
-      event.preventDefault();
-      this.isDragOver = false;
+      event.preventDefault()
+      this.isDragOver = false
 
-      const files = event.dataTransfer.files;
+      const files = event.dataTransfer.files
       if (files.length > 0) {
-        const file = files[0];
+        const file = files[0]
         if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-          await this.processExcelFile(file);
+          await this.processExcelFile(file)
         } else {
-          ElMessage.error('请选择Excel文件（.xlsx或.xls格式）');
+          ElMessage.error('请选择Excel文件（.xlsx或.xls格式）')
         }
       }
     },
 
     // 处理Excel文件
     async processExcelFile(file) {
-      this.selectedFile = file;
+      this.selectedFile = file
 
       try {
         // 动态导入xlsx库
-        const XLSX = await import('xlsx');
+        const XLSX = await import('xlsx')
 
-        const reader = new FileReader();
+        const reader = new FileReader()
         reader.onload = (e) => {
           try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            const data = new Uint8Array(e.target.result)
+            const workbook = XLSX.read(data, { type: 'array' })
 
             // 读取第一个工作表
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
+            const firstSheetName = workbook.SheetNames[0]
+            const worksheet = workbook.Sheets[firstSheetName]
 
             // 转换为JSON格式
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
             // 处理数据
-            this.parseExcelData(jsonData);
-
+            this.parseExcelData(jsonData)
           } catch (error) {
-            console.error('解析Excel文件失败:', error);
-            ElMessage.error('解析Excel文件失败，请检查文件格式');
+            console.error('解析Excel文件失败:', error)
+            ElMessage.error('解析Excel文件失败，请检查文件格式')
           }
-        };
+        }
 
-        reader.readAsArrayBuffer(file);
-
+        reader.readAsArrayBuffer(file)
       } catch (error) {
-        console.error('加载Excel解析库失败:', error);
-        ElMessage.error('加载Excel解析库失败，请刷新页面重试');
+        console.error('加载Excel解析库失败:', error)
+        ElMessage.error('加载Excel解析库失败，请刷新页面重试')
       }
     },
 
     // 解析Excel数据
     parseExcelData(jsonData) {
       if (!jsonData || jsonData.length === 0) {
-        ElMessage.warning('Excel文件为空');
-        return;
+        ElMessage.warning('Excel文件为空')
+        return
       }
 
       // 跳过第一行（标题行），从第二行开始处理数据
-      const dataRows = jsonData.slice(1);
-      const parsedData = [];
+      const dataRows = jsonData.slice(1)
+      const parsedData = []
 
       dataRows.forEach((row, index) => {
         // 确保行有数据
-        if (!row || row.length === 0) return;
+        if (!row || row.length === 0) return
 
-        const url = row[0] ? String(row[0]).trim() : '';
-        const brand = row[1] ? String(row[1]).trim() : '';
-        const sku = row[2] ? String(row[2]).trim() : '';
+        const url = row[0] ? String(row[0]).trim() : ''
+        const brand = row[1] ? String(row[1]).trim() : ''
+        const sku = row[2] ? String(row[2]).trim() : ''
 
         // 至少要有URL
         if (url) {
           // 检查URL有效性和重复性
-          const validationResult = this.validateSingleVideoUrl(url);
-          let isDuplicate = false;
+          const validationResult = this.validateSingleVideoUrl(url)
+          let isDuplicate = false
 
           if (validationResult.isValid) {
             // 检查是否与现有视频重复
-            isDuplicate = this.checkVideoDuplicate(validationResult.platform, validationResult.platformID);
+            isDuplicate = this.checkVideoDuplicate(
+              validationResult.platform,
+              validationResult.platformID,
+            )
 
             // 检查是否与已解析的数据重复
             if (!isDuplicate) {
-              isDuplicate = parsedData.some(existing => {
-                if (!existing.validationResult || !existing.validationResult.platform || !existing.validationResult.platformID) {
-                  return false;
+              isDuplicate = parsedData.some((existing) => {
+                if (
+                  !existing.validationResult ||
+                  !existing.validationResult.platform ||
+                  !existing.validationResult.platformID
+                ) {
+                  return false
                 }
-                return existing.validationResult.platform.toLowerCase() === validationResult.platform.toLowerCase() &&
-                       existing.validationResult.platformID === validationResult.platformID;
-              });
+                return (
+                  existing.validationResult.platform.toLowerCase() ===
+                    validationResult.platform.toLowerCase() &&
+                  existing.validationResult.platformID === validationResult.platformID
+                )
+              })
             }
           }
 
@@ -1160,82 +1198,84 @@ export default {
             sku,
             rowIndex: index + 2, // 实际行号（考虑标题行）
             validationResult,
-            isDuplicate
-          });
+            isDuplicate,
+          })
         }
-      });
+      })
 
-      this.previewData = parsedData;
+      this.previewData = parsedData
 
       if (parsedData.length === 0) {
-        ElMessage.warning('Excel文件中没有找到有效数据');
+        ElMessage.warning('Excel文件中没有找到有效数据')
       } else {
-        ElMessage.success(`成功解析 ${parsedData.length} 行数据`);
+        ElMessage.success(`成功解析 ${parsedData.length} 行数据`)
       }
     },
 
-            // 处理批量导入
+    // 处理批量导入
     processBatchImport() {
       if (this.previewData.length === 0) {
-        ElMessage.warning('请先选择并解析Excel文件');
-        return;
+        ElMessage.warning('请先选择并解析Excel文件')
+        return
       }
 
-      const newVideos = [];
-      const errors = [];
-      const duplicates = [];
-      const skipped = [];
+      const newVideos = []
+      const errors = []
+      const duplicates = []
+      const skipped = []
 
       this.previewData.forEach((row) => {
-        let { url } = row;
-        const { brand, sku, rowIndex } = row;
+        let { url } = row
+        const { brand, sku, rowIndex } = row
 
         // 检查必填字段
         if (!url) {
-          errors.push(`第 ${rowIndex} 行缺少视频链接`);
-          return;
+          errors.push(`第 ${rowIndex} 行缺少视频链接`)
+          return
         }
 
         if (!brand) {
-          errors.push(`第 ${rowIndex} 行缺少品牌信息`);
-          return;
+          errors.push(`第 ${rowIndex} 行缺少品牌信息`)
+          return
         }
 
         if (!sku) {
-          errors.push(`第 ${rowIndex} 行缺少SKU信息`);
-          return;
+          errors.push(`第 ${rowIndex} 行缺少SKU信息`)
+          return
         }
 
         // 验证URL有效性
-        const result = this.validateSingleVideoUrl(url);
+        const result = this.validateSingleVideoUrl(url)
 
         if (!result.isValid) {
-          errors.push(`第 ${rowIndex} 行：${result.error} (${url})`);
-          return;
+          errors.push(`第 ${rowIndex} 行：${result.error} (${url})`)
+          return
         }
 
         // 使用验证后的数据
-        url = result.normalizedUrl;
-        const platform = result.platform;
-        const platformID = result.platformID;
+        url = result.normalizedUrl
+        const platform = result.platform
+        const platformID = result.platformID
 
         // 检查是否与现有视频重复
-        const isDuplicate = this.checkVideoDuplicate(platform, platformID);
+        const isDuplicate = this.checkVideoDuplicate(platform, platformID)
         if (isDuplicate) {
-          console.log(`发现重复视频: ${platform} - ${platformID}`);
-          duplicates.push(`第 ${rowIndex} 行：${platform} 平台的视频 ${platformID} 已存在`);
-          return;
+          console.log(`发现重复视频: ${platform} - ${platformID}`)
+          duplicates.push(`第 ${rowIndex} 行：${platform} 平台的视频 ${platformID} 已存在`)
+          return
         }
 
         // 检查是否与即将添加的视频重复
-        const isDuplicateInNew = newVideos.some(video =>
-          video.platform && video.platformID &&
-          video.platform.toLowerCase() === platform.toLowerCase() &&
-          video.platformID === platformID
-        );
+        const isDuplicateInNew = newVideos.some(
+          (video) =>
+            video.platform &&
+            video.platformID &&
+            video.platform.toLowerCase() === platform.toLowerCase() &&
+            video.platformID === platformID,
+        )
         if (isDuplicateInNew) {
-          skipped.push(`第 ${rowIndex} 行：与导入列表中的其他视频重复`);
-          return;
+          skipped.push(`第 ${rowIndex} 行：与导入列表中的其他视频重复`)
+          return
         }
 
         newVideos.push({
@@ -1243,57 +1283,63 @@ export default {
           brand,
           sku,
           platform,
-          platformID
-        });
-      });
+          platformID,
+        })
+      })
 
       // 显示处理结果
       if (errors.length > 0) {
-        ElMessage.error(`导入失败：\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n...' : ''}`);
-        return;
+        ElMessage.error(
+          `导入失败：\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n...' : ''}`,
+        )
+        return
       }
 
       if (newVideos.length === 0) {
         if (duplicates.length > 0 || skipped.length > 0) {
-          const allMessages = [...duplicates, ...skipped];
-          ElMessage.warning(`没有新视频可以导入：\n${allMessages.slice(0, 5).join('\n')}${allMessages.length > 5 ? '\n...' : ''}`);
+          const allMessages = [...duplicates, ...skipped]
+          ElMessage.warning(
+            `没有新视频可以导入：\n${allMessages.slice(0, 5).join('\n')}${allMessages.length > 5 ? '\n...' : ''}`,
+          )
         } else {
-          ElMessage.warning('没有有效的视频数据可以导入');
+          ElMessage.warning('没有有效的视频数据可以导入')
         }
-        return;
+        return
       }
 
       // 移除现有的空行（如果只有一行且为空）
-      if (this.monitoredVideos.length === 1 &&
-          !this.monitoredVideos[0].url &&
-          !this.monitoredVideos[0].brand &&
-          !this.monitoredVideos[0].sku) {
-        this.monitoredVideos = [];
+      if (
+        this.monitoredVideos.length === 1 &&
+        !this.monitoredVideos[0].url &&
+        !this.monitoredVideos[0].brand &&
+        !this.monitoredVideos[0].sku
+      ) {
+        this.monitoredVideos = []
       }
 
       // 添加新视频
-      this.monitoredVideos.push(...newVideos);
+      this.monitoredVideos.push(...newVideos)
 
       // 构建成功消息
-      let successMessage = `成功导入 ${newVideos.length} 条视频`;
+      let successMessage = `成功导入 ${newVideos.length} 条视频`
       if (duplicates.length > 0) {
-        successMessage += `，跳过 ${duplicates.length} 条重复视频`;
+        successMessage += `，跳过 ${duplicates.length} 条重复视频`
       }
       if (skipped.length > 0) {
-        successMessage += `，跳过 ${skipped.length} 条导入列表内重复`;
+        successMessage += `，跳过 ${skipped.length} 条导入列表内重复`
       }
 
-      ElMessage.success(successMessage);
-      this.closeBatchImport();
+      ElMessage.success(successMessage)
+      this.closeBatchImport()
     },
-  }
+  },
 }
 </script>
 
 <style scoped>
 .new-keyword-project {
   padding: 20px;
-  background-color: #fff;
+  background-color: var(--color-background);
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -1406,8 +1452,8 @@ label {
   background-color: #73d13d;
 }
 
-input[type="text"],
-input[type="number"] {
+input[type='text'],
+input[type='number'] {
   height: 36px;
   padding: 0 10px;
   border: 1px solid #ddd;
@@ -1416,10 +1462,10 @@ input[type="number"] {
   transition: border-color 0.3s;
 }
 
-input[type="text"]:hover,
-input[type="number"]:hover,
-input[type="text"]:focus,
-input[type="number"]:focus {
+input[type='text']:hover,
+input[type='number']:hover,
+input[type='text']:focus,
+input[type='number']:focus {
   border-color: #1890ff;
   outline: none;
 }
@@ -1445,7 +1491,7 @@ input[type="number"]:focus {
   padding: 0 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #fff;
+  background-color: var(--el-bg-color);
   cursor: pointer;
   transition: border-color 0.3s;
 }
@@ -1476,7 +1522,7 @@ input[type="number"]:focus {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: var(--el-bg-color);
   border: 1px solid #ddd;
   border-top: none;
   border-radius: 0 0 4px 4px;
@@ -1674,7 +1720,9 @@ button {
 }
 
 @media (max-width: 768px) {
-  .form-row, .form-actions, .delete-container {
+  .form-row,
+  .form-actions,
+  .delete-container {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1775,7 +1823,7 @@ button {
 }
 
 .modal-content {
-  background-color: white;
+  background-color: var(--el-bg-color);
   border-radius: 8px;
   width: 95%;
   max-width: 900px;
@@ -1918,7 +1966,7 @@ button {
 .preview-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: white;
+  background-color: var(--el-bg-color);
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -2001,8 +2049,6 @@ button {
 .status-unknown {
   color: #999;
 }
-
-
 
 .modal-footer {
   display: flex;

@@ -9,7 +9,7 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">项目名称：</label>
-          <input v-model="projectName" type="text" placeholder="请输入项目名称" />
+          <el-input v-model="projectName" type="text" placeholder="请输入项目名称" />
         </div>
       </div>
 
@@ -25,7 +25,7 @@
       <div class="form-row">
         <div class="form-item">
           <label class="required">新闻搜索条数：</label>
-          <input
+          <el-input
             v-model.number="newsSearchCount"
             type="number"
             min="1"
@@ -43,7 +43,7 @@
           <div class="custom-select">
             <div class="select-container" @click="toggleTimeRangeDropdown">
               <span class="select-value">{{ getTimeRangeLabel(crawlTimeRange) }}</span>
-              <span class="dropdown-arrow" :class="{ 'open': timeRangeDropdownOpen }">▼</span>
+              <span class="dropdown-arrow" :class="{ open: timeRangeDropdownOpen }">▼</span>
             </div>
             <div v-if="timeRangeDropdownOpen" class="dropdown-options">
               <div
@@ -62,7 +62,7 @@
           <div class="custom-select">
             <div class="select-container" @click="toggleFrequencyDropdown">
               <span class="select-value">{{ getFrequencyLabel(crawlFrequency) }}</span>
-              <span class="dropdown-arrow" :class="{ 'open': frequencyDropdownOpen }">▼</span>
+              <span class="dropdown-arrow" :class="{ open: frequencyDropdownOpen }">▼</span>
             </div>
             <div v-if="frequencyDropdownOpen" class="dropdown-options">
               <div
@@ -164,24 +164,20 @@
             <tbody>
               <tr v-for="(keyword, index) in keywords" :key="index">
                 <td>
-                  <input
-                    v-model="keyword.word"
-                    placeholder="关键字，逗号分隔"
-                  />
+                  <el-input v-model="keyword.word" placeholder="关键字，逗号分隔" />
                 </td>
                 <td>
-                  <input v-model="keyword.include" placeholder="必须包含的内容，逗号分隔" />
+                  <el-input v-model="keyword.include" placeholder="必须包含的内容，逗号分隔" />
                 </td>
                 <td>
-                  <input v-model="keyword.exclude" placeholder="不包含的内容，逗号分隔" />
+                  <el-input v-model="keyword.exclude" placeholder="不包含的内容，逗号分隔" />
                 </td>
                 <td>
                   <button class="btn-delete" @click="removeKeyword(index)">-</button>
                 </td>
               </tr>
               <tr>
-                <td colspan="3">
-                </td>
+                <td colspan="3"></td>
                 <td>
                   <button class="btn-add" @click="addKeyword">+</button>
                 </td>
@@ -211,11 +207,7 @@
           </span>
         </div>
         <div class="action-buttons">
-          <button
-            v-if="shouldShowCancelButton"
-            class="btn-cancel"
-            @click="cancelChanges"
-          >
+          <button v-if="shouldShowCancelButton" class="btn-cancel" @click="cancelChanges">
             取消
           </button>
           <button
@@ -247,16 +239,23 @@
 </template>
 
 <script lang="ts">
-import { createProject, getProjectById, updateProject, deleteProject, executeDataCrawlTask, getDataCrawlProgress } from '@/api/project/project';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  createProject,
+  getProjectById,
+  updateProject,
+  deleteProject,
+  executeDataCrawlTask,
+  getDataCrawlProgress,
+} from '@/api/project/project'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 interface CrawlProgress {
-  currentStage: string;
-  currentStageProgress: number;
-  totalProgress: number;
-  estimatedTimeRemaining: number;
-  startTime: string;
-  estimatedEndTime: string | null;
+  currentStage: string
+  currentStageProgress: number
+  totalProgress: number
+  estimatedTimeRemaining: number
+  startTime: string
+  estimatedEndTime: string | null
 }
 export default {
   name: 'NewKeywordProjectView',
@@ -274,9 +273,7 @@ export default {
       crawlFrequency: '',
       selectedLanguages: [] as string[],
       selectedRegions: [] as string[],
-      keywords: [
-        { word: '', include: '', exclude: '' }
-      ],
+      keywords: [{ word: '', include: '', exclude: '' }],
       languageDropdownOpen: false,
       regionDropdownOpen: false,
       timeRangeDropdownOpen: false,
@@ -311,7 +308,7 @@ export default {
       frequencyOptions: [
         { value: '24', label: '每天抓取' },
         { value: '168', label: '每周抓取' },
-        { value: '720', label: '每月抓取' }
+        { value: '720', label: '每月抓取' },
       ],
       languageOptions: [
         { value: 'zh-CN', label: '中文(简体)' },
@@ -324,7 +321,7 @@ export default {
         { value: 'es', label: '西班牙语' },
         { value: 'it', label: '意大利语' },
         { value: 'ru', label: '俄语' },
-        { value: 'ar', label: '阿拉伯语' }
+        { value: 'ar', label: '阿拉伯语' },
       ],
       regionOptions: [
         { value: 'CN', label: '中国' },
@@ -338,235 +335,239 @@ export default {
         { value: 'AU', label: '澳大利亚' },
         { value: 'ES', label: '西班牙' },
         { value: 'IT', label: '意大利' },
-        { value: 'IN', label: '印度' }
-      ]
+        { value: 'IN', label: '印度' },
+      ],
     }
   },
   computed: {
     // 表单验证
     isFormValid() {
-      const hasValidKeywords = this.keywords.some(keyword => keyword.word.trim());
-      return this.projectName.trim() &&
-             this.newsSearchCount > 0 &&
-             this.crawlTimeRange &&
-             this.crawlFrequency &&
-             this.selectedLanguages.length > 0 &&
-             this.selectedRegions.length > 0 &&
-             hasValidKeywords;
+      const hasValidKeywords = this.keywords.some((keyword) => keyword.word.trim())
+      return (
+        this.projectName.trim() &&
+        this.newsSearchCount > 0 &&
+        this.crawlTimeRange &&
+        this.crawlFrequency &&
+        this.selectedLanguages.length > 0 &&
+        this.selectedRegions.length > 0 &&
+        hasValidKeywords
+      )
     },
 
     // 是否可以保存
     canSave() {
       if (this.isEditMode) {
         // 编辑模式：有变更且表单有效
-        return this.hasChanges && this.isFormValid;
+        return this.hasChanges && this.isFormValid
       } else {
         // 新建模式：表单有效
-        return this.isFormValid;
+        return this.isFormValid
       }
     },
 
     // 是否显示删除按钮
     shouldShowDeleteButton() {
-      return this.isEditMode || this.projectStatus === 'created';
+      return this.isEditMode || this.projectStatus === 'created'
     },
 
     // 是否可以点击删除
     canClickDelete() {
-      return !this.hasChanges;
+      return !this.hasChanges
     },
 
     // 是否显示取消按钮
     shouldShowCancelButton() {
       if (!this.isEditMode && this.projectStatus === 'creating') {
         // 新建模式，一直显示取消按钮
-        return true;
+        return true
       }
       // 编辑模式或已创建，只有有变更时显示
-      return this.hasChanges;
+      return this.hasChanges
     },
 
     // 是否显示搜索测试按钮
     shouldShowTestButton() {
-      return !this.hasChanges && (this.projectStatus === 'created' || (this.isEditMode && !this.hasChanges));
+      return (
+        !this.hasChanges &&
+        (this.projectStatus === 'created' || (this.isEditMode && !this.hasChanges))
+      )
     },
 
     // 进度显示文本
     progressDisplayText() {
       if (this.searchTestProgress) {
-        const progress = this.searchTestProgress;
-        return `${progress.currentStage} ${progress.totalProgress}%`;
+        const progress = this.searchTestProgress
+        return `${progress.currentStage} ${progress.totalProgress}%`
       }
-      return '测试中...';
-    }
+      return '测试中...'
+    },
   },
   watch: {
     // 添加路由监听
-    '$route'(to, from) {
-      console.log('路由变化:', { to, from });
+    $route(to, from) {
+      console.log('路由变化:', { to, from })
       if (to.path === from.path) {
         // 停止之前的进度轮询
-        this.stopProgressPolling();
+        this.stopProgressPolling()
         // 重置按钮状态
-        this.searchTestButtonDisabled = true;
+        this.searchTestButtonDisabled = true
         // 同一个路由但参数变化，重新初始化
-        this.initializePageMode();
+        this.initializePageMode()
         // 检查新项目的搜索测试状态
         this.$nextTick(() => {
-          this.checkRunningSearchTest();
-        });
+          this.checkRunningSearchTest()
+        })
       }
     },
     // 监听所有可能变更的字段
     projectName() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     newsSearchCount() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     crawlTimeRange() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     crawlFrequency() {
-      this.checkForChanges();
+      this.checkForChanges()
     },
     selectedLanguages: {
       handler() {
-        this.checkForChanges();
+        this.checkForChanges()
         // 更新语言全选状态
         if (this.selectedLanguages.length === 0) {
-          this.languageCheckAll = false;
-          this.languageIndeterminate = false;
+          this.languageCheckAll = false
+          this.languageIndeterminate = false
         } else if (this.selectedLanguages.length === this.languageOptions.length) {
-          this.languageCheckAll = true;
-          this.languageIndeterminate = false;
+          this.languageCheckAll = true
+          this.languageIndeterminate = false
         } else {
-          this.languageIndeterminate = true;
+          this.languageIndeterminate = true
         }
       },
-      deep: true
+      deep: true,
     },
     selectedRegions: {
       handler() {
-        this.checkForChanges();
+        this.checkForChanges()
         // 更新地区全选状态
         if (this.selectedRegions.length === 0) {
-          this.regionCheckAll = false;
-          this.regionIndeterminate = false;
+          this.regionCheckAll = false
+          this.regionIndeterminate = false
         } else if (this.selectedRegions.length === this.regionOptions.length) {
-          this.regionCheckAll = true;
-          this.regionIndeterminate = false;
+          this.regionCheckAll = true
+          this.regionIndeterminate = false
         } else {
-          this.regionIndeterminate = true;
+          this.regionIndeterminate = true
         }
       },
-      deep: true
+      deep: true,
     },
     keywords: {
       handler() {
-        this.checkForChanges();
+        this.checkForChanges()
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   mounted() {
     // 根据路由参数判断是新建还是编辑模式
-    this.initializePageMode();
+    this.initializePageMode()
 
     // 点击外部关闭下拉框
-    document.addEventListener('click', this.handleClickOutside);
+    document.addEventListener('click', this.handleClickOutside)
     // 保存初始表单数据
-    this.saveInitialFormData();
+    this.saveInitialFormData()
 
     // 检查是否有正在运行的搜索测试
-    this.checkRunningSearchTest();
+    this.checkRunningSearchTest()
   },
   beforeUnmount() {
-    document.removeEventListener('click', this.handleClickOutside);
+    document.removeEventListener('click', this.handleClickOutside)
     // 清理进度轮询定时器
-    this.stopProgressPolling();
+    this.stopProgressPolling()
   },
   methods: {
     // 初始化页面模式
     initializePageMode() {
-      const projectId = this.$route.params.id || this.$route.query.projectId;
-      const isEdit = this.$route.query.isEdit === 'true';
-      const newlyCreated = this.$route.query.newlyCreated === 'true';
+      const projectId = this.$route.params.id || this.$route.query.projectId
+      const isEdit = this.$route.query.isEdit === 'true'
+      const newlyCreated = this.$route.query.newlyCreated === 'true'
 
       if (projectId && newlyCreated) {
         // 新创建的项目，设置为已创建状态，使用当前表单数据
-        this.isEditMode = false;
-        this.projectStatus = 'created';
+        this.isEditMode = false
+        this.projectStatus = 'created'
         // 重新保存表单数据为初始状态
         this.$nextTick(() => {
-          this.saveInitialFormData();
-          this.hasChanges = false;
-        });
+          this.saveInitialFormData()
+          this.hasChanges = false
+        })
       } else if (projectId && projectId !== 'new' && isEdit) {
-        this.isEditMode = true;
-        this.projectStatus = 'editing';
-        this.loadProjectData(projectId);
+        this.isEditMode = true
+        this.projectStatus = 'editing'
+        this.loadProjectData(projectId)
       } else {
-        this.isEditMode = false;
-        this.projectStatus = 'creating';
-        this.setDefaultValues();
+        this.isEditMode = false
+        this.projectStatus = 'creating'
+        this.setDefaultValues()
       }
     },
 
     // 设置新建时的默认值
     setDefaultValues() {
-    const projectName = this.$route.query.projectName;
-    this.projectName = projectName || '';
-    this.newsSearchCount = 100; // 默认100
-    this.crawlTimeRange = '720'; // 默认近30天
-    this.crawlFrequency = '168'; // 默认每周抓取
-    this.selectedLanguages = ['zh-CN']; // 默认中文简体
-    this.selectedRegions = ['CN']; // 默认中国
-    this.keywords = [{ word: '', include: '', exclude: '' }];
-  },
+      const projectName = this.$route.query.projectName
+      this.projectName = projectName || ''
+      this.newsSearchCount = 100 // 默认100
+      this.crawlTimeRange = '720' // 默认近30天
+      this.crawlFrequency = '168' // 默认每周抓取
+      this.selectedLanguages = ['zh-CN'] // 默认中文简体
+      this.selectedRegions = ['CN'] // 默认中国
+      this.keywords = [{ word: '', include: '', exclude: '' }]
+    },
 
     // 加载项目数据（编辑模式）
     async loadProjectData(projectId) {
       try {
-        const response = await getProjectById(projectId);
+        const response = await getProjectById(projectId)
 
         if (response.code === 0) {
-          const project = response.data;
+          const project = response.data
 
           // 填充表单数据
-          this.projectName = project.name || '';
-          this.newsSearchCount = project.newsSearchCount || 500;
-          this.crawlTimeRange = String(project.fetchTime || '720');
-          this.crawlFrequency = String(project.crawlFrequency || '24');
-          this.selectedLanguages = project.searchLanguages || ['zh-CN'];
-          this.selectedRegions = project.searchRegions || ['CN'];
+          this.projectName = project.name || ''
+          this.newsSearchCount = project.newsSearchCount || 500
+          this.crawlTimeRange = String(project.fetchTime || '720')
+          this.crawlFrequency = String(project.crawlFrequency || '24')
+          this.selectedLanguages = project.searchLanguages || ['zh-CN']
+          this.selectedRegions = project.searchRegions || ['CN']
 
           // 转换关键词格式
-          this.keywords = project.monitorKeywords && project.monitorKeywords.length > 0
-            ? project.monitorKeywords.map(kw => ({
-                word: kw.keywords,
-                include: kw.includeWords,
-                exclude: kw.excludeWords
-              }))
-            : [{ word: '', include: '', exclude: '' }];
+          this.keywords =
+            project.monitorKeywords && project.monitorKeywords.length > 0
+              ? project.monitorKeywords.map((kw) => ({
+                  word: kw.keywords,
+                  include: kw.includeWords,
+                  exclude: kw.excludeWords,
+                }))
+              : [{ word: '', include: '', exclude: '' }]
 
           // 重新保存初始数据
           this.$nextTick(() => {
-            this.saveInitialFormData();
-            this.hasChanges = false;
+            this.saveInitialFormData()
+            this.hasChanges = false
             // 检查是否有正在运行的搜索测试
-            this.checkRunningSearchTest();
-          });
-
+            this.checkRunningSearchTest()
+          })
         } else {
-          ElMessage.error(`加载项目数据失败：${response.msg}`);
-          this.$router.go(-1);
+          ElMessage.error(`加载项目数据失败：${response.msg}`)
+          this.$router.go(-1)
         }
-
       } catch (error) {
-        console.error('加载项目数据失败:', error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
-        this.$router.go(-1);
+        console.error('加载项目数据失败:', error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
+        this.$router.go(-1)
       } finally {
         // 数据加载完成
       }
@@ -581,13 +582,13 @@ export default {
         crawlFrequency: this.crawlFrequency,
         selectedLanguages: [...this.selectedLanguages],
         selectedRegions: [...this.selectedRegions],
-        keywords: JSON.parse(JSON.stringify(this.keywords))
-      };
+        keywords: JSON.parse(JSON.stringify(this.keywords)),
+      }
     },
 
     // 检测表单是否有变更
     checkForChanges() {
-      if (!this.initialFormData) return;
+      if (!this.initialFormData) return
 
       const currentData = {
         projectName: this.projectName,
@@ -596,188 +597,188 @@ export default {
         crawlFrequency: this.crawlFrequency,
         selectedLanguages: [...this.selectedLanguages],
         selectedRegions: [...this.selectedRegions],
-        keywords: JSON.parse(JSON.stringify(this.keywords))
-      };
+        keywords: JSON.parse(JSON.stringify(this.keywords)),
+      }
 
-      this.hasChanges = !this.isDataEqual(this.initialFormData, currentData);
+      this.hasChanges = !this.isDataEqual(this.initialFormData, currentData)
 
       // 如果有变更，更新项目状态
       if (this.hasChanges && this.projectStatus !== 'creating') {
-        this.projectStatus = 'editing';
+        this.projectStatus = 'editing'
       }
     },
 
     // 深度比较两个对象是否相等
     isDataEqual(obj1: any, obj2: any) {
-      return JSON.stringify(obj1) === JSON.stringify(obj2);
+      return JSON.stringify(obj1) === JSON.stringify(obj2)
     },
 
     // 取消变更
     cancelChanges() {
       if (!this.isEditMode && this.projectStatus === 'creating') {
         // 新建模式的取消，返回上一页
-        this.$router.go(-1);
+        this.$router.go(-1)
       } else {
         // 编辑模式的取消，恢复原始数据
         if (this.initialFormData) {
-          this.projectName = this.initialFormData.projectName;
-          this.newsSearchCount = this.initialFormData.newsSearchCount;
-          this.crawlTimeRange = this.initialFormData.crawlTimeRange;
-          this.crawlFrequency = this.initialFormData.crawlFrequency;
-          this.selectedLanguages = [...this.initialFormData.selectedLanguages];
-          this.selectedRegions = [...this.initialFormData.selectedRegions];
-          this.keywords = JSON.parse(JSON.stringify(this.initialFormData.keywords));
+          this.projectName = this.initialFormData.projectName
+          this.newsSearchCount = this.initialFormData.newsSearchCount
+          this.crawlTimeRange = this.initialFormData.crawlTimeRange
+          this.crawlFrequency = this.initialFormData.crawlFrequency
+          this.selectedLanguages = [...this.initialFormData.selectedLanguages]
+          this.selectedRegions = [...this.initialFormData.selectedRegions]
+          this.keywords = JSON.parse(JSON.stringify(this.initialFormData.keywords))
 
-          this.hasChanges = false;
-          this.projectStatus = this.isEditMode ? 'saved' : 'created';
+          this.hasChanges = false
+          this.projectStatus = this.isEditMode ? 'saved' : 'created'
         }
       }
     },
 
     validateNewsSearchCount() {
       if (this.newsSearchCount !== null && this.newsSearchCount < 1) {
-        this.newsSearchCount = 1;
+        this.newsSearchCount = 1
       } else if (this.newsSearchCount !== null && this.newsSearchCount > 10000) {
-        this.newsSearchCount = 10000;
+        this.newsSearchCount = 10000
         this.$nextTick(() => {
-          ElMessage.warning('新闻搜索条数不能超过10000条');
-        });
+          ElMessage.warning('新闻搜索条数不能超过10000条')
+        })
       }
     },
     addKeyword() {
-      this.keywords.push({ word: '', include: '', exclude: '' });
+      this.keywords.push({ word: '', include: '', exclude: '' })
     },
     removeKeyword(index) {
-      this.keywords.splice(index, 1);
+      this.keywords.splice(index, 1)
       if (this.keywords.length === 0) {
-        this.keywords.push({ word: '', include: '', exclude: '' });
+        this.keywords.push({ word: '', include: '', exclude: '' })
       }
     },
     toggleLanguageDropdown() {
-      this.languageDropdownOpen = !this.languageDropdownOpen;
-      this.regionDropdownOpen = false;
-      this.timeRangeDropdownOpen = false;
-      this.frequencyDropdownOpen = false;
+      this.languageDropdownOpen = !this.languageDropdownOpen
+      this.regionDropdownOpen = false
+      this.timeRangeDropdownOpen = false
+      this.frequencyDropdownOpen = false
     },
     toggleRegionDropdown() {
-      this.regionDropdownOpen = !this.regionDropdownOpen;
-      this.languageDropdownOpen = false;
-      this.timeRangeDropdownOpen = false;
-      this.frequencyDropdownOpen = false;
+      this.regionDropdownOpen = !this.regionDropdownOpen
+      this.languageDropdownOpen = false
+      this.timeRangeDropdownOpen = false
+      this.frequencyDropdownOpen = false
     },
     toggleTimeRangeDropdown() {
-      this.timeRangeDropdownOpen = !this.timeRangeDropdownOpen;
-      this.frequencyDropdownOpen = false;
-      this.languageDropdownOpen = false;
-      this.regionDropdownOpen = false;
+      this.timeRangeDropdownOpen = !this.timeRangeDropdownOpen
+      this.frequencyDropdownOpen = false
+      this.languageDropdownOpen = false
+      this.regionDropdownOpen = false
     },
     toggleFrequencyDropdown() {
-      this.frequencyDropdownOpen = !this.frequencyDropdownOpen;
-      this.timeRangeDropdownOpen = false;
-      this.languageDropdownOpen = false;
-      this.regionDropdownOpen = false;
+      this.frequencyDropdownOpen = !this.frequencyDropdownOpen
+      this.timeRangeDropdownOpen = false
+      this.languageDropdownOpen = false
+      this.regionDropdownOpen = false
     },
     selectTimeRange(value) {
-      this.crawlTimeRange = value;
-      this.timeRangeDropdownOpen = false;
+      this.crawlTimeRange = value
+      this.timeRangeDropdownOpen = false
     },
     selectFrequency(value) {
-      this.crawlFrequency = value;
-      this.frequencyDropdownOpen = false;
+      this.crawlFrequency = value
+      this.frequencyDropdownOpen = false
     },
     getTimeRangeLabel(value) {
-      const option = this.timeRangeOptions.find(o => o.value === value);
-      return option ? option.label : '请选择';
+      const option = this.timeRangeOptions.find((o) => o.value === value)
+      return option ? option.label : '请选择'
     },
     getFrequencyLabel(value) {
-      const option = this.frequencyOptions.find(o => o.value === value);
-      return option ? option.label : '请选择';
+      const option = this.frequencyOptions.find((o) => o.value === value)
+      return option ? option.label : '请选择'
     },
     toggleLanguage(languageValue) {
-      const index = this.selectedLanguages.indexOf(languageValue);
+      const index = this.selectedLanguages.indexOf(languageValue)
       if (index > -1) {
-        this.selectedLanguages.splice(index, 1);
+        this.selectedLanguages.splice(index, 1)
       } else {
-        this.selectedLanguages.push(languageValue);
+        this.selectedLanguages.push(languageValue)
       }
     },
     removeLanguage(languageValue) {
-      const index = this.selectedLanguages.indexOf(languageValue);
+      const index = this.selectedLanguages.indexOf(languageValue)
       if (index > -1) {
-        this.selectedLanguages.splice(index, 1);
+        this.selectedLanguages.splice(index, 1)
       }
     },
     getLanguageLabel(value) {
-      const language = this.languageOptions.find(l => l.value === value);
-      return language ? language.label : value;
+      const language = this.languageOptions.find((l) => l.value === value)
+      return language ? language.label : value
     },
     toggleRegion(regionValue) {
-      const index = this.selectedRegions.indexOf(regionValue);
+      const index = this.selectedRegions.indexOf(regionValue)
       if (index > -1) {
-        this.selectedRegions.splice(index, 1);
+        this.selectedRegions.splice(index, 1)
       } else {
-        this.selectedRegions.push(regionValue);
+        this.selectedRegions.push(regionValue)
       }
     },
     removeRegion(regionValue) {
-      const index = this.selectedRegions.indexOf(regionValue);
+      const index = this.selectedRegions.indexOf(regionValue)
       if (index > -1) {
-        this.selectedRegions.splice(index, 1);
+        this.selectedRegions.splice(index, 1)
       }
     },
     getRegionLabel(value) {
-      const region = this.regionOptions.find(r => r.value === value);
-      return region ? region.label : value;
+      const region = this.regionOptions.find((r) => r.value === value)
+      return region ? region.label : value
     },
 
     // Element Plus 全选处理函数
     handleLanguageCheckAll(val) {
-      this.languageIndeterminate = false;
+      this.languageIndeterminate = false
       if (val) {
-        this.selectedLanguages = this.languageOptions.map(lang => lang.value);
+        this.selectedLanguages = this.languageOptions.map((lang) => lang.value)
       } else {
-        this.selectedLanguages = [];
+        this.selectedLanguages = []
       }
     },
 
     handleRegionCheckAll(val) {
-      this.regionIndeterminate = false;
+      this.regionIndeterminate = false
       if (val) {
-        this.selectedRegions = this.regionOptions.map(region => region.value);
+        this.selectedRegions = this.regionOptions.map((region) => region.value)
       } else {
-        this.selectedRegions = [];
+        this.selectedRegions = []
       }
     },
     handleClickOutside(event) {
-      const languageMultiselect = this.$el.querySelector('.language-multiselect');
-      const regionMultiselect = this.$el.querySelector('.region-multiselect');
-      const timeRangeSelects = this.$el.querySelectorAll('.custom-select');
+      const languageMultiselect = this.$el.querySelector('.language-multiselect')
+      const regionMultiselect = this.$el.querySelector('.region-multiselect')
+      const timeRangeSelects = this.$el.querySelectorAll('.custom-select')
 
       if (languageMultiselect && !languageMultiselect.contains(event.target)) {
-        this.languageDropdownOpen = false;
+        this.languageDropdownOpen = false
       }
 
       if (regionMultiselect && !regionMultiselect.contains(event.target)) {
-        this.regionDropdownOpen = false;
+        this.regionDropdownOpen = false
       }
 
-      let clickedInCustomSelect = false;
-      timeRangeSelects.forEach(select => {
+      let clickedInCustomSelect = false
+      timeRangeSelects.forEach((select) => {
         if (select.contains(event.target)) {
-          clickedInCustomSelect = true;
+          clickedInCustomSelect = true
         }
-      });
+      })
 
       if (!clickedInCustomSelect) {
-        this.timeRangeDropdownOpen = false;
-        this.frequencyDropdownOpen = false;
+        this.timeRangeDropdownOpen = false
+        this.frequencyDropdownOpen = false
       }
     },
 
     async saveProject() {
       if (!this.isFormValid) {
-        ElMessage.warning('请填写完整的表单信息');
-        return;
+        ElMessage.warning('请填写完整的表单信息')
+        return
       }
 
       const projectData = {
@@ -788,49 +789,51 @@ export default {
         crawlFrequency: this.crawlFrequency,
         searchLanguages: this.selectedLanguages,
         searchRegions: this.selectedRegions,
-        monitorKeywords: this.keywords.filter(k => k.word.trim()).map((kw, index) => ({
-          index: index,
-          keywords: kw.word,
-          includeWords: kw.include,
-          excludeWords: kw.exclude
-        }))
-      };
+        monitorKeywords: this.keywords
+          .filter((k) => k.word.trim())
+          .map((kw, index) => ({
+            index: index,
+            keywords: kw.word,
+            includeWords: kw.include,
+            excludeWords: kw.exclude,
+          })),
+      }
 
       // 如果是编辑模式，需要添加项目ID
       if (this.isEditMode) {
-        const projectId = this.$route.params.id || this.$route.query.projectId;
-        projectData.projectId = projectId;
+        const projectId = this.$route.params.id || this.$route.query.projectId
+        projectData.projectId = projectId
       }
 
       try {
-        let response;
+        let response
 
         if (this.isEditMode) {
-          response = await updateProject(projectData);
+          response = await updateProject(projectData)
         } else {
-          response = await createProject(projectData);
+          response = await createProject(projectData)
         }
 
-        console.log('API响应:', response);
+        console.log('API响应:', response)
 
         // 判断响应是否成功 - 支持多种成功码
-        const isSuccess = response && (
-          response.code === 0 ||
-          response.code === '0' ||
-          response.code === 200 ||
-          response.code === '200'
-        );
+        const isSuccess =
+          response &&
+          (response.code === 0 ||
+            response.code === '0' ||
+            response.code === 200 ||
+            response.code === '200')
 
         if (isSuccess && response.data) {
-          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data);
-          ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`);
+          console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data)
+          ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`)
 
           if (!this.isEditMode) {
-            const projectId = response.data.projectId || response.data.id;
-            const projectName = response.data.name || response.data.projectName;
-            const projectType = response.data.type || response.data.projectType;
+            const projectId = response.data.projectId || response.data.id
+            const projectName = response.data.name || response.data.projectName
+            const projectType = response.data.type || response.data.projectType
 
-            const projectIdStr = String(projectId);
+            const projectIdStr = String(projectId)
 
             if (projectIdStr && projectIdStr !== 'undefined') {
               this.$router.push({
@@ -841,42 +844,45 @@ export default {
                   projectType: projectType,
                   refresh: 'true',
                   page: 'settings',
-                  newlyCreated: 'true'
-                }
-              });
+                  newlyCreated: 'true',
+                },
+              })
             } else {
-              console.error('响应数据中缺少项目ID:', response.data);
-              ElMessage.error('项目保存成功，但跳转失败，请手动刷新页面');
+              console.error('响应数据中缺少项目ID:', response.data)
+              ElMessage.error('项目保存成功，但跳转失败，请手动刷新页面')
             }
           } else {
-            this.saveInitialFormData();
-            this.hasChanges = false;
+            this.saveInitialFormData()
+            this.hasChanges = false
           }
         } else {
-          const errorMsg = response?.msg || response?.message || '保存失败，请重试';
-          console.error('项目保存失败:', { response, errorMsg });
-          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`);
+          const errorMsg = response?.msg || response?.message || '保存失败，请重试'
+          console.error('项目保存失败:', { response, errorMsg })
+          ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`)
         }
-
       } catch (error) {
-        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
+        console.error(`${this.isEditMode ? '更新' : '保存'}项目失败:`, error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
       }
     },
 
     // 确认删除项目
     async confirmDelete() {
       if (!this.canClickDelete) {
-        return;
+        return
       }
 
       try {
-        await ElMessageBox.confirm(`确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`, '确认删除', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        });
-        this.deleteProject();
+        await ElMessageBox.confirm(
+          `确定要删除项目"${this.projectName}"吗？\n该操作不可撤销，请谨慎操作！`,
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          },
+        )
+        this.deleteProject()
       } catch {
         // 用户取消删除
       }
@@ -884,119 +890,119 @@ export default {
 
     // 删除项目
     async deleteProject() {
-      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const projectId = this.$route.params.id || this.$route.query.projectId
 
       if (!projectId) {
-        ElMessage.error('项目ID不存在，无法删除');
-        return;
+        ElMessage.error('项目ID不存在，无法删除')
+        return
       }
 
       try {
-        const response = await deleteProject(projectId);
+        const response = await deleteProject(projectId)
 
         if (response.code === 0) {
-          ElMessage.success('项目删除成功！');
+          ElMessage.success('项目删除成功！')
           this.$router.push({
-              name: 'settings',
-              query: {
-                projectId: null,
-                projectName: null,
-                refresh: 'true'
-              }
-            });
+            name: 'settings',
+            query: {
+              projectId: null,
+              projectName: null,
+              refresh: 'true',
+            },
+          })
         } else {
-          ElMessage.error(`删除项目失败：${response.msg}`);
+          ElMessage.error(`删除项目失败：${response.msg}`)
         }
       } catch (error) {
-        console.error('删除项目失败:', error);
-        ElMessage.error('网络错误，请检查网络连接后重试');
+        console.error('删除项目失败:', error)
+        ElMessage.error('网络错误，请检查网络连接后重试')
       }
     },
 
     // 搜索测试功能
     testSearch() {
-      const currentTime = Date.now();
-      const timeDiff = currentTime - this.lastSearchTestTime;
+      const currentTime = Date.now()
+      const timeDiff = currentTime - this.lastSearchTestTime
 
       // 防止双击，至少间隔5秒
       if (timeDiff < 5000) {
-        ElMessage.warning('请勿频繁点击，请等待5秒后再试');
-        return;
+        ElMessage.warning('请勿频繁点击，请等待5秒后再试')
+        return
       }
 
-      this.lastSearchTestTime = currentTime;
+      this.lastSearchTestTime = currentTime
 
-      const projectId = this.$route.params.id || this.$route.query.projectId;
-      console.log('点击搜索测试按钮，项目ID:', projectId);
+      const projectId = this.$route.params.id || this.$route.query.projectId
+      console.log('点击搜索测试按钮，项目ID:', projectId)
 
       if (!projectId) {
-        ElMessage.error('项目ID不存在，无法执行搜索测试');
-        return;
+        ElMessage.error('项目ID不存在，无法执行搜索测试')
+        return
       }
 
       // 立即设置为测试状态
-      console.log('设置测试状态为true');
-      this.isSearchTesting = true;
-      this.searchTestProgress = null;
-      ElMessage.success('搜索测试任务启动中...');
+      console.log('设置测试状态为true')
+      this.isSearchTesting = true
+      this.searchTestProgress = null
+      ElMessage.success('搜索测试任务启动中...')
 
       // 先异步启动搜索测试任务
-      console.log('先启动搜索测试任务');
-      this.startSearchTestAsync(projectId);
+      console.log('先启动搜索测试任务')
+      this.startSearchTestAsync(projectId)
 
       // 然后立即开始轮询进度
-      console.log('然后立即开始轮询进度');
-      this.startProgressPolling(projectId);
+      console.log('然后立即开始轮询进度')
+      this.startProgressPolling(projectId)
     },
 
     // 异步启动搜索测试
     async startSearchTestAsync(projectId) {
       try {
         // 启动搜索测试任务
-        const response = await executeDataCrawlTask(projectId);
+        const response = await executeDataCrawlTask(projectId)
 
         if (response.code === 0) {
-          console.log('搜索测试任务已启动');
+          console.log('搜索测试任务已启动')
           // 不需要再次启动轮询，因为已经在testSearch中启动了
         } else {
-          ElMessage.error(`搜索测试启动失败：${response.msg}`);
+          ElMessage.error(`搜索测试启动失败：${response.msg}`)
           // 停止轮询并重置状态
-          this.stopProgressPolling();
+          this.stopProgressPolling()
         }
       } catch (error) {
-        console.error('搜索测试启动失败:', error);
-        ElMessage.error('搜索测试启动失败，请检查网络连接后重试');
+        console.error('搜索测试启动失败:', error)
+        ElMessage.error('搜索测试启动失败，请检查网络连接后重试')
         // 停止轮询并重置状态
-        this.stopProgressPolling();
+        this.stopProgressPolling()
       }
     },
 
     // 开始轮询进度
     startProgressPolling(projectId) {
-      console.log('开始轮询搜索测试进度，项目ID:', projectId);
+      console.log('开始轮询搜索测试进度，项目ID:', projectId)
       // 清除之前的定时器
       if (this.progressTimer) {
-        clearInterval(this.progressTimer);
+        clearInterval(this.progressTimer)
       }
 
       // 立即获取一次进度
-      console.log('立即执行第一次进度获取');
-      this.fetchProgress(projectId);
+      console.log('立即执行第一次进度获取')
+      this.fetchProgress(projectId)
 
       // 每0.5秒轮询一次进度
-      console.log('设置定时器，每0.5秒轮询一次');
+      console.log('设置定时器，每0.5秒轮询一次')
       this.progressTimer = setInterval(() => {
-        console.log('定时器触发，获取进度');
-        this.fetchProgress(projectId);
-      }, 500);
+        console.log('定时器触发，获取进度')
+        this.fetchProgress(projectId)
+      }, 500)
     },
 
     // 获取进度
     async fetchProgress(projectId) {
-      console.log('正在获取搜索测试进度...', projectId);
+      console.log('正在获取搜索测试进度...', projectId)
       try {
-        const response = await getDataCrawlProgress(projectId);
-        console.log('进度响应:', response);
+        const response = await getDataCrawlProgress(projectId)
+        console.log('进度响应:', response)
 
         if (response.code === 0) {
           if (response.data) {
@@ -1007,91 +1013,91 @@ export default {
               总进度: response.data.totalProgress + '%',
               预计剩余时间: response.data.estimatedTimeRemaining + '秒',
               开始时间: response.data.startTime,
-              预计结束时间: response.data.estimatedEndTime
-            });
-            this.searchTestProgress = response.data;
+              预计结束时间: response.data.estimatedEndTime,
+            })
+            this.searchTestProgress = response.data
 
             // 检查是否完成（总进度达到100%）
             if (response.data.totalProgress >= 100) {
-              this.stopProgressPolling();
-              ElMessage.success('搜索测试完成！');
+              this.stopProgressPolling()
+              ElMessage.success('搜索测试完成！')
             }
           } else {
             // 返回null，说明没有任务在运行
-            console.log('没有任务在运行，停止轮询');
-            this.stopProgressPolling();
+            console.log('没有任务在运行，停止轮询')
+            this.stopProgressPolling()
           }
         } else {
           // 接口调用失败
-          console.error('获取搜索进度失败:', response.msg);
-          this.stopProgressPolling();
+          console.error('获取搜索进度失败:', response.msg)
+          this.stopProgressPolling()
         }
       } catch (error) {
-        console.error('获取搜索进度异常:', error);
+        console.error('获取搜索进度异常:', error)
         // 如果获取进度失败，可能任务已完成或出错，停止轮询
-        this.stopProgressPolling();
+        this.stopProgressPolling()
       }
     },
 
     // 停止轮询进度
     stopProgressPolling() {
       if (this.progressTimer) {
-        clearInterval(this.progressTimer);
-        this.progressTimer = null;
+        clearInterval(this.progressTimer)
+        this.progressTimer = null
       }
-      this.isSearchTesting = false;
-      this.searchTestProgress = null;
-      this.searchTestButtonDisabled = false;
+      this.isSearchTesting = false
+      this.searchTestProgress = null
+      this.searchTestButtonDisabled = false
     },
 
     // 检查是否有正在运行的搜索测试
     async checkRunningSearchTest() {
-      const projectId = this.$route.params.id || this.$route.query.projectId;
+      const projectId = this.$route.params.id || this.$route.query.projectId
 
       // 只有在编辑模式或已创建项目时才检查
       if (!projectId || (!this.isEditMode && this.projectStatus === 'creating')) {
-        this.searchTestButtonDisabled = false;
-        return;
+        this.searchTestButtonDisabled = false
+        return
       }
 
       try {
-        const response = await getDataCrawlProgress(projectId);
+        const response = await getDataCrawlProgress(projectId)
 
         if (response.code === 0) {
           if (response.data) {
             // 有数据，检查是否还在运行中
             if (response.data.totalProgress < 100) {
-              this.isSearchTesting = true;
-              this.searchTestProgress = response.data;
+              this.isSearchTesting = true
+              this.searchTestProgress = response.data
 
               // 开始轮询进度
-              this.startProgressPolling(projectId);
+              this.startProgressPolling(projectId)
             } else {
               // 任务已完成，重置状态
-              this.isSearchTesting = false;
-              this.searchTestProgress = null;
+              this.isSearchTesting = false
+              this.searchTestProgress = null
             }
           } else {
             // 返回null，说明没有任务在运行
-            this.isSearchTesting = false;
-            this.searchTestProgress = null;
+            this.isSearchTesting = false
+            this.searchTestProgress = null
           }
         } else {
           // 接口调用失败，重置状态
-          this.isSearchTesting = false;
-          this.searchTestProgress = null;
+          this.isSearchTesting = false
+          this.searchTestProgress = null
         }
       } catch {
         // 如果获取进度失败，可能是没有正在运行的任务，忽略错误
-        console.log('没有正在运行的搜索测试任务');
-        this.isSearchTesting = false;
-        this.searchTestProgress = null;
+        console.log('没有正在运行的搜索测试任务')
+        this.isSearchTesting = false
+        this.searchTestProgress = null
       } finally {
         // 无论如何都启用按钮
-        this.searchTestButtonDisabled = false;
+        this.searchTestButtonDisabled = false
       }
     },
-  }
+  },
 }
 </script>
 
@@ -1163,8 +1169,8 @@ label {
   width: auto;
 }
 
-input[type="text"],
-input[type="number"] {
+input[type='text'],
+input[type='number'] {
   height: 36px;
   padding: 0 10px;
   border: 1px solid #ddd;
@@ -1173,10 +1179,10 @@ input[type="number"] {
   transition: border-color 0.3s;
 }
 
-input[type="text"]:hover,
-input[type="number"]:hover,
-input[type="text"]:focus,
-input[type="number"]:focus {
+input[type='text']:hover,
+input[type='number']:hover,
+input[type='text']:focus,
+input[type='number']:focus {
   border-color: #1890ff;
   outline: none;
 }
@@ -1559,7 +1565,9 @@ button {
 }
 
 @media (max-width: 768px) {
-  .form-row, .form-actions, .delete-container {
+  .form-row,
+  .form-actions,
+  .delete-container {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1578,7 +1586,9 @@ button {
     margin-top: 5px;
   }
 
-  .language-multiselect, .region-multiselect, .custom-select {
+  .language-multiselect,
+  .region-multiselect,
+  .custom-select {
     width: 100%;
   }
 
