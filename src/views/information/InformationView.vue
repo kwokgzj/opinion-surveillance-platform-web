@@ -93,14 +93,7 @@
             </el-select>
           </div>
         </el-col>
-        <el-col
-          :xs="24"
-          :sm="12"
-          :md="6"
-          :lg="6"
-          :xl="6"
-          v-if="projectStore.currentProjectType !== 'GoogleNews'"
-        >
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <div class="form-item">
             <label>平台：</label>
             <el-select
@@ -234,21 +227,29 @@
         >
           <div class="form-item">
             <label>视频时长：</label>
-            <div class="custom-select">
-              <div class="select-container" @click="toggleDurationDropdown">
-                <span class="select-value">{{ filter.duration || '请选择时长范围' }}</span>
-                <span class="dropdown-arrow" :class="{ open: durationDropdownOpen }">▼</span>
-              </div>
-              <div v-if="durationDropdownOpen" class="dropdown-options">
-                <div
-                  v-for="duration in durationOptions"
-                  :key="duration"
-                  class="dropdown-option"
-                  @click="selectDuration(duration)"
-                >
-                  {{ duration }}
-                </div>
-              </div>
+            <div class="duration-range-container">
+              <el-input-number
+                v-model="filter.minDuration"
+                :min="0"
+                :max="99999"
+                :precision="0"
+                :controls="false"
+                placeholder="最小分钟"
+                class="duration-input"
+                size="default"
+              />
+              <span class="duration-separator">—</span>
+              <el-input-number
+                v-model="filter.maxDuration"
+                :min="0"
+                :max="99999"
+                :precision="0"
+                :controls="false"
+                placeholder="最大分钟"
+                class="duration-input"
+                size="default"
+              />
+              <span class="duration-unit">分钟</span>
             </div>
           </div>
         </el-col>
@@ -889,7 +890,8 @@ const filter = ref({
   regions: [] as string[],
   searchKeyword: '',
   sort: '',
-  duration: '',
+  minDuration: null as number | null,
+  maxDuration: null as number | null,
   channels: [] as string[],
   dateRange: [] as string[],
   tags: [] as string[],
@@ -898,7 +900,22 @@ const filter = ref({
 // 获取筛选选项
 const fetchFilterOptions = async () => {
   try {
-    const currentProjectId = projectStore.currentProjectId
+    const currentProjectId = projectStore.currentProjectId;
+
+    // 获取筛选选项前先清空现有选项
+    filterOptions.value = {
+      brands: [],
+      skus: [],
+      sentiments: [],
+      platforms: [],
+      languages: [],
+      regions: [],
+      sortBy: [],
+      channels: [],
+      durations: [],
+      labels: [],
+      count: 0
+    };
 
     if (!currentProjectId) {
       console.warn('没有项目ID，无法获取筛选选项')
@@ -962,12 +979,9 @@ const firstSortValue = computed(() => {
   if (filterOptions.value.sortBy && filterOptions.value.sortBy.length > 0) {
     return filterOptions.value.sortBy[0].value
   }
-  return 'publishedAt:desc' // 默认值
-})
-const durationOptions = computed(() => {
-  const options = filterOptions.value.durations?.map((item) => item.label) || []
-  return options
-})
+  return 'publishedAt:desc'; // 默认值
+});
+// durationOptions 已移除，现在使用用户直接输入的时长
 const channelOptions = computed(() => {
   const options = filterOptions.value.channels?.map((item) => item.label) || []
   return options
@@ -980,7 +994,7 @@ const tagOptions = computed(() => {
 // 全选状态计算属性 - 已移除，使用Element Plus组件
 
 // 下拉框状态
-const durationDropdownOpen = ref(false)
+const sortDropdownOpen = ref(false);
 
 // 多选模式状态
 const isMultiSelectMode = ref(false)
@@ -1083,44 +1097,7 @@ function handleTagCheckAll(val: boolean) {
 
 // 排序相关函数已移除，现在使用Element UI组件
 
-// 视频时长相关函数
-function toggleDurationDropdown() {
-  durationDropdownOpen.value = !durationDropdownOpen.value
-}
-function selectDuration(duration: string) {
-  filter.value.duration = duration
-  durationDropdownOpen.value = false
-}
-
-// 从时长选项中提取最小和最大时长
-function getDurationRange(durationLabel: string): { minDuration: number; maxDuration: number } {
-  if (!durationLabel) {
-    return { minDuration: 0, maxDuration: 0 }
-  }
-
-  // 根据label找到对应的value
-  const durationOption = filterOptions.value.durations?.find((item) => item.label === durationLabel)
-  if (!durationOption) {
-    return { minDuration: 0, maxDuration: 0 }
-  }
-
-  const value = durationOption.value
-
-  // 解析value格式，例如"0-240"
-  if (value.includes('-')) {
-    const parts = value.split('-')
-    if (parts.length === 2) {
-      const min = parseInt(parts[0])
-      const max = parseInt(parts[1])
-      if (!isNaN(min) && !isNaN(max)) {
-        return { minDuration: min, maxDuration: max }
-      }
-    }
-  }
-
-  // 如果解析失败，返回默认值
-  return { minDuration: 0, maxDuration: 0 }
-}
+// 视频时长相关函数已移除，现在使用用户直接输入的minDuration和maxDuration
 
 // 格式化时间为标准格式
 function formatDateTime(dateString: string): string {
@@ -1211,7 +1188,8 @@ function toggleMultiSelectMode() {
       regions: [],
       searchKeyword: '',
       sort: '',
-      duration: '',
+      minDuration: null,
+      maxDuration: null,
       channels: [],
       dateRange: [],
       tags: [],
@@ -1261,7 +1239,8 @@ function resetFilter() {
     regions: [],
     searchKeyword: '',
     sort: '',
-    duration: '',
+    minDuration: null,
+    maxDuration: null,
     channels: [],
     dateRange: [],
     tags: [],
@@ -1310,7 +1289,7 @@ function handleClickOutside(event: Event) {
 
   // 检查点击的元素是否在下拉框内部
   if (!target.closest('.custom-select')) {
-    durationDropdownOpen.value = false
+    sortDropdownOpen.value = false;
   }
 }
 
@@ -1446,12 +1425,12 @@ watch(
       // 重置分页状态到第一页
       resetPagination()
 
-      try {
-        // 并行执行获取筛选选项和获取数据
-        const [filterResult, dataResult] = await Promise.allSettled([
-          fetchFilterOptions(),
-          fetchInformationData(),
-        ])
+    try {
+      // 执行获取筛选选项
+      const [filterResult] = await Promise.allSettled([
+        fetchFilterOptions(),
+        fetchInformationData()
+      ]);
 
         // 检查是否有失败的请求
         const failedRequests = []
@@ -1473,6 +1452,15 @@ watch(
       } finally {
         loading.value = false
       }
+
+      if (failedRequests.length > 0) {
+        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
+      }
+    } catch (err) {
+      console.error('项目切换失败:', err);
+      error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
+    } finally {
+      loading.value = false;
     }
   },
 )
@@ -1488,8 +1476,8 @@ onMounted(async () => {
   await new Promise((resolve) => setTimeout(resolve, 100))
 
   try {
-    // 并行执行获取筛选选项和获取数据
-    const [filterResult, dataResult] = await Promise.allSettled([
+    // 执行获取筛选选项
+    const [filterResult] = await Promise.allSettled([
       fetchFilterOptions(),
       fetchInformationData(),
     ])
@@ -1499,10 +1487,6 @@ onMounted(async () => {
     if (filterResult.status === 'rejected') {
       console.error('获取筛选选项失败:', filterResult.reason)
       failedRequests.push('筛选选项')
-    }
-    if (dataResult.status === 'rejected') {
-      console.error('获取数据失败:', dataResult.reason)
-      failedRequests.push('数据')
     }
 
     if (failedRequests.length > 0) {
@@ -1556,9 +1540,6 @@ const fetchInformationData = async () => {
       return
     }
 
-    // 从选中的时长选项中提取时长范围
-    const durationRange = getDurationRange(filter.value.duration)
-
     // 构建过滤条件 - 安全地处理筛选选项可能尚未加载的情况
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
@@ -1582,11 +1563,9 @@ const fetchInformationData = async () => {
         : filter.value.regions,
       keyword: filter.value.searchKeyword || '',
       sortBy: filter.value.sort ? getSortValue(filter.value.sort) : firstSortValue.value,
-      minDuration: durationRange.minDuration,
-      maxDuration: durationRange.maxDuration,
-      channels: filterOptions.value.channels
-        ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels)
-        : filter.value.channels,
+      minDuration: filter.value.minDuration ? filter.value.minDuration * 60 : 0,
+      maxDuration: filter.value.maxDuration ? filter.value.maxDuration * 60 : 0,
+      channels: filterOptions.value.channels ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels) : filter.value.channels,
       publishedAtStart: formatDateTime(filter.value.dateRange[0]),
       publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
       labels: filterOptions.value.labels
@@ -2753,6 +2732,31 @@ function getProxiedImageUrl(originalUrl: string): string {
   .form-item {
     margin-bottom: 12px;
   }
+
+  /* 中等屏幕下的时长选择器样式 */
+  .duration-range-container {
+    gap: 5px;
+  }
+
+  .duration-input {
+    min-width: 55px;
+    max-width: calc(50% - 18px);
+  }
+
+  .duration-input :deep(.el-input__inner) {
+    font-size: 13px;
+    padding: 0 7px;
+  }
+
+  .duration-separator {
+    font-size: 11px;
+    width: 11px;
+  }
+
+  .duration-unit {
+    font-size: 11px;
+    width: 26px;
+  }
 }
 
 /* 确保搜索输入框不会超出容器 */
@@ -2773,6 +2777,31 @@ function getProxiedImageUrl(originalUrl: string): string {
 
   .filter-panel .el-row {
     margin-bottom: 20px;
+  }
+
+  /* 小屏幕下的时长选择器样式 */
+  .duration-range-container {
+    gap: 4px;
+  }
+
+  .duration-input {
+    min-width: 50px;
+    max-width: calc(50% - 16px);
+  }
+
+  .duration-input :deep(.el-input__inner) {
+    font-size: 13px;
+    padding: 0 6px;
+  }
+
+  .duration-separator {
+    font-size: 11px;
+    width: 10px;
+  }
+
+  .duration-unit {
+    font-size: 11px;
+    width: 24px;
   }
 }
 .custom-multiselect,
@@ -2979,6 +3008,45 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 .date-picker {
   width: 100%;
+}
+
+/* 视频时长范围选择器样式 */
+.duration-range-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.duration-input {
+  flex: 1;
+  min-width: 60px;
+  max-width: calc(50% - 20px);
+}
+
+.duration-input :deep(.el-input__inner) {
+  text-align: center;
+  font-size: 14px;
+  padding: 0 8px;
+}
+
+.duration-separator {
+  color: #909399;
+  font-weight: 500;
+  flex-shrink: 0;
+  font-size: 12px;
+  width: 12px;
+  text-align: center;
+}
+
+.duration-unit {
+  color: #606266;
+  font-size: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  width: 28px;
 }
 .filter-actions {
   display: flex;
