@@ -72,7 +72,7 @@
       </el-menu>
 
       <!-- 主题切换按钮 -->
-      <div class="theme-switcher">
+      <!-- <div class="theme-switcher">
         <el-tooltip
           effect="dark"
           :content="`当前主题: ${getThemeDisplayName(currentTheme)}`"
@@ -84,7 +84,7 @@
             <el-icon v-else><Monitor /></el-icon>
           </el-button>
         </el-tooltip>
-      </div>
+      </div> -->
     </el-aside>
     <el-container>
       <el-main>
@@ -434,7 +434,7 @@ defineExpose({
   padding: 16px;
   font-size: 18px;
   font-weight: bold;
-  color: #fff; /* 使用主题色 */
+  color: var(--sidebar-text); /* 使用主题色 */
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--sidebar-border);
@@ -442,7 +442,7 @@ defineExpose({
   .platform-icon {
     margin-right: 8px;
     font-size: 20px;
-    color: #fff; /* 图标也使用主题色 */
+    color: var(--sidebar-text); /* 图标也使用主题色 */
   }
 }
 
