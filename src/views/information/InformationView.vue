@@ -900,7 +900,7 @@ const filter = ref({
 // 获取筛选选项
 const fetchFilterOptions = async () => {
   try {
-    const currentProjectId = projectStore.currentProjectId;
+    const currentProjectId = projectStore.currentProjectId
 
     // 获取筛选选项前先清空现有选项
     filterOptions.value = {
@@ -914,8 +914,8 @@ const fetchFilterOptions = async () => {
       channels: [],
       durations: [],
       labels: [],
-      count: 0
-    };
+      count: 0,
+    }
 
     if (!currentProjectId) {
       console.warn('没有项目ID，无法获取筛选选项')
@@ -979,8 +979,8 @@ const firstSortValue = computed(() => {
   if (filterOptions.value.sortBy && filterOptions.value.sortBy.length > 0) {
     return filterOptions.value.sortBy[0].value
   }
-  return 'publishedAt:desc'; // 默认值
-});
+  return 'publishedAt:desc' // 默认值
+})
 // durationOptions 已移除，现在使用用户直接输入的时长
 const channelOptions = computed(() => {
   const options = filterOptions.value.channels?.map((item) => item.label) || []
@@ -994,7 +994,7 @@ const tagOptions = computed(() => {
 // 全选状态计算属性 - 已移除，使用Element Plus组件
 
 // 下拉框状态
-const sortDropdownOpen = ref(false);
+const sortDropdownOpen = ref(false)
 
 // 多选模式状态
 const isMultiSelectMode = ref(false)
@@ -1289,7 +1289,7 @@ function handleClickOutside(event: Event) {
 
   // 检查点击的元素是否在下拉框内部
   if (!target.closest('.custom-select')) {
-    sortDropdownOpen.value = false;
+    sortDropdownOpen.value = false
   }
 }
 
@@ -1418,49 +1418,51 @@ watch(
 watch(
   () => projectStore.currentProjectId,
   async (newProjectId, oldProjectId) => {
-    if (newProjectId && newProjectId !== oldProjectId) {
-      loading.value = true
-      error.value = ''
-
-      // 重置分页状态到第一页
-      resetPagination()
-
     try {
-      // 执行获取筛选选项
-      const [filterResult] = await Promise.allSettled([
-        fetchFilterOptions(),
-        fetchInformationData()
-      ]);
+      if (newProjectId && newProjectId !== oldProjectId) {
+        loading.value = true
+        error.value = ''
 
-        // 检查是否有失败的请求
-        const failedRequests = []
-        if (filterResult.status === 'rejected') {
-          console.error('获取筛选选项失败:', filterResult.reason)
-          failedRequests.push('筛选选项')
-        }
-        if (dataResult.status === 'rejected') {
-          console.error('获取数据失败:', dataResult.reason)
-          failedRequests.push('数据')
+        // 重置分页状态到第一页
+        resetPagination()
+
+        try {
+          // 执行获取筛选选项
+          const [filterResult] = await Promise.allSettled([
+            fetchFilterOptions(),
+            fetchInformationData(),
+          ])
+
+          // 检查是否有失败的请求
+          const failedRequests = []
+          if (filterResult.status === 'rejected') {
+            console.error('获取筛选选项失败:', filterResult.reason)
+            failedRequests.push('筛选选项')
+          }
+          if (dataResult.status === 'rejected') {
+            console.error('获取数据失败:', dataResult.reason)
+            failedRequests.push('数据')
+          }
+
+          if (failedRequests.length > 0) {
+            error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
+          }
+        } catch (err) {
+          console.error('项目切换失败:', err)
+          error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试'
+        } finally {
+          loading.value = false
         }
 
         if (failedRequests.length > 0) {
           error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
         }
-      } catch (err) {
-        console.error('项目切换失败:', err)
-        error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试'
-      } finally {
-        loading.value = false
-      }
-
-      if (failedRequests.length > 0) {
-        error.value = `${failedRequests.join('和')}加载失败，请刷新重试`;
       }
     } catch (err) {
-      console.error('项目切换失败:', err);
-      error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试';
+      console.error('项目切换失败:', err)
+      error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试'
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   },
 )
@@ -1477,10 +1479,7 @@ onMounted(async () => {
 
   try {
     // 执行获取筛选选项
-    const [filterResult] = await Promise.allSettled([
-      fetchFilterOptions(),
-      fetchInformationData(),
-    ])
+    const [filterResult] = await Promise.allSettled([fetchFilterOptions(), fetchInformationData()])
 
     // 检查是否有失败的请求
     const failedRequests = []
@@ -1565,7 +1564,9 @@ const fetchInformationData = async () => {
       sortBy: filter.value.sort ? getSortValue(filter.value.sort) : firstSortValue.value,
       minDuration: filter.value.minDuration ? filter.value.minDuration * 60 : 0,
       maxDuration: filter.value.maxDuration ? filter.value.maxDuration * 60 : 0,
-      channels: filterOptions.value.channels ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels) : filter.value.channels,
+      channels: filterOptions.value.channels
+        ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels)
+        : filter.value.channels,
       publishedAtStart: formatDateTime(filter.value.dateRange[0]),
       publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
       labels: filterOptions.value.labels
