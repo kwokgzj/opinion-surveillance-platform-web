@@ -19,6 +19,9 @@
         avatar: {
           display: 'none',
         },
+        content: {
+          color: 'var(--color-text-1)',
+        },
       }"
       :avatar="{}"
       :arrow="false"
@@ -134,7 +137,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* .mention-tag {
-  color: var(--color-link);
-} */
+.user-msg {
+  color: var(--color-text-1) !important;
+}
 </style>

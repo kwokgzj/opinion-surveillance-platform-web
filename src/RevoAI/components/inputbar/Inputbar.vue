@@ -103,26 +103,26 @@
             <Flex gap="0" align="center">
               <a-tooltip :title="uploadButtonTooltip" @click="selectFile">
                 <Button :style="iconStyle" type="text">
-                  <PaperclipIcon :size="16" />
+                  <PaperclipIcon :size="16" color="var(--color-text-1)" />
                 </Button>
               </a-tooltip>
-              <Divider type="vertical" />
+              <Divider type="vertical" style="border-color: var(--color-text-1)" />
               <a-tooltip :title="'联网搜索'">
                 <Button
                   :style="enableWebSearch ? activeIconStyle : iconStyle"
                   @click="toggleWebSearch"
                   type="text"
                 >
-                  <Globe :size="16" />
+                  <Globe :size="16" color="var(--color-text-1)" />
                 </Button>
               </a-tooltip>
-              <Divider type="vertical" />
+              <Divider type="vertical" style="border-color: var(--color-text-1)" />
               <a-tooltip title="模型设置">
                 <Button :style="iconStyle" @click="showSettingsModal" type="text">
-                  <SlidersHorizontal :size="16" />
+                  <SlidersHorizontal :size="16" color="var(--color-text-1)" />
                 </Button>
               </a-tooltip>
-              <Divider type="vertical" />
+              <Divider type="vertical" style="border-color: var(--color-text-1)" />
               <a-tooltip title="清空会话消息">
                 <Popconfirm
                   title="确认清空会话"
@@ -136,7 +136,7 @@
                   </Button>
                 </Popconfirm>
               </a-tooltip>
-              <Divider type="vertical" />
+              <Divider type="vertical" style="border-color: var(--color-text-1)" />
               <a-tooltip title="选择模型">
                 <Button :style="iconStyle" @click="openModelHeader" type="text">
                   <span class="model-button-content">
@@ -268,7 +268,7 @@ const iconStyle = {
   padding: '0 6px',
   display: 'flex',
   alignItems: 'center',
-  color: token.value.colorText,
+  color: 'var(--color-text-1)',
 }
 
 const activeIconStyle = computed(() => ({
@@ -863,6 +863,12 @@ const uploadButtonTooltip = computed(() => {
   :deep(.ant-sender-container) {
     border: none;
   }
+  :deep(.ant-sender-input) {
+    color: var(--color-text-1);
+    &::placeholder {
+      color: var(--color-text-2);
+    }
+  }
 }
 
 .attachment-header {
@@ -1012,6 +1018,7 @@ const uploadButtonTooltip = computed(() => {
 .model-button-content {
   display: flex;
   align-items: center;
+  color: var(--color-text-1);
 }
 
 .model-button-icon {

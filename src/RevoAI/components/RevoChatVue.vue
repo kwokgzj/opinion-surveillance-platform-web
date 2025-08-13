@@ -20,7 +20,7 @@
             <WelcomePage v-else />
           </div>
           <div class="revo-chat-inputbar">
-            <el-inputbar
+            <inputbar
               :session="activeSession"
               :setActiveSession="setActiveSession"
               :isMulSession="isMulSession"
@@ -45,7 +45,7 @@
             <WelcomePage v-else />
           </div>
           <div class="revo-chat-inputbar">
-            <el-inputbar
+            <inputbar
               :session="activeSession"
               :setActiveSession="setActiveSession"
               :isMulSession="false"
