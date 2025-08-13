@@ -1,9 +1,9 @@
 <template>
   <div class="welcome-container">
     <div class="welcome-content">
-      <div class="welcome-title">{{ title || "欢迎使用 Revo AI" }}</div>
+      <div class="welcome-title">{{ title || "欢迎使用舆情监控AI助手" }}</div>
       <div class="welcome-description">
-        {{ description || "你可以随时问我任何问题~" }}
+        {{ description || "请先选择项目，然后你可以问我任何问题~" }}
       </div>
     </div>
   </div>

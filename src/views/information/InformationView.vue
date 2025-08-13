@@ -1439,10 +1439,10 @@ watch(
             console.error('获取筛选选项失败:', filterResult.reason)
             failedRequests.push('筛选选项')
           }
-          if (dataResult.status === 'rejected') {
-            console.error('获取数据失败:', dataResult.reason)
-            failedRequests.push('数据')
-          }
+          // if (dataResult.status === 'rejected') {
+          //   console.error('获取数据失败:', dataResult.reason)
+          //   failedRequests.push('数据')
+          // }
 
           if (failedRequests.length > 0) {
             error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
@@ -1454,9 +1454,9 @@ watch(
           loading.value = false
         }
 
-        if (failedRequests.length > 0) {
-          error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
-        }
+        // if (failedRequests.length > 0) {
+        //   error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
+        // }
       }
     } catch (err) {
       console.error('项目切换失败:', err)
