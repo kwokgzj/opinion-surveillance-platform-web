@@ -1884,9 +1884,9 @@ function getSentimentIcon(sentiment: number): string {
 
 // 获取情感文本
 function getSentimentText(sentiment: number): string {
-  if (sentiment <= 30) return '负面'
-  if (sentiment >= 71) return '正面'
-  if (sentiment >= 31 && sentiment <= 70) return '中性'
+  if (sentiment <= 40) return '负面'
+  if (sentiment >= 61) return '正面'
+  if (sentiment >= 41 && sentiment <= 60) return '中性'
   return '中性'
 }
 

@@ -257,6 +257,16 @@ const models = ref<Model[]>([
     abilityList: ['functionCall'],
   },
   {
+    id: 'anthropic/claude-sonnet-4',
+    name: 'claude-sonnet-4',
+    displayName: 'claude-sonnet-4',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
+    description:
+      'claude-sonnet-4',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  {
     id: 'claude-3-7-sonnet-latest',
     name: 'claude-3-7-sonnet-latest',
     displayName: 'Claude-3.7-Sonnet',
