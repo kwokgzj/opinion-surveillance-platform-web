@@ -166,15 +166,16 @@
       <!-- 不抓取列表 -->
       <div class="form-section">
         <label class="section-label">不抓取以下视频/帖子：</label>
-        <textarea
+        <el-input
+          type="textarea"
           v-model="excludeLinksText"
           @input="handleExcludeLinksChange"
           @blur="handleExcludeLinksBlur"
           placeholder="填写视频/帖子的链接，一行一个链接"
-          rows="5"
+          :rows="5"
           ref="excludeLinksTextarea"
           class="exclude-links-textarea"
-        ></textarea>
+        />
         <!-- 可选：显示解析后的链接数量 -->
         <div v-if="excludeLinks.length > 0" class="exclude-links-count">
           已添加 {{ excludeLinks.length }} 个链接
@@ -1253,7 +1254,7 @@ export default {
 .page-header h1 {
   font-size: 24px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 .project-form {
@@ -1289,7 +1290,7 @@ label {
 }
 
 .form-value {
-  color: #333;
+  color: var(--color-text);
   line-height: 36px;
 }
 
@@ -1301,7 +1302,7 @@ label {
   display: block;
   margin-bottom: 10px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
   text-align: left;
   width: auto;
 }
@@ -1356,7 +1357,7 @@ input[type='number']:focus {
 
 .select-value {
   flex: 1;
-  color: #333;
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -1545,7 +1546,7 @@ table {
 th {
   text-align: left;
   padding: 10px;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
   border-bottom: 1px solid #ddd;
 }
 
@@ -1605,7 +1606,7 @@ textarea:focus {
 .exclude-links-count {
   margin-top: 5px;
   font-size: 12px;
-  color: #666;
+  color: var(--color-text);
 }
 
 .action-buttons {

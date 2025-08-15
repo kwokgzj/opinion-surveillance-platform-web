@@ -1470,7 +1470,7 @@ onMounted(async () => {
 .form-item label {
   min-width: 80px;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text);
   white-space: nowrap;
   text-align: right;
   flex-shrink: 0;
@@ -1500,12 +1500,10 @@ onMounted(async () => {
   font-weight: 500;
   transition: all 0.3s;
 }
-
 .btn-reset {
   background: #f5f5f5;
   color: #333;
 }
-
 .btn-reset:hover {
   background: #e8e8e8;
 }
@@ -1554,13 +1552,13 @@ onMounted(async () => {
   margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .section-desc {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--color-text);
 }
 
 /* 图表区域 */
@@ -1576,7 +1574,6 @@ onMounted(async () => {
   width: 100%;
   min-width: 900px !important;
   border-radius: 8px;
-  background: #fafbfc;
   padding: 20px;
   box-sizing: border-box;
   overflow-x: auto;
@@ -1621,7 +1618,7 @@ onMounted(async () => {
   margin: 0 0 16px 0;
   font-size: 15px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .data-table {
@@ -1638,13 +1635,13 @@ onMounted(async () => {
 }
 
 .data-table th {
-  background: #f8f9fa;
+  /* background: #f8f9fa; */
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .data-table tr:hover {
-  background: #f8f9fa;
+  /* background: #f8f9fa; */
 }
 
 .data-table td:first-child {
@@ -1654,7 +1651,7 @@ onMounted(async () => {
 
 .data-table td:last-child {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 /* 加载和错误状态 */
@@ -1690,7 +1687,7 @@ onMounted(async () => {
 }
 
 .loading-container p {
-  color: #666;
+  color: var(--color-text);
   font-size: 14px;
   margin: 0;
 }
@@ -1762,9 +1759,22 @@ onMounted(async () => {
     gap: 8px;
   }
 
-  .btn-reset,
-  .btn-search {
-    width: 100%;
-  }
+.btn-search {
+  height: 36px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+.btn-search {
+  background: #409eff;
+  color: white;
+}
+.btn-search:hover {
+  background: #66b1ff;
+}
 }
 </style>

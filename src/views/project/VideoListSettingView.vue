@@ -72,48 +72,73 @@
             <button class="btn-batch-import" @click="showBatchImport">批量导入</button>
           </div>
         </div>
-        <div class="videos-table-container">
-          <table>
-            <thead>
-              <tr>
-                <th width="5%">序号</th>
-                <th width="40%">视频链接</th>
-                <th width="22.5%">品牌</th>
-                <th width="22.5%">SKU</th>
-                <th width="10%">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(video, index) in monitoredVideos" :key="index">
-                <td class="sequence-number">{{ index + 1 }}</td>
-                <td>
-                  <el-input
-                    v-model="video.url"
-                    @blur="validateVideoUrl(index)"
-                    placeholder="视频链接"
-                  />
-                </td>
-                <td>
-                  <el-input v-model="video.brand" placeholder="品牌名称，逗号分隔" />
-                </td>
-                <td>
-                  <el-input v-model="video.sku" placeholder="SKU编码，逗号分隔" />
-                </td>
-                <td>
-                  <button class="btn-delete" @click="removeVideo(index)">-</button>
-                </td>
-              </tr>
-              <tr>
-                <td></td>
-                <td colspan="3"></td>
-                <td>
-                  <button class="btn-add" @click="addVideo">+</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- <div class="videos-table-container"> -->
+          <el-table
+            :data="monitoredVideos"
+            border
+            class="el-table-editable"
+            style="width: 100%"
+            height="400"
+          >
+            <el-table-column
+              label="序号"
+              width="60"
+              align="center"
+            >
+              <template #default="scope">
+                <span class="sequence-number">{{ scope.$index + 1 }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="视频链接"
+              min-width="200"
+            >
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.url"
+                  @blur="validateVideoUrl(scope.$index)"
+                  placeholder="视频链接"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="品牌"
+              min-width="120"
+            >
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.brand"
+                  placeholder="品牌名称，逗号分隔"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="SKU"
+              min-width="120"
+            >
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.sku"
+                  placeholder="SKU编码，逗号分隔"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="操作"
+              width="80"
+              align="center"
+              fixed="right"
+            >
+              <template #default="scope">
+                <button class="btn-delete" @click="removeVideo(scope.$index)">-</button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="text-align:right; margin-top: 8px;">
+            <button class="btn-add" @click="addVideo">+</button>
+          </div>
         </div>
-      </div>
+      <!-- </div> -->
 
       <!-- 操作按钮 -->
       <div class="form-actions">
@@ -1351,7 +1376,7 @@ export default {
 .page-header h1 {
   font-size: 24px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 .project-form {
@@ -1387,7 +1412,7 @@ label {
 }
 
 .form-value {
-  color: #333;
+  color: var(--color-text);
   line-height: 36px;
 }
 
@@ -1406,7 +1431,7 @@ label {
 .section-label {
   display: block;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
   text-align: left;
   width: auto;
   margin: 0;
@@ -1502,7 +1527,7 @@ input[type='number']:focus {
 
 .select-value {
   flex: 1;
-  color: #333;
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -1611,12 +1636,12 @@ td input:focus {
   outline: none;
 }
 
-.sequence-number {
+/* .sequence-number {
   text-align: center;
   font-weight: 500;
   color: #666;
   background-color: #fafafa;
-}
+} */
 
 .form-actions {
   display: flex;
@@ -1687,7 +1712,7 @@ button {
 
 .btn-cancel {
   background-color: #f0f0f0;
-  color: #333;
+  color: var(--color-text);
 }
 
 .btn-cancel:hover {
@@ -1696,7 +1721,7 @@ button {
 
 .btn-save {
   background-color: #1890ff;
-  color: white;
+  color: var(--color-text);
 }
 
 .btn-save:hover:not(:disabled) {

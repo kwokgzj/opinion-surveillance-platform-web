@@ -1104,7 +1104,7 @@ export default {
 <style scoped>
 .new-keyword-project {
   padding: 20px;
-  background-color: #fff;
+  /* background-color: #fff; */
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -1116,7 +1116,7 @@ export default {
 .page-header h1 {
   font-size: 24px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 .project-form {
@@ -1152,7 +1152,7 @@ label {
 }
 
 .form-value {
-  color: #333;
+  color: var(--color-text);
   line-height: 36px;
 }
 
@@ -1164,7 +1164,7 @@ label {
   display: block;
   margin-bottom: 10px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
   text-align: left;
   width: auto;
 }
@@ -1208,7 +1208,7 @@ input[type='number']:focus {
   padding: 0 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #fff;
+  /* background-color: #fff; */
   cursor: pointer;
   transition: border-color 0.3s;
 }
@@ -1219,7 +1219,7 @@ input[type='number']:focus {
 
 .select-value {
   flex: 1;
-  color: #333;
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -1409,7 +1409,7 @@ table {
 th {
   text-align: left;
   padding: 10px;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
   border-bottom: 1px solid #ddd;
 }
 
@@ -1550,7 +1550,7 @@ button {
 
 .btn-save-disabled {
   background-color: #d9d9d9 !important;
-  color: #ffffff !important;
+  color: var(--color-text) !important;
   cursor: not-allowed !important;
 }
 

@@ -462,7 +462,7 @@ defineExpose({
   top: 0;
   left: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.95);
+  // background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 6px;
   padding: 12px 16px;
@@ -495,7 +495,7 @@ defineExpose({
 .form-item label {
   min-width: 50px;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text);
   white-space: nowrap;
   text-align: right;
   flex-shrink: 0;

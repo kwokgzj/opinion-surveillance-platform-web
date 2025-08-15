@@ -2038,7 +2038,7 @@ onMounted(async () => {
 .form-item label {
   min-width: 80px;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text);
   white-space: nowrap;
   text-align: right;
   flex-shrink: 0;
@@ -2122,13 +2122,13 @@ onMounted(async () => {
   margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .section-desc {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--color-text);
 }
 
 /* 图表区域 */
@@ -2144,7 +2144,6 @@ onMounted(async () => {
   width: 100%;
   min-width: 900px !important;
   border-radius: 8px;
-  background: #fafbfc;
   padding: 20px;
   box-sizing: border-box;
   overflow-x: auto;
@@ -2197,7 +2196,6 @@ onMounted(async () => {
   flex: 1;
   min-width: 300px;
   max-width: 400px;
-  background: var(--el-bg-color);
   border-radius: 6px;
   padding: 16px;
   border: 1px solid #e5e6eb;
@@ -2207,7 +2205,7 @@ onMounted(async () => {
   margin: 0 0 16px 0;
   font-size: 15px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .data-table {
@@ -2224,13 +2222,11 @@ onMounted(async () => {
 }
 
 .data-table th {
-  background: #f8f9fa;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .data-table tr:hover {
-  background: #f8f9fa;
 }
 
 .data-table td:first-child {
@@ -2240,7 +2236,7 @@ onMounted(async () => {
 
 .data-table td:last-child {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 /* 删除不需要的占位符样式 */

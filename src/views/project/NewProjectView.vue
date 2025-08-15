@@ -169,7 +169,7 @@ const handleCancel = () => {
 .page-header h1 {
   font-size: 24px;
   font-weight: 500;
-  color: var(--el-text-color-primary);
+  color: var(--color-text);
 }
 
 .project-form {

@@ -396,11 +396,10 @@
         }"
         @click="isMultiSelectMode && handleCardClick(item.id)"
       >
-        <!-- 多选单选框 -->
+        <!-- 多选复选框 -->
         <div v-if="isMultiSelectMode" class="info-checkbox" @click.stop>
-          <el-input
-            type="checkbox"
-            :checked="selectedItems.includes(item.id)"
+          <el-checkbox
+            :model-value="selectedItems.includes(item.id)"
             @change="toggleItemSelection(item.id)"
             class="checkbox-input"
           />
@@ -590,7 +589,8 @@
                 />
               </button>
               <button class="action-btn delete-btn" @click="handleDelete(item)" title="删除">
-                <img :src="deleteIcon" alt="删除" />
+                <!-- <img :src="deleteIcon" alt="删除" /> -->
+                <el-icon><Delete /></el-icon>
               </button>
             </div>
           </div>
@@ -822,7 +822,8 @@
         :disabled="selectedItems.length === 0"
         title="删除"
       >
-        <img :src="deleteIcon" alt="删除" />
+      <el-icon><Delete /></el-icon>
+        <!-- <img :src="deleteIcon" style="color: var(--color-text)" alt="删除" /> -->
       </button>
     </div>
   </div>
@@ -2717,7 +2718,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 .form-item label {
   min-width: 80px;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text);
   white-space: nowrap;
   text-align: right;
   flex-shrink: 0;
@@ -3189,7 +3190,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 多选单选框样式 */
+/* 多选复选框样式 */
 .info-checkbox {
   position: absolute;
   top: 12px;
@@ -3198,38 +3199,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 .checkbox-input {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-color: white;
-  border: 1px solid #dcdfe6;
-  border-radius: 2px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.checkbox-input:checked {
-  background-color: white;
-  border-color: #409eff;
-}
-
-.checkbox-input:checked::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 1px;
-  width: 6px;
-  height: 10px;
-  border: solid #409eff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.checkbox-input:hover {
-  border-color: #409eff;
+  /* Element Plus checkbox 自带样式，这里只做必要的调整 */
 }
 
 .info-left {
@@ -3274,7 +3244,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 .info-channel {
   font-size: 15px;
-  color: #222;
+  color: var(--color-text);
   font-weight: 500;
   max-width: 140px;
   overflow: hidden;
@@ -3284,10 +3254,10 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 .info-fans {
   font-size: 12px;
-  color: #888;
+  color: var(--color-text);
 }
 .info-fans span {
-  color: #222;
+  color: var(--color-text);
   font-weight: 500;
 }
 .info-center {
@@ -3309,7 +3279,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   gap: 8px;
   font-size: 17px;
   font-weight: 600;
-  color: #222;
+  color: var(--color-text);
   position: relative;
   z-index: 1;
   width: 100%; /* 确保占满宽度 */
@@ -3505,7 +3475,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 .info-title-link {
-  color: #222;
+  color: var(--color-text);
   text-decoration: none;
   transition: color 0.3s;
   cursor: pointer;
@@ -3539,12 +3509,12 @@ function getProxiedImageUrl(originalUrl: string): string {
 /* 多选模式下的链接样式 */
 .info-card.multi-select-mode .info-title-link {
   pointer-events: none;
-  color: #333 !important;
+  color: var(--color-text) !important;
   text-decoration: none !important;
 }
 
 .info-card.multi-select-mode .info-title-link:hover {
-  color: #333 !important;
+  color: var(--color-text) !important;
   text-decoration: none !important;
 }
 .info-platform-icon {
@@ -3619,7 +3589,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   max-width: 100%; /* 没有缩略图时占满宽度 */
 }
 .info-desc {
-  color: #444;
+  color: var(--color-text);
   font-size: 14px;
   line-height: 1.6;
   margin: 2px 0 0 0;
@@ -3710,11 +3680,16 @@ function getProxiedImageUrl(originalUrl: string): string {
   padding: 0;
 }
 
+.action-btn .delete-btn {
+  color: var(--color-text);
+}
+
 .action-btn:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
 .action-btn img {
+  color: var(--color-text);
   width: 16px;
   height: 16px;
   object-fit: contain;
@@ -3793,7 +3768,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 .info-value {
   flex: 1 1 0;
   text-align: left;
-  color: #222;
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3967,7 +3942,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 .info-platform span {
-  color: #222;
+  color: var(--color-text);
   font-weight: 500;
 }
 
@@ -3990,7 +3965,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 .info-region span {
-  color: #222;
+  color: var(--color-text);
   font-weight: 500;
 }
 
@@ -4014,7 +3989,7 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 .pagination-info {
-  color: #666;
+  color: var(--color-text);
   font-size: 14px;
   text-align: center;
 }
@@ -4029,7 +4004,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   padding: 8px 12px;
   border: 1px solid #dcdfe6;
   background: var(--el-bg-color);
-  color: #606266;
+  color: var(--color-text);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -4044,8 +4019,8 @@ function getProxiedImageUrl(originalUrl: string): string {
 }
 
 .pagination-btn:disabled {
-  background: #f5f7fa;
-  color: #c0c4cc;
+  /* background: #f5f7fa; */
+  color: var(--color-text);
   cursor: not-allowed;
   border-color: #e4e7ed;
 }
@@ -4143,8 +4118,7 @@ function getProxiedImageUrl(originalUrl: string): string {
   }
 
   .checkbox-input {
-    width: 16px;
-    height: 16px;
+    /* Element Plus checkbox 在移动端使用默认尺寸 */
   }
 }
 

@@ -1589,7 +1589,7 @@ onMounted(async () => {
 .form-item label {
   min-width: 80px;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text);
   white-space: nowrap;
   text-align: right;
   flex-shrink: 0;
@@ -1656,13 +1656,13 @@ onMounted(async () => {
   margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .section-desc {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--color-text);
 }
 
 /* 图表区域 */
@@ -1678,7 +1678,6 @@ onMounted(async () => {
   width: 100%;
   min-width: 900px !important;
   border-radius: 8px;
-  background: #fafbfc;
   padding: 20px;
   box-sizing: border-box;
   overflow-x: auto;
@@ -1709,7 +1708,7 @@ onMounted(async () => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   text-align: center;
 }
 
@@ -1736,7 +1735,7 @@ onMounted(async () => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   text-align: center;
 }
 
