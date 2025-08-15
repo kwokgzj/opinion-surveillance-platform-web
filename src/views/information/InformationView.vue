@@ -547,9 +547,9 @@
               <!-- 新闻类型特殊显示 -->
               <template v-if="isNewsType(item)">
                 <span>发布时间：{{ formatDateYMD(item.publishedAt) }}</span>
-                <span style="margin-left: 8px"
+                <!-- <span style="margin-left: 8px"
                   >| SU：{{ item.su || item.su === 0 ? item.su : '-' }}</span
-                >
+                > -->
                 <span v-if="item.language">| {{ getLanguageLabel(item.language) }}</span>
               </template>
               <!-- 其他类型显示 -->
