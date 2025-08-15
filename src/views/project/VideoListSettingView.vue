@@ -1562,7 +1562,7 @@ input[type='number']:focus {
   cursor: pointer;
   transition: background-color 0.3s;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text);
 }
 
 .custom-select .dropdown-option:hover {
