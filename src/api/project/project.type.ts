@@ -62,6 +62,7 @@ export interface Project {
   excludedVideoLinks: ExcludedVideoLink[];  // 排除的视频链接列表，这些链接不会被监控
   fetchTime: number;                  // 数据获取时间，可表示为时间戳或特定时间格式
   crawlFrequency: number;             // 爬取频率，单位可能是小时或分钟
+  searchTime: number;                 // 自定义搜索的时间范围，以小时为单位
   monitoredVideoLinks: MonitoredVideoLink[]; // 被监控的视频链接列表
   postSearchCount: number;            // 社交媒体帖子搜索数量限制
   videoSearchCount: number;           // 视频搜索数量限制

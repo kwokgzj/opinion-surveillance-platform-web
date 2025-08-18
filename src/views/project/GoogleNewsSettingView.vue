@@ -36,40 +36,21 @@
         </div>
       </div>
 
-      <!-- 抓取时间与频率 -->
+      <!-- 抓取范围 -->
       <div class="form-row">
         <div class="form-item">
-          <label class="required">抓取时间：</label>
+          <label class="required">搜索范围：</label>
           <div class="custom-select">
-            <div class="select-container" @click="toggleTimeRangeDropdown">
-              <span class="select-value">{{ getTimeRangeLabel(crawlTimeRange) }}</span>
-              <span class="dropdown-arrow" :class="{ open: timeRangeDropdownOpen }">▼</span>
+            <div class="select-container" @click="toggleSearchTimeDropdown">
+              <span class="select-value">{{ getSearchTimeLabel(searchTime) }}</span>
+              <span class="dropdown-arrow" :class="{ open: searchTimeDropdownOpen }">▼</span>
             </div>
-            <div v-if="timeRangeDropdownOpen" class="dropdown-options">
+            <div v-if="searchTimeDropdownOpen" class="dropdown-options">
               <div
-                v-for="option in timeRangeOptions"
+                v-for="option in searchTimeOptions"
                 :key="option.value"
                 class="dropdown-option"
-                @click="selectTimeRange(option.value)"
-              >
-                {{ option.label }}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="form-item">
-          <label class="required">抓取频率：</label>
-          <div class="custom-select">
-            <div class="select-container" @click="toggleFrequencyDropdown">
-              <span class="select-value">{{ getFrequencyLabel(crawlFrequency) }}</span>
-              <span class="dropdown-arrow" :class="{ open: frequencyDropdownOpen }">▼</span>
-            </div>
-            <div v-if="frequencyDropdownOpen" class="dropdown-options">
-              <div
-                v-for="option in frequencyOptions"
-                :key="option.value"
-                class="dropdown-option"
-                @click="selectFrequency(option.value)"
+                @click="selectSearchTime(option.value)"
               >
                 {{ option.label }}
               </div>
@@ -91,7 +72,7 @@
             filterable
             placeholder="请选择语言"
             popper-class="custom-header"
-            :max-collapse-tags="1"
+            :max-collapse-tags="3"
             style="width: 100%"
           >
             <template #header>
@@ -126,7 +107,7 @@
             filterable
             placeholder="请选择地区"
             popper-class="custom-header"
-            :max-collapse-tags="1"
+            :max-collapse-tags="3"
             style="width: 100%"
           >
             <template #header>
@@ -271,13 +252,13 @@ export default {
       newsSearchCount: null as number | null,
       crawlTimeRange: '',
       crawlFrequency: '',
+      searchTime: '',
       selectedLanguages: [] as string[],
       selectedRegions: [] as string[],
       keywords: [{ word: '', include: '', exclude: '' }],
       languageDropdownOpen: false,
       regionDropdownOpen: false,
-      timeRangeDropdownOpen: false,
-      frequencyDropdownOpen: false,
+      searchTimeDropdownOpen: false,
 
       // Element Plus 全选状态
       languageCheckAll: false,
@@ -297,18 +278,13 @@ export default {
       lastSearchTestTime: 0, // 上次点击搜索测试的时间戳
 
       // 选项数据
-      timeRangeOptions: [
+      searchTimeOptions: [
         { value: '168', label: '近7天' },
         { value: '720', label: '近30天' },
         { value: '2160', label: '近90天' },
         { value: '4320', label: '近180天' },
         { value: '8760', label: '近一年' },
         { value: '0', label: '不限制' },
-      ],
-      frequencyOptions: [
-        { value: '24', label: '每天抓取' },
-        { value: '168', label: '每周抓取' },
-        { value: '720', label: '每月抓取' },
       ],
       languageOptions: [
         { value: 'zh-CN', label: '中文(简体)' },
@@ -345,9 +321,8 @@ export default {
       const hasValidKeywords = this.keywords.some((keyword) => keyword.word.trim())
       return (
         this.projectName.trim() &&
-        this.newsSearchCount > 0 &&
-        this.crawlTimeRange &&
-        this.crawlFrequency &&
+        this.newsSearchCount! > 0 &&
+        this.searchTime &&
         this.selectedLanguages.length > 0 &&
         this.selectedRegions.length > 0 &&
         hasValidKeywords
@@ -426,10 +401,7 @@ export default {
     newsSearchCount() {
       this.checkForChanges()
     },
-    crawlTimeRange() {
-      this.checkForChanges()
-    },
-    crawlFrequency() {
+    searchTime() {
       this.checkForChanges()
     },
     selectedLanguages: {
@@ -507,7 +479,7 @@ export default {
       } else if (projectId && projectId !== 'new' && isEdit) {
         this.isEditMode = true
         this.projectStatus = 'editing'
-        this.loadProjectData(projectId)
+        this.loadProjectData(projectId as string)
       } else {
         this.isEditMode = false
         this.projectStatus = 'creating'
@@ -517,20 +489,22 @@ export default {
 
     // 设置新建时的默认值
     setDefaultValues() {
-      const projectName = this.$route.query.projectName
+      const projectName = this.$route.query.projectName as string
       this.projectName = projectName || ''
       this.newsSearchCount = 100 // 默认100
-      this.crawlTimeRange = '720' // 默认近30天
-      this.crawlFrequency = '168' // 默认每周抓取
+      this.crawlTimeRange = '24' // 固定为24
+      this.crawlFrequency = '24' // 固定为24
+      this.searchTime = '720' // 默认近30天
       this.selectedLanguages = ['zh-CN'] // 默认中文简体
       this.selectedRegions = ['CN'] // 默认中国
       this.keywords = [{ word: '', include: '', exclude: '' }]
     },
 
     // 加载项目数据（编辑模式）
-    async loadProjectData(projectId) {
+    async loadProjectData(projectId: string | string[]) {
       try {
-        const response = await getProjectById(projectId)
+        const id = Array.isArray(projectId) ? projectId[0] : projectId
+        const response = await getProjectById(id)
 
         if (response.code === 0) {
           const project = response.data
@@ -538,8 +512,9 @@ export default {
           // 填充表单数据
           this.projectName = project.name || ''
           this.newsSearchCount = project.newsSearchCount || 500
-          this.crawlTimeRange = String(project.fetchTime || '720')
+          this.crawlTimeRange = String(project.fetchTime || '24')
           this.crawlFrequency = String(project.crawlFrequency || '24')
+          this.searchTime = String(project.searchTime || '720')
           this.selectedLanguages = project.searchLanguages || ['zh-CN']
           this.selectedRegions = project.searchRegions || ['CN']
 
@@ -578,8 +553,7 @@ export default {
       this.initialFormData = {
         projectName: this.projectName,
         newsSearchCount: this.newsSearchCount,
-        crawlTimeRange: this.crawlTimeRange,
-        crawlFrequency: this.crawlFrequency,
+        searchTime: this.searchTime,
         selectedLanguages: [...this.selectedLanguages],
         selectedRegions: [...this.selectedRegions],
         keywords: JSON.parse(JSON.stringify(this.keywords)),
@@ -593,8 +567,7 @@ export default {
       const currentData = {
         projectName: this.projectName,
         newsSearchCount: this.newsSearchCount,
-        crawlTimeRange: this.crawlTimeRange,
-        crawlFrequency: this.crawlFrequency,
+        searchTime: this.searchTime,
         selectedLanguages: [...this.selectedLanguages],
         selectedRegions: [...this.selectedRegions],
         keywords: JSON.parse(JSON.stringify(this.keywords)),
@@ -623,8 +596,7 @@ export default {
         if (this.initialFormData) {
           this.projectName = this.initialFormData.projectName
           this.newsSearchCount = this.initialFormData.newsSearchCount
-          this.crawlTimeRange = this.initialFormData.crawlTimeRange
-          this.crawlFrequency = this.initialFormData.crawlFrequency
+          this.searchTime = this.initialFormData.searchTime
           this.selectedLanguages = [...this.initialFormData.selectedLanguages]
           this.selectedRegions = [...this.initialFormData.selectedRegions]
           this.keywords = JSON.parse(JSON.stringify(this.initialFormData.keywords))
@@ -648,7 +620,7 @@ export default {
     addKeyword() {
       this.keywords.push({ word: '', include: '', exclude: '' })
     },
-    removeKeyword(index) {
+    removeKeyword(index: number) {
       this.keywords.splice(index, 1)
       if (this.keywords.length === 0) {
         this.keywords.push({ word: '', include: '', exclude: '' })
@@ -657,44 +629,27 @@ export default {
     toggleLanguageDropdown() {
       this.languageDropdownOpen = !this.languageDropdownOpen
       this.regionDropdownOpen = false
-      this.timeRangeDropdownOpen = false
-      this.frequencyDropdownOpen = false
+      this.searchTimeDropdownOpen = false
     },
     toggleRegionDropdown() {
       this.regionDropdownOpen = !this.regionDropdownOpen
       this.languageDropdownOpen = false
-      this.timeRangeDropdownOpen = false
-      this.frequencyDropdownOpen = false
+      this.searchTimeDropdownOpen = false
     },
-    toggleTimeRangeDropdown() {
-      this.timeRangeDropdownOpen = !this.timeRangeDropdownOpen
-      this.frequencyDropdownOpen = false
+    toggleSearchTimeDropdown() {
+      this.searchTimeDropdownOpen = !this.searchTimeDropdownOpen
       this.languageDropdownOpen = false
       this.regionDropdownOpen = false
     },
-    toggleFrequencyDropdown() {
-      this.frequencyDropdownOpen = !this.frequencyDropdownOpen
-      this.timeRangeDropdownOpen = false
-      this.languageDropdownOpen = false
-      this.regionDropdownOpen = false
+    selectSearchTime(value: string) {
+      this.searchTime = value
+      this.searchTimeDropdownOpen = false
     },
-    selectTimeRange(value) {
-      this.crawlTimeRange = value
-      this.timeRangeDropdownOpen = false
-    },
-    selectFrequency(value) {
-      this.crawlFrequency = value
-      this.frequencyDropdownOpen = false
-    },
-    getTimeRangeLabel(value) {
-      const option = this.timeRangeOptions.find((o) => o.value === value)
+    getSearchTimeLabel(value: string) {
+      const option = this.searchTimeOptions.find((o) => o.value === value)
       return option ? option.label : '请选择'
     },
-    getFrequencyLabel(value) {
-      const option = this.frequencyOptions.find((o) => o.value === value)
-      return option ? option.label : '请选择'
-    },
-    toggleLanguage(languageValue) {
+    toggleLanguage(languageValue: string) {
       const index = this.selectedLanguages.indexOf(languageValue)
       if (index > -1) {
         this.selectedLanguages.splice(index, 1)
@@ -702,17 +657,17 @@ export default {
         this.selectedLanguages.push(languageValue)
       }
     },
-    removeLanguage(languageValue) {
+    removeLanguage(languageValue: string) {
       const index = this.selectedLanguages.indexOf(languageValue)
       if (index > -1) {
         this.selectedLanguages.splice(index, 1)
       }
     },
-    getLanguageLabel(value) {
+    getLanguageLabel(value: string) {
       const language = this.languageOptions.find((l) => l.value === value)
       return language ? language.label : value
     },
-    toggleRegion(regionValue) {
+    toggleRegion(regionValue: string) {
       const index = this.selectedRegions.indexOf(regionValue)
       if (index > -1) {
         this.selectedRegions.splice(index, 1)
@@ -720,19 +675,19 @@ export default {
         this.selectedRegions.push(regionValue)
       }
     },
-    removeRegion(regionValue) {
+    removeRegion(regionValue: string) {
       const index = this.selectedRegions.indexOf(regionValue)
       if (index > -1) {
         this.selectedRegions.splice(index, 1)
       }
     },
-    getRegionLabel(value) {
+    getRegionLabel(value: string) {
       const region = this.regionOptions.find((r) => r.value === value)
       return region ? region.label : value
     },
 
     // Element Plus 全选处理函数
-    handleLanguageCheckAll(val) {
+    handleLanguageCheckAll(val: boolean) {
       this.languageIndeterminate = false
       if (val) {
         this.selectedLanguages = this.languageOptions.map((lang) => lang.value)
@@ -741,7 +696,7 @@ export default {
       }
     },
 
-    handleRegionCheckAll(val) {
+    handleRegionCheckAll(val: boolean) {
       this.regionIndeterminate = false
       if (val) {
         this.selectedRegions = this.regionOptions.map((region) => region.value)
@@ -749,7 +704,7 @@ export default {
         this.selectedRegions = []
       }
     },
-    handleClickOutside(event) {
+    handleClickOutside(event: Event) {
       const languageMultiselect = this.$el.querySelector('.language-multiselect')
       const regionMultiselect = this.$el.querySelector('.region-multiselect')
       const timeRangeSelects = this.$el.querySelectorAll('.custom-select')
@@ -763,15 +718,14 @@ export default {
       }
 
       let clickedInCustomSelect = false
-      timeRangeSelects.forEach((select) => {
-        if (select.contains(event.target)) {
+      timeRangeSelects.forEach((select: Element) => {
+        if (select.contains(event.target as Node)) {
           clickedInCustomSelect = true
         }
       })
 
       if (!clickedInCustomSelect) {
-        this.timeRangeDropdownOpen = false
-        this.frequencyDropdownOpen = false
+        this.searchTimeDropdownOpen = false
       }
     },
 
@@ -781,12 +735,13 @@ export default {
         return
       }
 
-      const projectData = {
+      const projectData: any = {
         name: this.projectName,
         type: this.projectType,
         newsSearchCount: this.newsSearchCount,
-        fetchTime: this.crawlTimeRange,
-        crawlFrequency: this.crawlFrequency,
+        fetchTime: 24, // 固定为24
+        crawlFrequency: 24, // 固定为24
+        searchTime: parseInt(this.searchTime),
         searchLanguages: this.selectedLanguages,
         searchRegions: this.selectedRegions,
         monitorKeywords: this.keywords
@@ -797,12 +752,18 @@ export default {
             includeWords: kw.include,
             excludeWords: kw.exclude,
           })),
+        // 添加必需的字段以符合Project接口
+        excludedVideoLinks: [],
+        monitoredVideoLinks: [],
+        postSearchCount: 0,
+        videoSearchCount: 0,
+        searchPlatforms: [],
       }
 
       // 如果是编辑模式，需要添加项目ID
       if (this.isEditMode) {
         const projectId = this.$route.params.id || this.$route.query.projectId
-        projectData.projectId = projectId
+        projectData.projectId = Array.isArray(projectId) ? projectId[0] : projectId
       }
 
       try {
@@ -819,19 +780,17 @@ export default {
         // 判断响应是否成功 - 支持多种成功码
         const isSuccess =
           response &&
-          (response.code === 0 ||
-            response.code === '0' ||
-            response.code === 200 ||
-            response.code === '200')
+          (response.code === 0 || response.code === 200)
 
         if (isSuccess && response.data) {
           console.log(`项目${this.isEditMode ? '更新' : '创建'}成功:`, response.data)
           ElMessage.success(`项目${this.isEditMode ? '更新' : '保存'}成功！`)
 
           if (!this.isEditMode) {
-            const projectId = response.data.projectId || response.data.id
-            const projectName = response.data.name || response.data.projectName
-            const projectType = response.data.type || response.data.projectType
+            const responseData = response.data as any
+            const projectId = responseData.projectId || responseData.id
+            const projectName = responseData.name || responseData.projectName
+            const projectType = responseData.type || responseData.projectType
 
             const projectIdStr = String(projectId)
 
@@ -856,7 +815,7 @@ export default {
             this.hasChanges = false
           }
         } else {
-          const errorMsg = response?.msg || response?.message || '保存失败，请重试'
+          const errorMsg = response?.msg || '保存失败，请重试'
           console.error('项目保存失败:', { response, errorMsg })
           ElMessage.error(`${this.isEditMode ? '更新' : '保存'}项目失败：${errorMsg}`)
         }
@@ -891,14 +850,15 @@ export default {
     // 删除项目
     async deleteProject() {
       const projectId = this.$route.params.id || this.$route.query.projectId
+      const id = Array.isArray(projectId) ? projectId[0] : projectId
 
-      if (!projectId) {
+      if (!id) {
         ElMessage.error('项目ID不存在，无法删除')
         return
       }
 
       try {
-        const response = await deleteProject(projectId)
+        const response = await deleteProject(id)
 
         if (response.code === 0) {
           ElMessage.success('项目删除成功！')
@@ -933,9 +893,10 @@ export default {
       this.lastSearchTestTime = currentTime
 
       const projectId = this.$route.params.id || this.$route.query.projectId
-      console.log('点击搜索测试按钮，项目ID:', projectId)
+      const id = Array.isArray(projectId) ? projectId[0] : projectId
+      console.log('点击搜索测试按钮，项目ID:', id)
 
-      if (!projectId) {
+      if (!id) {
         ElMessage.error('项目ID不存在，无法执行搜索测试')
         return
       }
@@ -948,15 +909,20 @@ export default {
 
       // 先异步启动搜索测试任务
       console.log('先启动搜索测试任务')
-      this.startSearchTestAsync(projectId)
+      this.startSearchTestAsync(id)
 
       // 然后立即开始轮询进度
       console.log('然后立即开始轮询进度')
-      this.startProgressPolling(projectId)
+      this.startProgressPolling(id)
+
+      // 开启异步延迟，2秒后刷新页面
+      setTimeout(() => {
+        this.$router.go(0) // 刷新当前页面
+      }, 2000)
     },
 
     // 异步启动搜索测试
-    async startSearchTestAsync(projectId) {
+    async startSearchTestAsync(projectId: string) {
       try {
         // 启动搜索测试任务
         const response = await executeDataCrawlTask(projectId)
@@ -978,7 +944,7 @@ export default {
     },
 
     // 开始轮询进度
-    startProgressPolling(projectId) {
+    startProgressPolling(projectId: string) {
       console.log('开始轮询搜索测试进度，项目ID:', projectId)
       // 清除之前的定时器
       if (this.progressTimer) {
@@ -994,11 +960,11 @@ export default {
       this.progressTimer = setInterval(() => {
         console.log('定时器触发，获取进度')
         this.fetchProgress(projectId)
-      }, 500)
+      }, 500) as any
     },
 
     // 获取进度
-    async fetchProgress(projectId) {
+    async fetchProgress(projectId: string) {
       console.log('正在获取搜索测试进度...', projectId)
       try {
         const response = await getDataCrawlProgress(projectId)
@@ -1053,15 +1019,16 @@ export default {
     // 检查是否有正在运行的搜索测试
     async checkRunningSearchTest() {
       const projectId = this.$route.params.id || this.$route.query.projectId
+      const id = Array.isArray(projectId) ? projectId[0] : projectId
 
       // 只有在编辑模式或已创建项目时才检查
-      if (!projectId || (!this.isEditMode && this.projectStatus === 'creating')) {
+      if (!id || (!this.isEditMode && this.projectStatus === 'creating')) {
         this.searchTestButtonDisabled = false
         return
       }
 
       try {
-        const response = await getDataCrawlProgress(projectId)
+        const response = await getDataCrawlProgress(id)
 
         if (response.code === 0) {
           if (response.data) {
@@ -1071,7 +1038,7 @@ export default {
               this.searchTestProgress = response.data
 
               // 开始轮询进度
-              this.startProgressPolling(projectId)
+              this.startProgressPolling(id)
             } else {
               // 任务已完成，重置状态
               this.isSearchTesting = false
