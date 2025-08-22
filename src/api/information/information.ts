@@ -16,11 +16,20 @@ import type {
  * @returns 信息列表
  */
 export const getInformationList = async (filter: InformationFilt): Promise<ApiResponseWrapper<InformationsResult>> => {
+  const startTime = performance.now();
+  console.log('测试耗时-📊 [信息API] 开始请求信息列表');
+
   try {
     const response = await post<ApiResponseWrapper<InformationsResult>>('/informations', filter);
+
+    const endTime = performance.now();
+    const recordCount = response?.data?.records?.length || 0;
+    console.log(`测试耗时-✅ [信息API] 获取成功，记录数: ${recordCount}, 耗时: ${(endTime - startTime).toFixed(2)}ms`);
+
     return response;
   } catch (error) {
-    console.error('获取信息列表失败:', error);
+    const endTime = performance.now();
+    console.error(`测试耗时-❌ [信息API] 请求失败 (耗时: ${(endTime - startTime).toFixed(2)}ms):`, error);
     throw error;
   }
 };
@@ -31,25 +40,28 @@ export const getInformationList = async (filter: InformationFilt): Promise<ApiRe
  * @returns 筛选选项
  */
 export const getFilterOptions = async (projectId: string) => {
-  try {
-    console.log('=== 获取筛选选项 ===');
-    console.log('项目ID:', projectId);
-    console.log('请求路径:', `/informations/filts?projectId=${projectId}`);
+  const startTime = performance.now();
+  console.log('测试耗时-🔍 [筛选API] 开始请求，项目ID:', projectId);
 
+  try {
     // 尝试不同的API路径
     let response;
+    let apiPath = '';
     try {
-      response = await get(`/informations/filts?projectId=${projectId}`);
+      apiPath = `/informations/filts?projectId=${projectId}`;
+      response = await get(apiPath);
     } catch {
-      console.log('第一个路径失败，尝试第二个路径');
       try {
-        response = await get(`/information/filts?projectId=${projectId}`);
+        apiPath = `/information/filts?projectId=${projectId}`;
+        response = await get(apiPath);
       } catch {
-        console.log('第二个路径也失败，尝试第三个路径');
-        response = await get(`/filts?projectId=${projectId}`);
+        apiPath = `/filts?projectId=${projectId}`;
+        response = await get(apiPath);
       }
     }
-    console.log('筛选选项API响应:', response);
+
+    const endTime = performance.now();
+    console.log(`测试耗时-✅ [筛选API] 请求成功 (路径: ${apiPath}, 耗时: ${(endTime - startTime).toFixed(2)}ms)`);
 
     // 处理不同的响应格式
     if (response && typeof response === 'object') {
@@ -64,7 +76,8 @@ export const getFilterOptions = async (projectId: string) => {
 
     return response;
   } catch (error) {
-    console.error('获取筛选选项失败:', error);
+    const endTime = performance.now();
+    console.error(`测试耗时-❌ [筛选API] 请求失败 (耗时: ${(endTime - startTime).toFixed(2)}ms):`, error);
     throw error;
   }
 };

@@ -263,8 +263,9 @@
         >
           <div class="form-item">
             <label>频道：</label>
-            <el-select
+            <el-select-v2
               v-model="filter.channels"
+              :options="channelSelectOptions"
               multiple
               clearable
               collapse-tags
@@ -284,13 +285,7 @@
                   全选
                 </el-checkbox>
               </template>
-              <el-option
-                v-for="channel in channelOptions"
-                :key="channel"
-                :label="channel"
-                :value="channel"
-              />
-            </el-select>
+            </el-select-v2>
           </div>
         </el-col>
         <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
@@ -371,7 +366,7 @@
     </div>
 
     <!-- 信息展示区域 -->
-    <div v-if="loading" class="loading-container">
+    <div v-if="informationLoading" class="loading-container">
       <div class="loading-spinner"></div>
       <p>正在加载数据...</p>
     </div>
@@ -830,7 +825,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getInformationList,
@@ -855,7 +850,7 @@ import noPictureIcon from '@/components/icons/noPicture.svg'
 import tagIcon from '@/components/icons/tag.svg'
 import captureActiveIcon from '@/components/icons/capture-active.svg'
 import captureInactiveIcon from '@/components/icons/capture-inactive.svg'
-import deleteIcon from '@/components/icons/delete.svg'
+
 import positiveIcon from '@/components/icons/positive.svg'
 import neutralIcon from '@/components/icons/neutral.svg'
 import negativeIcon from '@/components/icons/negative.svg'
@@ -865,6 +860,7 @@ const projectStore = useProjectStore()
 
 // 加载状态
 const loading = ref(false)
+const informationLoading = ref(false)  // 信息数据独立的loading状态
 const error = ref('')
 
 // 筛选选项
@@ -919,13 +915,15 @@ const fetchFilterOptions = async () => {
     }
 
     if (!currentProjectId) {
-      console.warn('没有项目ID，无法获取筛选选项')
+      console.warn('❌ [筛选选项] 没有项目ID，无法获取筛选选项')
       return
     }
 
     const response = await getFilterOptions(currentProjectId)
 
     if (response) {
+
+      // 直接批量更新，不使用nextTick包装
       filterOptions.value = response
 
       // 设置第一个排序选项为默认值
@@ -938,6 +936,9 @@ const fetchFilterOptions = async () => {
         totalCount.value = response.count
         totalPages.value = Math.ceil(response.count / pageSize.value)
       }
+
+      // 等待DOM更新完成
+      await nextTick()
     }
   } catch (err) {
     console.error('获取筛选选项失败:', err)
@@ -945,35 +946,14 @@ const fetchFilterOptions = async () => {
   }
 }
 
-// 选项数据（从API获取，如果没有数据则为空）
-const brandOptions = computed(() => {
-  const options = filterOptions.value.brands?.map((item) => item.label) || []
-  return options
-})
-const skuOptions = computed(() => {
-  const options = filterOptions.value.skus?.map((item) => item.label) || []
-  return options
-})
-const sentimentOptions = computed(() => {
-  const options = filterOptions.value.sentiments?.map((item) => item.label) || []
-  return options
-})
-const platformOptions = computed(() => {
-  const options = filterOptions.value.platforms?.map((item) => item.label) || []
-  return options
-})
-const languageOptions = computed(() => {
-  const options = filterOptions.value.languages?.map((item) => item.label) || []
-  return options
-})
-const regionOptions = computed(() => {
-  const options = filterOptions.value.regions?.map((item) => item.label) || []
-  return options
-})
-const sortOptions = computed(() => {
-  const options = filterOptions.value.sortBy?.map((item) => item.label) || []
-  return options
-})
+// 选项数据（从API获取，如果没有数据则为空）- 优化缓存
+const brandOptions = computed(() => filterOptions.value.brands?.map((item) => item.label) || [])
+const skuOptions = computed(() => filterOptions.value.skus?.map((item) => item.label) || [])
+const sentimentOptions = computed(() => filterOptions.value.sentiments?.map((item) => item.label) || [])
+const platformOptions = computed(() => filterOptions.value.platforms?.map((item) => item.label) || [])
+const languageOptions = computed(() => filterOptions.value.languages?.map((item) => item.label) || [])
+const regionOptions = computed(() => filterOptions.value.regions?.map((item) => item.label) || [])
+const sortOptions = computed(() => filterOptions.value.sortBy?.map((item) => item.label) || [])
 
 // 获取第一个排序选项的value
 const firstSortValue = computed(() => {
@@ -983,14 +963,18 @@ const firstSortValue = computed(() => {
   return 'publishedAt:desc' // 默认值
 })
 // durationOptions 已移除，现在使用用户直接输入的时长
-const channelOptions = computed(() => {
-  const options = filterOptions.value.channels?.map((item) => item.label) || []
-  return options
+const channelOptions = computed(() => filterOptions.value.channels?.map((item) => item.label) || [])
+// 为虚拟选择器转换数据格式
+const channelSelectOptions = computed(() => {
+  if (!filterOptions.value.channels || !Array.isArray(filterOptions.value.channels)) {
+    return []
+  }
+  return filterOptions.value.channels.map((item) => ({
+    value: item.label,
+    label: item.label
+  }))
 })
-const tagOptions = computed(() => {
-  const options = filterOptions.value.labels?.map((item) => item.label) || []
-  return options
-})
+const tagOptions = computed(() => filterOptions.value.labels?.map((item) => item.label) || [])
 
 // 全选状态计算属性 - 已移除，使用Element Plus组件
 
@@ -1151,7 +1135,6 @@ const visiblePages = computed(() => {
 async function goToPage(page: number) {
   if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
     currentPage.value = page
-    loading.value = true
     error.value = ''
 
     try {
@@ -1159,8 +1142,6 @@ async function goToPage(page: number) {
     } catch (err) {
       console.error('分页切换失败:', err)
       error.value = err instanceof Error ? err.message : '分页切换失败，请稍后重试'
-    } finally {
-      loading.value = false
     }
   }
 }
@@ -1256,6 +1237,9 @@ function resetFilter() {
   resetPagination()
 }
 
+// 防抖的搜索函数
+let searchTimeout: number | null = null
+
 async function searchData() {
   // 检查排序是否已选择，如果没有选择则提醒用户
   if (!filter.value.sort) {
@@ -1265,8 +1249,6 @@ async function searchData() {
 
   // 重置分页到第一页
   currentPage.value = 1
-
-  loading.value = true
   error.value = ''
 
   try {
@@ -1274,9 +1256,21 @@ async function searchData() {
   } catch (err) {
     console.error('搜索失败:', err)
     error.value = err instanceof Error ? err.message : '搜索失败，请稍后重试'
-  } finally {
-    loading.value = false
   }
+}
+
+// 防抖的搜索输入监听
+function debouncedSearch() {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = window.setTimeout(() => {
+    if (filter.value.searchKeyword !== '' || Object.values(filter.value).some(val =>
+      Array.isArray(val) ? val.length > 0 : val !== '' && val !== null
+    )) {
+      searchData()
+    }
+  }, 500) // 500ms 防抖
 }
 
 // 点击外部关闭下拉框
@@ -1293,6 +1287,14 @@ function handleClickOutside(event: Event) {
     sortDropdownOpen.value = false
   }
 }
+
+// 监听搜索关键词变化，使用防抖
+watch(
+  () => filter.value.searchKeyword,
+  () => {
+    debouncedSearch()
+  }
+)
 
 // 监听筛选条件变化，更新全选状态
 watch(
@@ -1421,18 +1423,19 @@ watch(
   async (newProjectId, oldProjectId) => {
     try {
       if (newProjectId && newProjectId !== oldProjectId) {
-        loading.value = true
         error.value = ''
 
         // 重置分页状态到第一页
         resetPagination()
 
         try {
-          // 执行获取筛选选项
-          const [filterResult] = await Promise.allSettled([
-            fetchFilterOptions(),
-            fetchInformationData(),
-          ])
+          // 分别启动两个请求，信息数据可以先显示
+          const infoDataPromise = fetchInformationData().catch(err => {
+            console.error('信息数据获取失败:', err)
+          })
+
+          // 等待筛选选项请求完成
+          const [filterResult] = await Promise.allSettled([fetchFilterOptions(), infoDataPromise])
 
           // 检查是否有失败的请求
           const failedRequests = []
@@ -1448,11 +1451,14 @@ watch(
           if (failedRequests.length > 0) {
             error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
           }
+
+          // 等待数据渲染完成
+          await nextTick()
         } catch (err) {
           console.error('项目切换失败:', err)
           error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试'
         } finally {
-          loading.value = false
+          // loading状态交由独立的信息数据loading管理
         }
 
         // if (failedRequests.length > 0) {
@@ -1463,7 +1469,7 @@ watch(
       console.error('项目切换失败:', err)
       error.value = err instanceof Error ? err.message : '项目切换失败，请稍后重试'
     } finally {
-      loading.value = false
+      // loading状态交由独立的信息数据loading管理
     }
   },
 )
@@ -1471,16 +1477,23 @@ watch(
 // 组件挂载时添加全局点击监听
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
+  // 初始化图片懒加载观察器
+  initImageObserver()
 
-  // 显示初始loading状态
+  // 筛选选项加载状态
   loading.value = true
 
-  // 等待一下确保项目状态已经加载
-  await new Promise((resolve) => setTimeout(resolve, 100))
-
   try {
-    // 执行获取筛选选项
-    const [filterResult] = await Promise.allSettled([fetchFilterOptions(), fetchInformationData()])
+    // 分别启动两个请求，但不等待全部完成
+    const infoDataPromise = fetchInformationData().catch(err => {
+      console.error('信息数据获取失败:', err)
+    })
+
+    // 启动筛选选项请求
+    const [filterResult] = await Promise.allSettled([fetchFilterOptions(), infoDataPromise])
+
+    // 等待下一个 DOM 更新周期完成
+    await nextTick()
 
     // 检查是否有失败的请求
     const failedRequests = []
@@ -1492,6 +1505,8 @@ onMounted(async () => {
     if (failedRequests.length > 0) {
       error.value = `${failedRequests.join('和')}加载失败，请刷新重试`
     }
+
+
   } catch (err) {
     console.error('组件初始化失败:', err)
     error.value = '页面加载失败，请稍后重试'
@@ -1503,6 +1518,12 @@ onMounted(async () => {
 // 组件卸载时移除全局点击监听
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  // 清理图片观察器
+  cleanupImageObserver()
+  // 清理搜索定时器
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
 })
 
 // 信息数据
@@ -1532,6 +1553,8 @@ function isNewsType(item: Information): boolean {
 
 // 获取信息数据
 const fetchInformationData = async () => {
+  informationLoading.value = true
+
   try {
     // 获取当前项目ID
     const currentProjectId = projectStore.currentProjectId
@@ -1540,39 +1563,24 @@ const fetchInformationData = async () => {
       return
     }
 
-    // 构建过滤条件 - 安全地处理筛选选项可能尚未加载的情况
+    // 构建过滤条件
+    const options = filterOptions.value
     const filterParams: InformationFilt = {
       projectId: currentProjectId,
-      brands: filterOptions.value.brands
-        ? convertLabelsToValues(filterOptions.value.brands, filter.value.brands)
-        : filter.value.brands,
-      skus: filterOptions.value.skus
-        ? convertLabelsToValues(filterOptions.value.skus, filter.value.skus)
-        : filter.value.skus,
-      platforms: filterOptions.value.platforms
-        ? convertLabelsToValues(filterOptions.value.platforms, filter.value.platforms)
-        : filter.value.platforms,
-      sentiments: filterOptions.value.sentiments
-        ? convertLabelsToValues(filterOptions.value.sentiments, filter.value.sentiments)
-        : filter.value.sentiments,
-      languages: filterOptions.value.languages
-        ? convertLabelsToValues(filterOptions.value.languages, filter.value.languages)
-        : filter.value.languages,
-      regions: filterOptions.value.regions
-        ? convertLabelsToValues(filterOptions.value.regions, filter.value.regions)
-        : filter.value.regions,
+      brands: options.brands ? convertLabelsToValues(options.brands, filter.value.brands) : filter.value.brands,
+      skus: options.skus ? convertLabelsToValues(options.skus, filter.value.skus) : filter.value.skus,
+      platforms: options.platforms ? convertLabelsToValues(options.platforms, filter.value.platforms) : filter.value.platforms,
+      sentiments: options.sentiments ? convertLabelsToValues(options.sentiments, filter.value.sentiments) : filter.value.sentiments,
+      languages: options.languages ? convertLabelsToValues(options.languages, filter.value.languages) : filter.value.languages,
+      regions: options.regions ? convertLabelsToValues(options.regions, filter.value.regions) : filter.value.regions,
       keyword: filter.value.searchKeyword || '',
       sortBy: filter.value.sort ? getSortValue(filter.value.sort) : firstSortValue.value,
       minDuration: filter.value.minDuration ? filter.value.minDuration * 60 : 0,
       maxDuration: filter.value.maxDuration ? filter.value.maxDuration * 60 : 0,
-      channels: filterOptions.value.channels
-        ? convertLabelsToValues(filterOptions.value.channels, filter.value.channels)
-        : filter.value.channels,
+      channels: options.channels ? convertLabelsToValues(options.channels, filter.value.channels) : filter.value.channels,
       publishedAtStart: formatDateTime(filter.value.dateRange[0]),
       publishedAtEnd: formatDateTime(filter.value.dateRange[1]),
-      labels: filterOptions.value.labels
-        ? convertLabelsToValues(filterOptions.value.labels, filter.value.tags)
-        : filter.value.tags,
+      labels: options.labels ? convertLabelsToValues(options.labels, filter.value.tags) : filter.value.tags,
       page: currentPage.value,
       size: pageSize.value,
     }
@@ -1589,6 +1597,7 @@ const fetchInformationData = async () => {
         totalPages.value = resultData.totalPages || Math.ceil(totalCount.value / pageSize.value)
         currentPage.value = resultData.currentPage || 1
         pageSize.value = resultData.pageSize || 30
+
       } else {
         // 兼容性处理：如果不是新格式，使用默认值
         informationList.value = []
@@ -1606,16 +1615,13 @@ const fetchInformationData = async () => {
     if (isMultiSelectMode.value) {
       selectedItems.value = []
     }
-
-    // 调试：显示当前加载的平台信息
-    const platforms = informationList.value
-      .map((item) => item.platform)
-      .filter((platform, index, self) => self.indexOf(platform) === index)
-    console.log('当前加载的平台:', platforms)
-    console.log('总项目数量:', informationList.value.length)
+    // 等待数据渲染完成
+    await nextTick()
   } catch (err) {
     console.error('获取信息数据失败:', err)
     throw new Error('获取数据失败，请稍后重试')
+  } finally {
+    informationLoading.value = false
   }
 }
 
@@ -1632,7 +1638,6 @@ function formatDateYMD(timeStr: string): string {
   if (!timeStr) return '-'
 
   try {
-    console.log('formatDateYMD - 原始时间字符串:', timeStr)
 
     // 尝试解析时间字符串
     let date: Date
@@ -1653,15 +1658,7 @@ function formatDateYMD(timeStr: string): string {
           date.getTime() + 8 * 60 * 60 * 1000 + date.getTimezoneOffset() * 60 * 1000,
         )
 
-        console.log('formatDateYMD - ISO 8601转北京时间:', {
-          原始: timeStr,
-          解析后UTC: date.toISOString(),
-          北京时间: beijingTime.toString(),
-          时区偏移: date.getTimezoneOffset(),
-        })
-
         const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`
-        console.log('formatDateYMD - 北京时间格式化结果:', result)
         return result
       }
       // 处理 CST 时间格式，如 "Thu Jul 24 19:20:05 CST 2025"
@@ -1701,27 +1698,13 @@ function formatDateYMD(timeStr: string): string {
             parseInt(second),
           )
 
-          console.log('formatDateYMD - CST时间手动解析:', {
-            原始: timeStr,
-            解析结果: match,
-            年: year,
-            月: monthStr,
-            日: day,
-            时: hour,
-            分: minute,
-            秒: second,
-            最终Date对象: beijingTime,
-            最终时间戳: beijingTime.getTime(),
-          })
-
           const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`
-          console.log('formatDateYMD - CST北京时间格式化结果:', result)
           return result
         } else {
           // 如果正则匹配失败，尝试移除CST后解析
           const cleanTimeStr = timeStr.replace(' CST', '')
           date = new Date(cleanTimeStr)
-          console.log('formatDateYMD - CST正则匹配失败，使用简单方式解析')
+          // CST正则匹配失败，使用简单方式解析
         }
       } else {
         // 尝试直接解析时间字符串
@@ -1741,7 +1724,6 @@ function formatDateYMD(timeStr: string): string {
     )
 
     const result = `${beijingTime.getFullYear()}-${String(beijingTime.getMonth() + 1).padStart(2, '0')}-${String(beijingTime.getDate()).padStart(2, '0')} ${String(beijingTime.getHours()).padStart(2, '0')}:${String(beijingTime.getMinutes()).padStart(2, '0')}:${String(beijingTime.getSeconds()).padStart(2, '0')}`
-    console.log('formatDateYMD - 北京时间格式化结果:', result)
 
     return result
   } catch (error) {
@@ -1857,8 +1839,6 @@ function getPlatformIcon(platform: string): string {
 
 // 获取情感图标
 function getSentimentIcon(sentiment: number): string {
-  console.log('getSentimentIcon - 输入情感分数:', sentiment)
-
   // 处理不同的数据格式
   let normalizedSentiment = sentiment
   if (sentiment <= 1) {
@@ -1866,14 +1846,10 @@ function getSentimentIcon(sentiment: number): string {
     normalizedSentiment = Math.round(sentiment * 100)
   }
 
-  console.log('getSentimentIcon - 标准化后的情感分数:', normalizedSentiment)
-
   let str = 'Neutral'
   if (normalizedSentiment <= 40) str = 'Negative'
   if (normalizedSentiment >= 61) str = 'Positive'
   if (normalizedSentiment >= 41 && normalizedSentiment <= 60) str = 'Neutral'
-
-  console.log('getSentimentIcon - 计算得到的情感类型:', str)
 
   const iconMap: Record<string, string> = {
     Positive: positiveIcon,
@@ -1891,15 +1867,26 @@ function getSentimentText(sentiment: number): string {
   return '中性'
 }
 
-// 根据label获取对应的value
-function getValueByLabel(options: FilterOption[], label: string): string {
-  const option = options.find((opt) => opt.label === label)
-  return option ? option.value : label
-}
+// 缓存转换结果以提升性能 - 优化缓存策略
+const optionsCache = new Map<string, Map<string, string>>()
 
-// 将label数组转换为value数组
+// 将label数组转换为value数组（优化缓存）
 function convertLabelsToValues(options: FilterOption[], labels: string[]): string[] {
-  return labels.map((label) => getValueByLabel(options, label))
+  if (!labels.length) return []
+  if (!options.length) return labels
+
+  // 为这组选项构建缓存键
+  const optionsKey = options.map(opt => opt.label).join('|')
+
+  // 检查是否已经有了这组选项的缓存
+  if (!optionsCache.has(optionsKey)) {
+    const labelMap = new Map<string, string>()
+    options.forEach(opt => labelMap.set(opt.label, opt.value))
+    optionsCache.set(optionsKey, labelMap)
+  }
+
+  const labelMap = optionsCache.get(optionsKey)!
+  return labels.map(label => labelMap.get(label) || label)
 }
 
 // 从内容中获取品牌信息
@@ -2017,18 +2004,14 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
       return
     }
 
-    console.log('删除标签:', {
-      projectId: currentProjectId,
-      linkId: item.id,
-      labelToDelete: labelToDelete,
-    })
+    // 删除标签操作
 
     // 构建新的标签列表（移除要删除的标签）
     const currentLabels = item.labels || []
     const newLabels = currentLabels.filter((label) => label !== labelToDelete)
 
     const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels])
-    console.log('删除标签响应:', response)
+    // API 响应成功
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
@@ -2062,7 +2045,7 @@ async function handleDeleteLabel(item: Information, labelToDelete: string) {
 
 // 处理添加标签
 async function handleAddTag(item: Information) {
-  console.log('添加标签:', item)
+  // 添加标签操作
 
   try {
     const { value: tag } = await ElMessageBox.prompt('请输入要添加的标签名称：', '添加标签', {
@@ -2099,18 +2082,14 @@ async function handleAddTag(item: Information) {
       return
     }
 
-    console.log('添加标签:', {
-      projectId: currentProjectId,
-      linkId: item.id,
-      tag: trimmedTag,
-    })
+    // 添加标签操作
 
     // 构建新的标签列表
     const currentLabels = item.labels || []
     const newLabels = [...currentLabels, trimmedTag]
 
     const response = await updateLinksLabelsBatch(currentProjectId, [item.id], [newLabels])
-    console.log('添加标签响应:', response)
+    // API 响应成功
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
@@ -2151,7 +2130,7 @@ async function handleAddTag(item: Information) {
 // 处理切换抓取状态
 async function handleToggleCapture(item: Information) {
   try {
-    console.log('切换抓取状态:', item)
+    // 切换抓取状态操作
 
     const currentProjectId = projectStore.currentProjectId
     if (!currentProjectId) {
@@ -2176,7 +2155,7 @@ async function handleToggleCapture(item: Information) {
 
 // 处理删除
 async function handleDelete(item: Information) {
-  console.log('删除项目:', item)
+  // 删除项目操作
 
   try {
     await ElMessageBox.confirm('确定要删除这个信息项吗？', '确认删除', {
@@ -2195,7 +2174,7 @@ async function handleDelete(item: Information) {
       return
     }
 
-    console.log('开始删除链接:', item.id)
+    // 开始删除链接
     const response = await deleteProjectLink(currentProjectId, [item.id])
 
     if (response) {
@@ -2257,11 +2236,7 @@ async function handleBatchAddTag() {
       return
     }
 
-    console.log('批量添加标签:', {
-      projectId: currentProjectId,
-      linkIds: selectedItems.value,
-      tag: trimmedTag,
-    })
+    // 批量添加标签操作
 
     // 为每个选中的项目添加标签
     const labelsList: string[][] = []
@@ -2280,7 +2255,7 @@ async function handleBatchAddTag() {
     }
 
     const response = await updateLinksLabelsBatch(currentProjectId, selectedItems.value, labelsList)
-    console.log('批量添加标签响应:', response)
+    // API 响应成功
 
     if (response) {
       if (response.code === 0 || response.success === true || response.status === 200) {
@@ -2348,14 +2323,10 @@ async function handleBatchSetCapture(isActive: boolean) {
       return
     }
 
-    console.log('批量设置抓取状态:', {
-      projectId: currentProjectId,
-      linkIds: selectedItems.value,
-      isActive: isActive,
-    })
+    // 批量设置抓取状态操作
 
     const response = await updateLinkActiveStatus(currentProjectId, selectedItems.value, isActive)
-    console.log('批量设置抓取状态响应:', response)
+    // API 响应成功
 
     // 处理不同的响应格式
     if (response) {
@@ -2423,14 +2394,14 @@ function handleImageError(event: Event) {
 
   if (retryCount >= maxRetries) {
     // 所有代理都尝试过了，显示占位符
-    console.warn('所有图片代理都失败，显示占位符:', originalUrl)
+    // 所有图片代理都失败，显示占位符
     showImagePlaceholder(target)
     return
   }
 
   // 尝试下一个代理
   const nextProxyConfig = imageProxyConfigs[retryCount]
-  console.log(`图片加载失败，尝试第${retryCount + 1}个代理:`, nextProxyConfig.name, originalUrl)
+  // 图片加载失败，尝试下一个代理
 
   try {
     const nextProxiedUrl = nextProxyConfig.template(originalUrl)
@@ -2444,8 +2415,8 @@ function handleImageError(event: Event) {
         handleImageError(event)
       }
     }, nextProxyConfig.timeout)
-  } catch (error) {
-    console.warn(`代理${nextProxyConfig.name}配置失败:`, error)
+  } catch {
+    // 代理配置失败
     // 直接尝试下一个代理
     target.dataset.retryCount = String(retryCount + 1)
     setTimeout(() => handleImageError(event), 100)
@@ -2488,7 +2459,6 @@ function showImagePlaceholder(target: HTMLImageElement) {
 function handleImageLoad(event: Event) {
   const target = event.target as HTMLImageElement
   const originalUrl = target.dataset.originalUrl
-  const platform = target.dataset.platform
   const retryCount = parseInt(target.dataset.retryCount || '0')
 
   if (originalUrl) {
@@ -2503,13 +2473,9 @@ function handleImageLoad(event: Event) {
       stats.total += 1
       proxyStats.set(successProxyConfig.name, stats)
 
-      console.log(
-        `代理${successProxyConfig.name}加载成功:`,
-        originalUrl,
-        `成功率: ${((stats.success / stats.total) * 100).toFixed(1)}%`,
-      )
+      // 代理加载成功
     } else {
-      console.log('原始图片加载成功:', platform, originalUrl)
+      // 原始图片加载成功
     }
   }
 }
@@ -2563,13 +2529,10 @@ async function handleBatchDelete() {
       return
     }
 
-    console.log('批量删除:', {
-      projectId: currentProjectId,
-      linkIds: selectedItems.value,
-    })
+    // 批量删除操作
 
     const response = await deleteProjectLink(currentProjectId, selectedItems.value)
-    console.log('批量删除响应:', response)
+    // API 响应成功
 
     // 处理不同的响应格式
     if (response) {
@@ -2639,14 +2602,50 @@ const failedProxyCache = new Set<string>()
 // 代理成功率统计
 const proxyStats = new Map<string, { success: number; total: number }>()
 
+// 在组件挂载时初始化 Intersection Observer 优化图片加载
+let imageObserver: IntersectionObserver | null = null
+
 // 获取图片URL（初始加载时使用原始URL）
 function getProxiedImageUrl(originalUrl: string): string {
   if (!originalUrl) {
     return noPictureIcon
   }
 
+  // 优先检查缓存中是否有成功的代理URL
+  if (workingProxyCache.has(originalUrl)) {
+    return workingProxyCache.get(originalUrl)!
+  }
+
   // 初始加载时直接返回原始URL，失败时由错误处理函数进行代理重试
   return originalUrl
+}
+
+// 初始化图片懒加载观察器
+function initImageObserver() {
+  if ('IntersectionObserver' in window) {
+    imageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement
+          if (img.dataset.src && !img.src) {
+            img.src = img.dataset.src
+            img.removeAttribute('data-src')
+            imageObserver!.unobserve(img)
+          }
+        }
+      })
+    }, {
+      rootMargin: '50px' // 提前50px开始加载
+    })
+  }
+}
+
+// 清理观察器
+function cleanupImageObserver() {
+  if (imageObserver) {
+    imageObserver.disconnect()
+    imageObserver = null
+  }
 }
 </script>
 
