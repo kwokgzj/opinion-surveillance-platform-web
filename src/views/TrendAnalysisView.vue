@@ -73,6 +73,7 @@
               popper-class="custom-header"
               :max-collapse-tags="1"
               style="width: 100%"
+              @change="(val: string[]) => console.log('😊 情感倾向选择变化:', val)"
             >
               <template #header>
                 <el-checkbox
@@ -141,6 +142,7 @@
               popper-class="custom-header"
               :max-collapse-tags="1"
               style="width: 100%"
+              @change="(val: string[]) => console.log('🌍 语言选择变化:', val)"
             >
               <template #header>
                 <el-checkbox
@@ -173,6 +175,7 @@
               popper-class="custom-header"
               :max-collapse-tags="1"
               style="width: 100%"
+              @change="(val: string[]) => console.log('🏛️ 地区选择变化:', val)"
             >
               <template #header>
                 <el-checkbox
@@ -768,6 +771,47 @@ const processStatsData = (data: TrendAnalysisData) => {
   console.log('统计数据:', statsData.value)
 }
 
+// 缓存转换结果以提升性能
+const optionsCache = new Map<string, Map<string, string>>()
+
+// 将label数组转换为value数组
+function convertLabelsToValues(options: FilterOptions['brands'], labels: string[]): string[] {
+  console.log('🔧 convertLabelsToValues 被调用:', { options, labels })
+
+  if (!labels.length) {
+    console.log('🔧 labels为空，返回空数组')
+    return []
+  }
+  if (!options.length) {
+    console.log('🔧 options为空，返回原始labels')
+    return labels
+  }
+
+  // 为这组选项构建缓存键
+  const optionsKey = options.map(opt => opt.label).join('|')
+  console.log('🔧 缓存键:', optionsKey)
+
+  // 检查是否已经有了这组选项的缓存
+  if (!optionsCache.has(optionsKey)) {
+    const labelMap = new Map<string, string>()
+    options.forEach(opt => {
+      console.log('🔧 添加映射:', opt.label, '->', opt.value)
+      labelMap.set(opt.label, opt.value)
+    })
+    optionsCache.set(optionsKey, labelMap)
+  }
+
+  const labelMap = optionsCache.get(optionsKey)!
+  const result = labels.map(label => {
+    const value = labelMap.get(label) || label
+    console.log('🔧 转换:', label, '->', value)
+    return value
+  })
+
+  console.log('🔧 转换结果:', result)
+  return result
+}
+
 // 初始化所有图表
 const initAllCharts = () => {
   console.log('🎯 开始初始化所有图表')
@@ -1073,9 +1117,18 @@ const fetchFilterOptions = async () => {
       return
     }
 
+    console.log('🔍 开始获取筛选选项，项目ID:', currentProjectId)
     const response = await getFilterOptions(currentProjectId)
+    console.log('🔍 筛选选项API响应:', response)
+
     if (response) {
       filterOptions.value = response
+      console.log('🔍 设置后的筛选选项:', filterOptions.value)
+
+      // 检查每个筛选选项是否有正确的label和value
+      console.log('🔍 情感倾向选项:', filterOptions.value.sentiments)
+      console.log('🔍 语言选项:', filterOptions.value.languages)
+      console.log('🔍 地区选项:', filterOptions.value.regions)
     }
   } catch (err) {
     console.error('获取筛选选项失败:', err)
@@ -1108,15 +1161,32 @@ const fetchTrendAnalysisData = async () => {
     }
 
     // 构建请求参数
+    const options = filterOptions.value
+
+    // 调试日志：检查转换前的数据
+    console.log('🔍 转换前的筛选数据:', {
+      filterOptions: options,
+      filterValues: filter.value
+    })
+
     const filterParams: TrendAnalysisFilter = {
       projectId: currentProjectId,
-      brands: filter.value.brands.length > 0 ? filter.value.brands : undefined,
-      skus: filter.value.skus.length > 0 ? filter.value.skus : undefined,
-      sentiments: filter.value.sentiments.length > 0 ? filter.value.sentiments : undefined,
-      platforms: filter.value.platforms.length > 0 ? filter.value.platforms : undefined,
-      languages: filter.value.languages.length > 0 ? filter.value.languages : undefined,
-      regions: filter.value.regions.length > 0 ? filter.value.regions : undefined,
+      brands: filter.value.brands.length > 0 ?
+        (options.brands ? convertLabelsToValues(options.brands, filter.value.brands) : filter.value.brands) : undefined,
+      skus: filter.value.skus.length > 0 ?
+        (options.skus ? convertLabelsToValues(options.skus, filter.value.skus) : filter.value.skus) : undefined,
+      sentiments: filter.value.sentiments.length > 0 ?
+        (options.sentiments ? convertLabelsToValues(options.sentiments, filter.value.sentiments) : filter.value.sentiments) : undefined,
+      platforms: filter.value.platforms.length > 0 ?
+        (options.platforms ? convertLabelsToValues(options.platforms, filter.value.platforms) : filter.value.platforms) : undefined,
+      languages: filter.value.languages.length > 0 ?
+        (options.languages ? convertLabelsToValues(options.languages, filter.value.languages) : filter.value.languages) : undefined,
+      regions: filter.value.regions.length > 0 ?
+        (options.regions ? convertLabelsToValues(options.regions, filter.value.regions) : filter.value.regions) : undefined,
     }
+
+    // 调试日志：检查转换后的数据
+    console.log('🔄 转换后的请求参数:', filterParams)
 
     // 处理日期范围
     if (filter.value.dateRange && filter.value.dateRange.length === 2) {
@@ -1640,9 +1710,9 @@ onMounted(async () => {
   color: var(--color-text);
 }
 
-.data-table tr:hover {
-  /* background: #f8f9fa; */
-}
+/* .data-table tr:hover {
+  background: #f8f9fa;
+} */
 
 .data-table td:first-child {
   font-weight: 600;
