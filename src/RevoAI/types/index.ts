@@ -63,7 +63,13 @@ export type Model = {
   description?: string;
   type?: ModelType;
   icon?: string;
+  contextSize?: number;
+  abilities?: string;
+  sortOrder?: number;
   abilityList?: ModelAbilities[];
+  createdAt?: string;
+  updatedAt?: string;
+  status?: string | null;
 };
 
 export type ModelAbilities = "vision" | "reasoning" | "functionCall";
