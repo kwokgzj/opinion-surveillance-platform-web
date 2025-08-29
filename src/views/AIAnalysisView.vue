@@ -236,364 +236,122 @@ const mcpServers = ref<MCPServer[]>([
   },
 ])
 const models = ref<Model[]>([
-        {
-            "id": "1947536744828645376",
-            "name": "claude-sonnet-4-20250514",
-            "displayName": "Claude Sonnet 4",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png",
-            "description": "Claude Sonnet 4为高效推理与多模态模型，兼具强大的NLP和视觉能力。",
-            "contextSize": 200000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 90,
-            "createdAt": "2025-07-22 13:58:38",
-            "updatedAt": "2025-08-28 18:05:48",
-            "status": null
-        },
-        {
-            "id": "1956167213143134208",
-            "name": "glm-4.5",
-            "displayName": "GLM 4.5",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/chatglm.png",
-            "description": "latest flagship foundation model, purpose-built for agent-based applications.",
-            "contextSize": 98304,
-            "type": "chat",
-            "abilityList": [
-                "reasoning",
-                "functionCall"
-            ],
-            "abilities": "reasoning,functionCall",
-            "sortOrder": 100,
-            "createdAt": "2025-08-15 09:33:02",
-            "updatedAt": "2025-08-28 18:01:47",
-            "status": null
-        },
-        {
-            "id": "1956169974094073856",
-            "name": "glm-4.5v",
-            "displayName": "GLM 4.5V",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/chatglm.png",
-            "description": "GLM-4.5V is a vision-language foundation model for multimodal agent applications.",
-            "contextSize": 65536,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "reasoning",
-                "vision"
-            ],
-            "abilities": "functionCall,reasoning,vision",
-            "sortOrder": 201,
-            "createdAt": "2025-08-15 09:44:00",
-            "updatedAt": "2025-08-28 18:01:19",
-            "status": null
-        },
-        {
-            "id": "1018",
-            "name": "qwen/qwen3-235b-a22b-2507",
-            "displayName": "Qwen3 235B A22B",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png",
-            "description": "Qwen3 235B A22B是阿里云推出的旗舰大模型，专注于推理与方法调用，适合企业级场景。",
-            "contextSize": 128000,
-            "type": "chat",
-            "abilityList": [
-                "reasoning"
-            ],
-            "abilities": "reasoning",
-            "sortOrder": 300,
-            "createdAt": "2025-06-26 12:00:00",
-            "updatedAt": "2025-08-18 17:48:18",
-            "status": null
-        },
-        {
-            "id": "1957379840154374144",
-            "name": "qwen/qwen3-coder",
-            "displayName": "Qwen3-Coder",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png",
-            "description": "qwen/qwen3-coder",
-            "contextSize": 262144,
-            "type": "chat",
-            "abilityList": [
-                "functionCall"
-            ],
-            "abilities": "functionCall",
-            "sortOrder": 400,
-            "createdAt": "2025-08-18 17:51:34",
-            "updatedAt": "2025-08-18 17:51:34",
-            "status": null
-        },
-        {
-            "id": "1957410574772572160",
-            "name": "doubao-seed-1-6-250615",
-            "displayName": "Doubao-Seed-1.6",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png",
-            "description": "Doubao-Seed-1.6",
-            "contextSize": 256000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "reasoning",
-                "vision"
-            ],
-            "abilities": "functionCall,reasoning,vision",
-            "sortOrder": 410,
-            "createdAt": "2025-08-18 19:53:42",
-            "updatedAt": "2025-08-18 19:53:42",
-            "status": null
-        },
-        {
-            "id": "2",
-            "name": "deepseek-v3",
-            "displayName": "Deepseek-V3",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png",
-            "description": "通用的自然语言处理模型，采用混合专家（MoE）架构，主要面向自然语言处理（NLP）任务，旨在提供高效、可扩展的解决方案。其优势在于高效的多模态处理能力（文本、图像、音频、视频）和较低的训练成本",
-            "contextSize": 64000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall"
-            ],
-            "abilities": "functionCall",
-            "sortOrder": 500,
-            "createdAt": "2025-06-24 14:39:09",
-            "updatedAt": "2025-08-18 17:48:24",
-            "status": null
-        },
-        {
-            "id": "1958703207692713984",
-            "name": "deepseek/deepseek-chat-v3.1",
-            "displayName": "Deepseek-V3.1",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png",
-            "description": "通用的自然语言处理模型，采用混合专家（MoE）架构，主要面向自然语言处理（NLP）任务，旨在提供高效、可扩展的解决方案。其优势在于高效的多模态处理能力（文本、图像、音频、视频）和较低的训练成本",
-            "contextSize": 128000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall"
-            ],
-            "abilities": "functionCall",
-            "sortOrder": 501,
-            "createdAt": "2025-08-22 09:30:10",
-            "updatedAt": "2025-08-22 09:30:10",
-            "status": null
-        },
-        {
-            "id": "1",
-            "name": "deepseek-r1",
-            "displayName": "Deepseek-R1",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png",
-            "description": "专注于高级推理任务，强化在数学、代码生成和逻辑推理领域的性能。通过大规模强化学习（RL）和冷启动技术，R1在无需大量监督微调（SFT）的情况下，实现了与OpenAI o1系列相当的推理能力",
-            "contextSize": 64000,
-            "type": "chat",
-            "abilityList": [
-                "reasoning"
-            ],
-            "abilities": "reasoning",
-            "sortOrder": 600,
-            "createdAt": "2025-06-24 14:39:09",
-            "updatedAt": "2025-08-18 17:48:25",
-            "status": null
-        },
-        {
-            "id": "1957375750087217152",
-            "name": "moonshotai/kimi-k2",
-            "displayName": "Kimi K2",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/moonshot.png",
-            "description": "kimi-k2",
-            "contextSize": 63000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall"
-            ],
-            "abilities": "functionCall",
-            "sortOrder": 700,
-            "createdAt": "2025-08-18 17:35:19",
-            "updatedAt": "2025-08-18 17:48:27",
-            "status": null
-        },
-        {
-            "id": "1947537424490442752",
-            "name": "anthropic/claude-opus-4",
-            "displayName": "Claude Opus 4",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png",
-            "description": "Claude Opus 4是Anthropic最新旗舰大模型，专注于高级推理和多模态任务，适用于复杂AI应用。",
-            "contextSize": 200000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 900,
-            "createdAt": "2025-07-22 14:01:20",
-            "updatedAt": "2025-08-18 17:48:29",
-            "status": null
-        },
-        {
-            "id": "1011",
-            "name": "claude-sonnet-4-20250514-thinking",
-            "displayName": "Claude-Sonnet-4-Thinking",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png",
-            "description": "Claude Sonnet 4 Thinking模式，提升推理与多模态能力，适合复杂AI任务。",
-            "contextSize": 200000,
-            "type": "chat",
-            "abilityList": [
-                "reasoning",
-                "vision"
-            ],
-            "abilities": "reasoning,vision",
-            "sortOrder": 1000,
-            "createdAt": "2025-06-26 12:00:00",
-            "updatedAt": "2025-08-18 17:48:31",
-            "status": null
-        },
-        {
-            "id": "1010",
-            "name": "claude-opus-4-20250514-thinking",
-            "displayName": "Claude-Opus-4-Thinking",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png",
-            "description": "Claude Opus 4 Thinking模式，进一步增强推理与多模态处理能力，适合复杂场景。",
-            "contextSize": 200000,
-            "type": "chat",
-            "abilityList": [
-                "reasoning",
-                "vision"
-            ],
-            "abilities": "reasoning,vision",
-            "sortOrder": 1100,
-            "createdAt": "2025-06-26 12:00:00",
-            "updatedAt": "2025-08-18 17:48:32",
-            "status": null
-        },
-        {
-            "id": "1947537013150855168",
-            "name": "anthropic/claude-3.7-sonnet",
-            "displayName": "Claude-3.7-Sonnet",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png",
-            "description": "Claude 3.7 Sonnet 是业界首个支持双重输出模式的大模型，既支持标准输出模式，也支持深度推理模式。其中，深度推理模式被称为 Claude 3.7 Sonnet with 64K extended thinking，最多支持 128K 长度的输出。这一特性使得模型在处理复杂问题时，能够提供更加详细的推理过程，帮助用户更好地理解模型的思考逻辑。",
-            "contextSize": 200000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 1200,
-            "createdAt": "2025-07-22 13:59:42",
-            "updatedAt": "2025-08-18 17:48:34",
-            "status": null
-        },
-        {
-            "id": "1957374045484322816",
-            "name": "gpt-5",
-            "displayName": "gpt-5",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/chatgpt.jpeg",
-            "description": "gpt-5",
-            "contextSize": 400000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 1300,
-            "createdAt": "2025-08-18 17:28:33",
-            "updatedAt": "2025-08-18 20:40:44",
-            "status": null
-        },
-        {
-            "id": "4",
-            "name": "openai/gpt-4.1",
-            "displayName": "gpt-4.1",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/chatgpt.jpeg",
-            "description": "gpt-4.1",
-            "contextSize": 1000000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 1400,
-            "createdAt": "2025-06-25 20:29:57",
-            "updatedAt": "2025-08-18 17:48:37",
-            "status": null
-        },
-        {
-            "id": "1007",
-            "name": "openai/gpt-4o",
-            "displayName": "GPT-4o",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/chatgpt.jpeg",
-            "description": "GPT-4o是OpenAI最新多模态旗舰模型，支持文本、图像等多种输入，具备极强的推理和理解能力。",
-            "contextSize": 128000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 1500,
-            "createdAt": "2025-06-26 12:00:00",
-            "updatedAt": "2025-08-18 17:48:55",
-            "status": null
-        },
-        {
-            "id": "1957375216647245824",
-            "name": "x-ai/grok-4",
-            "displayName": "Grok 4",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/grok.png",
-            "description": "Grok 4",
-            "contextSize": 256000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 1600,
-            "createdAt": "2025-08-18 17:33:12",
-            "updatedAt": "2025-08-18 17:48:39",
-            "status": null
-        },
-        {
-            "id": "1957378564708470784",
-            "name": "google/gemini-2.5-flash",
-            "displayName": "Gemini 2.5 Flash",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/gemini.png",
-            "description": "谷歌提供的最新大模型",
-            "contextSize": 1000000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision"
-            ],
-            "abilities": "functionCall,vision",
-            "sortOrder": 1700,
-            "createdAt": "2025-08-18 17:46:30",
-            "updatedAt": "2025-08-18 17:48:42",
-            "status": null
-        },
-        {
-            "id": "1945734826707922944",
-            "name": "google/gemini-2.5-pro",
-            "displayName": "Gemini 2.5 Pro",
-            "icon": "http://192.168.2.21:11180/revo-ai-files/model-logo/gemini.png",
-            "description": "谷歌提供的最新大模型",
-            "contextSize": 1000000,
-            "type": "chat",
-            "abilityList": [
-                "functionCall",
-                "vision",
-                "reasoning"
-            ],
-            "abilities": "functionCall,vision,reasoning",
-            "sortOrder": 1800,
-            "createdAt": "2025-07-17 14:38:27",
-            "updatedAt": "2025-08-22 13:37:41",
-            "status": null
-        }
-    ])
+  // {
+  //   id: 'deepseek-r1',
+  //   name: 'deepseek-r1',
+  //   displayName: 'Deepseek-R1',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png',
+  //   description:
+  //     '专注于高级推理任务，强化在数学、代码生成和逻辑推理领域的性能。通过大规模强化学习（RL）和冷启动技术，R1在无需大量监督微调（SFT）的情况下，实现了与OpenAI o1系列相当的推理能力',
+  //   type: 'chat',
+  //   abilityList: ['reasoning'],
+  // },
+  {
+    id: 'deepseek-v3',
+    name: 'deepseek-v3',
+    displayName: 'Deepseek-V3',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/deepseek.png',
+    description:
+      '通用的自然语言处理模型，采用混合专家（MoE）架构，主要面向自然语言处理（NLP）任务，旨在提供高效、可扩展的解决方案。其优势在于高效的多模态处理能力（文本、图像、音频、视频）和较低的训练成本',
+    type: 'chat',
+    abilityList: ['functionCall'],
+  },
+  {
+    id: 'anthropic/claude-sonnet-4',
+    name: 'claude-sonnet-4',
+    displayName: 'claude-sonnet-4',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/claude.png',
+    description:
+      'claude-sonnet-4',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  {
+    id: 'glm-4.5v',
+    name: 'glm-4.5v',
+    displayName: 'glm-4.5v',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/chatglm.png',
+    description:
+      '',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  {
+    id: 'gpt-4.1',
+    name: 'gpt-4.1',
+    displayName: 'gpt-4.1',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/chatgpt.jpeg',
+    description: 'gpt-4.1',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  {
+    id: 'gpt-4.1-mini',
+    name: 'gpt-4.1-mini',
+    displayName: 'GPT-4.1 mini',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/gpt_4.png',
+    description: 'GPT-4.1 mini为轻量级多模态模型，兼具高效推理和视觉能力，适合资源受限场景。',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  {
+    id: 'gpt-4o',
+    name: 'gpt-4o',
+    displayName: 'GPT-4o',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/gpt_4.png',
+    description:
+      'GPT-4o是OpenAI最新多模态旗舰模型，支持文本、图像等多种输入，具备极强的推理和理解能力。',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  // {
+  //   id: 'doubao-seed-1.6-thinking',
+  //   name: 'doubao-seed-1.6-thinking',
+  //   displayName: 'Doubao Seed 1.6 Thinking',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png',
+  //   description: 'Doubao Seed 1.6 Thinking模式，进一步提升推理和多模态能力，适合复杂AI任务。',
+  //   type: 'chat',
+  //   abilityList: ['reasoning', 'vision'],
+  // },
+  {
+    id: 'doubao-seed-1.6',
+    name: 'doubao-seed-1.6',
+    displayName: 'Doubao Seed 1.6',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/doubao.png',
+    description:
+      'Doubao Seed 1.6是字节跳动推出的多模态大模型，兼具推理和视觉能力，适合多场景AI应用。',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  // {
+  //   id: 'qwen3-235b-a22b',
+  //   name: 'qwen3-235b-a22b',
+  //   displayName: 'Qwen3 235B A22B',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
+  //   description: 'Qwen3 235B A22B是阿里云推出的旗舰大模型，专注于推理与方法调用，适合企业级场景。',
+  //   type: 'chat',
+  //   abilityList: ['reasoning'],
+  // },
+  {
+    id: 'gemini-2.5-pro-preview-06-05',
+    name: 'gemini-2.5-pro-preview-06-05',
+    displayName: 'Gemini 2.5 Pro(Preview)',
+    icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/gemini.png',
+    description: '谷歌提供的最新大模型',
+    type: 'chat',
+    abilityList: ['functionCall', 'vision'],
+  },
+  // {
+  //   id: 'qwen2.5-vl-72b-instruct',
+  //   name: 'qwen2.5-vl-72b-instruct',
+  //   displayName: 'Qwen2.5 VL 72B Instruct',
+  //   icon: 'http://192.168.2.21:11180/revo-ai-files/model-logo/qwen.png',
+  //   description:
+  //     'Qwen2.5 VL 72B Instruct为多模态模型，支持文本、视觉等多种输入，适合多场景AI应用。',
+  //   type: 'chat',
+  //   abilityList: ['vision'],
+  // },
+])
 
 // 自定义搜索函数
 const webSearchFunction = async (
