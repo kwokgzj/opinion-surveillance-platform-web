@@ -231,7 +231,7 @@ class MCPManagerService {
       // 处理工具列表，添加服务器信息
       return (tools || []).map((tool: any) => ({
         ...tool,
-        id: `${server.name}.${tool.name}`,
+        id: tool.name,
         serverId: server.id,
         serverName: server.name,
       }))
