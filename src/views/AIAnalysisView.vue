@@ -82,7 +82,7 @@ interface ProjectSelector {
   selectedProjectIds: string[]
 }
 
-const apiKey = ref('sk-mhmQr61vyBQO7CZw7cBeF4CdD693472bA12aA5A375D845B4')
+const apiKey = ref('sk-k2QCFIqPFa5mmD5k6e77Fb562c35477fA49a4d467c606d66')
 const baseUrl = ref('http://192.168.2.21:9300')
 
 // 项目相关状态
